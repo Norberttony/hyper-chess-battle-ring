@@ -1,7 +1,9 @@
 
-const { clearScreenDown } = require("readline");
 const { Board, StartingFEN } = require("../viewer/scripts/game/game");
 const { Piece } = require("../viewer/scripts/game/piece");
+const { getAllPositions } = require("./fetch-pos");
+const { Engine } = require("./engine");
+const { SPRT } = require("./analyze");
 const fs = require("fs");
 
 // starts a game between two engines. Returns a promise that resolves/rejects when the game ends.
@@ -64,4 +66,49 @@ async function startADouble(e1, e2, fen = StartingFEN){
     return [ w1, l1, w2, l2 ];
 }
 
-module.exports = { startAGame, startADouble };
+async function playTournament(oldVersion, newVersion, threads){
+    const positions = getAllPositions();
+
+    const round = async () => {
+        const idx = Math.floor(Math.random() * positions.length);
+        const fen = positions.splice(idx, 1)[0];
+
+        try {
+
+            // play a game and interpret the results
+            const [ w1, l1, w2, l2 ] = await startADouble(oldVersion, newVersion, fen);
+            if (w1 == 0){
+                Engine.addResult(oldVersion, newVersion, 0);
+            }else{
+                Engine.addResult(w1, l1, 1);
+            }
+
+            if (w2 == 0){
+                Engine.addResult(oldVersion, newVersion, 0);
+            }else{
+                Engine.addResult(w2, l2, 1);
+            }
+        }
+        catch(err){
+            console.error(err);
+        }
+        finally {
+            // since the results might have changed, perform SPRT
+            const results = newVersion.getResultRow(oldVersion.name);
+            
+            const hyp = SPRT(results.wins, results.draws, results.losses, 0, 20, 0.01, 0.01);
+            if (!hyp){
+                // silly way of preventing stack overflow
+                setTimeout(round, 1);
+            }else{
+                console.log("Accept", hyp);
+            }
+        }
+    }
+
+    for (let i = 0; i < threads; i++){
+        round();
+    }
+}
+
+module.exports = { startAGame, startADouble, playTournament };

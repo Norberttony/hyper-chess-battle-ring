@@ -38,7 +38,7 @@ console.log("Listening to port 8000");
 
 const fs = require("fs");
 
-const { startAGame, startADouble } = require("./modules/match-handler");
+const { playTournament } = require("./modules/match-handler");
 const { Engine, extractEngines } = require("./modules/engine");
 
 const { getAllPositions } = require("./modules/fetch-pos");
@@ -46,14 +46,12 @@ const { SPRT } = require("./modules/analyze");
 
 const debugDir = "./debug/";
 
-const positions = getAllPositions();
-
 const activeEngines = extractEngines("./bots/");
 const benchedEngines = extractEngines("./bench/");
 
 (async () => {
     
-    
+    playTournament(activeEngines[0], activeEngines[1], 1);
 
 })();
 
@@ -90,111 +88,4 @@ function playerVsEngineHandler(engine, data){
         }
     }
 }
-*/
-
-// play many games
-/*
-const elo1 = 20;
-(async () => {
-    let e1Wins = 0;
-    let e2Wins = 0;
-    let draws = 0;
-    let whiteWins = 0;
-    let blackWins = 0;
-
-    // read from log file to determine starting point and wins
-    const logFileContent = fs.readFileSync(`${debugDir}_log.txt`).toString();
-    const logFileLines = logFileContent.split("\n");
-
-    logFileLines.splice(logFileLines.length - 1, 1);
-
-    if (logFileLines.length >= 2){
-        const logFileH2H = logFileLines[logFileLines.length - 2].split(" ");
-        const logFileWB = logFileLines[logFileLines.length - 1].split(" ");
-
-        e1Wins = parseInt(logFileH2H[1]);
-        e2Wins = parseInt(logFileH2H[5]);
-        draws = parseInt(logFileH2H[3]);
-        whiteWins = parseInt(logFileWB[1]);
-        blackWins = parseInt(logFileWB[5]);
-    }
-
-    let gameIndex = (e1Wins + draws + e2Wins) / 2;
-    const threads = 1;
-
-    let sprtResult = SPRT(e2Wins, draws, e1Wins, 0, elo1, 0.01, 0.01);
-
-    // records the result of a finished match
-    function recordResult(matchHandler, reverse = false){
-        let result = matchHandler.result;
-
-        // determine wins for white, black, or draws
-        if (result == 1)
-            whiteWins++;
-        else if (result == -1)
-            blackWins++;
-        else if (result == 0)
-            draws++;
-
-        // determine wins for engines
-        if (reverse)
-            result *= -1;
-
-        if (result == 1){
-            e1Wins++;
-        }else if (result == -1){
-            e2Wins++;
-        }
-    }
-
-    let startDouble = () => {
-        if (positions.length == 0){
-            console.log("out of positions!");
-            return;
-        }
-
-        if (sprtResult)
-            return;
-
-        let myIndex = gameIndex++;
-
-        if (myIndex > 1000)
-            return;
-
-        console.log("Starting double", myIndex * 2);
-        const chosen = positions[Math.floor(Math.random() * positions.length)];
-        console.log("Chose position", chosen);
-
-        // remove position from samples
-        positions.splice(positions.indexOf(chosen), 1);
-
-
-        playGame(engines[0], engines[1], myIndex * 2, chosen.trim(), (matchHandler1) => {
-            if (sprtResult || matchHandler1.result == -2)
-                return;
-
-            playGame(engines[1], engines[0], myIndex * 2 + 1, chosen.trim(), (matchHandler2) => {
-                if (sprtResult || matchHandler2.result == -2)
-                    return;
-
-                recordResult(matchHandler1, false);
-                recordResult(matchHandler2, true);
-
-                sprtResult = SPRT(e2Wins, draws, e1Wins, 0, elo1, 0.01, 0.01);
-                if (sprtResult)
-                    console.log("Accept", sprtResult);
-                
-                fs.appendFileSync("./debug/_log.txt", `H2H: ${e1Wins} - ${draws} - ${e2Wins}\n`);
-                fs.appendFileSync("./debug/_log.txt", `White/Black: ${whiteWins} - ${draws} - ${blackWins}\n`);
-
-                // starts a new double
-                startDouble();
-            });
-        });
-    }
-
-    for (let t = 0; t < threads; t++){
-        startDouble();
-    }
-})();
 */
