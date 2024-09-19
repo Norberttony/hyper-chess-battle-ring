@@ -38,8 +38,8 @@ console.log("Listening to port 8000");
 
 const fs = require("fs");
 
-const { MatchHandler } = require("./match-handler");
-const { Engine } = require("./engine");
+const { startAGame, startADouble } = require("./match-handler");
+const { Engine, extractEngines } = require("./engine");
 
 const { getAllPositions } = require("./fetch-pos");
 const { SPRT } = require("./analyze");
@@ -48,10 +48,11 @@ const debugDir = "./debug/";
 
 const positions = getAllPositions();
 
-function playGame(white, black, index, fen, handler){
-    // create a new match between white and black
-    return new MatchHandler(white, black, index, fen, handler);
-}
+const engines = extractEngines("./bots/");
+
+(async () => {
+    console.log(await startADouble(engines[0], engines[1]));
+})();
 
 // user plays against engine
 /*
@@ -89,6 +90,7 @@ function playerVsEngineHandler(engine, data){
 */
 
 // play many games
+/*
 const elo1 = 20;
 (async () => {
     let e1Wins = 0;
@@ -192,4 +194,4 @@ const elo1 = 20;
         startDouble();
     }
 })();
-
+*/

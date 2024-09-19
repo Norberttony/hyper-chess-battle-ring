@@ -49,6 +49,8 @@ class Board {
         // last capture stack
         this.lastCaptures = [ 0 ];
 
+        this.positions = {};
+
         this.loadFEN(StartingFEN);
     }
     // returns any unique identifiers to a position (arrangement of pieces, castling rights, en passant, whose turn it is, etc)
@@ -749,7 +751,7 @@ class Board {
 
         // last capture
         const lastCapture = this.lastCaptures[this.lastCaptures.length - 1] + 1;
-        this.lastCaptures.push(m.captures.length == 0 ? lastCapture : 0);
+        this.lastCaptures.push(move.captures.length == 0 ? lastCapture : 0);
 
         if (lastCapture >= 100)
             this.setResult("/", "fifty move rule");
@@ -758,7 +760,7 @@ class Board {
         this.nextTurn();
 
         // for three-fold
-        const pos = this.game.getPosition();
+        const pos = this.getPosition();
         if (!this.positions[pos])
             this.positions[pos] = 0;
 
@@ -768,7 +770,7 @@ class Board {
     // un-does a move on the board (make sure that the move being undone is the most recent made move)
     unmakeMove(move){
         // for three-fold
-        const pos = this.game.getPosition();
+        const pos = this.getPosition();
         this.positions[pos]--;
         
         // unmove the piece and uncapture whatever it captured.
