@@ -44,22 +44,9 @@ const { Engine } = require("./engine");
 const { getAllPositions } = require("./fetch-pos");
 const { SPRT } = require("./analyze");
 
-const botsDir = "./bots/";
 const debugDir = "./debug/";
 
 const positions = getAllPositions();
-
-// search for all .exe files (engines)
-const engines = [];
-
-fs.readdirSync(botsDir).forEach(file => {
-    if (file.endsWith(".exe")){
-        // valid!
-        const engine = new Engine(file.replace(".exe", ""), `${botsDir}${file}`);
-        engines.push(engine);
-        console.log(engine);
-    }
-});
 
 function playGame(white, black, index, fen, handler){
     // create a new match between white and black

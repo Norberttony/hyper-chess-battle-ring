@@ -2,6 +2,7 @@
 debug/*
 bots/*
 bench/*
+data/*
 node_modules
 
 !.gitkeep

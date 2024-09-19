@@ -46,6 +46,9 @@ class Board {
         // fullmove counter
         this.fullmove = 1;
 
+        // last capture stack
+        this.lastCaptures = [ 0 ];
+
         this.loadFEN(StartingFEN);
     }
     // returns any unique identifiers to a position (arrangement of pieces, castling rights, en passant, whose turn it is, etc)
@@ -707,7 +710,7 @@ class Board {
         }
 
         // go through all of the captures
-        for (const {sq, captured} of move.captures){
+        for (const { sq, captured } of move.captures){
             this.squares[sq] = 0;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // remove coordinator from list
@@ -740,18 +743,38 @@ class Board {
         
         // fullmove
         if (Piece.ofColor(this.turn, Piece.black)){
-            if (this.fullmove != "-") this.fullmove++;
+            if (this.fullmove != "-")
+                this.fullmove++;
         }
+
+        // last capture
+        const lastCapture = this.lastCaptures[this.lastCaptures.length - 1] + 1;
+        this.lastCaptures.push(m.captures.length == 0 ? lastCapture : 0);
+
+        if (lastCapture >= 100)
+            this.setResult("/", "fifty move rule");
 
         // set turn
         this.nextTurn();
+
+        // for three-fold
+        const pos = this.game.getPosition();
+        if (!this.positions[pos])
+            this.positions[pos] = 0;
+
+        if (++this.positions[pos] == 3)
+            this.setResult("/", "threefold repetition");
     }
     // un-does a move on the board (make sure that the move being undone is the most recent made move)
     unmakeMove(move){
+        // for three-fold
+        const pos = this.game.getPosition();
+        this.positions[pos]--;
+        
         // unmove the piece and uncapture whatever it captured.
         this.squares[move.from] = this.squares[move.to];
         this.squares[move.to] = 0;
-        for (const {sq, captured} of move.captures){
+        for (const { sq, captured } of move.captures){
             this.squares[sq] = captured;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // add coordinator back to list
@@ -779,6 +802,8 @@ class Board {
                 }
             }
         }
+
+        this.lastCaptures.pop();
 
         // set turn
         this.nextTurn();
