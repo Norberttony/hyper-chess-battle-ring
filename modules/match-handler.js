@@ -1,7 +1,7 @@
 
 const { clearScreenDown } = require("readline");
-const { Board, StartingFEN } = require("./viewer/scripts/game/game");
-const { Piece } = require("./viewer/scripts/game/piece");
+const { Board, StartingFEN } = require("../viewer/scripts/game/game");
+const { Piece } = require("../viewer/scripts/game/piece");
 const fs = require("fs");
 
 // starts a game between two engines. Returns a promise that resolves/rejects when the game ends.

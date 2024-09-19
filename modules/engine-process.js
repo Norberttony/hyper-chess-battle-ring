@@ -1,6 +1,6 @@
 
 const spawn = require("child_process").spawn;
-const { Piece } = require("./viewer/scripts/game/piece");
+const { Piece } = require("../viewer/scripts/game/piece");
 
 class EngineProcess {
     constructor(engine, onFinish, onError){

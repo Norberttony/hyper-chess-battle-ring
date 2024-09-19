@@ -38,20 +38,23 @@ console.log("Listening to port 8000");
 
 const fs = require("fs");
 
-const { startAGame, startADouble } = require("./match-handler");
-const { Engine, extractEngines } = require("./engine");
+const { startAGame, startADouble } = require("./modules/match-handler");
+const { Engine, extractEngines } = require("./modules/engine");
 
-const { getAllPositions } = require("./fetch-pos");
-const { SPRT } = require("./analyze");
+const { getAllPositions } = require("./modules/fetch-pos");
+const { SPRT } = require("./modules/analyze");
 
 const debugDir = "./debug/";
 
 const positions = getAllPositions();
 
-const engines = extractEngines("./bots/");
+const activeEngines = extractEngines("./bots/");
+const benchedEngines = extractEngines("./bench/");
 
 (async () => {
-    console.log(await startADouble(engines[0], engines[1]));
+    
+    
+
 })();
 
 // user plays against engine
