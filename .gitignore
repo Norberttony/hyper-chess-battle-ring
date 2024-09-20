@@ -2,7 +2,7 @@
 debug/*
 bots/*
 bench/*
-data/*
+data/tournaments/*
 node_modules
 
 !.gitkeep

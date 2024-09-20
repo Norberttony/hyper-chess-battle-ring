@@ -49,7 +49,7 @@ class EngineProcess {
                         if (t.board.isGameOver()){
                             // of course, we have to update the opponent's game log with the move
                             // but without continuing this game
-                            t.opponent.gameLog += `${lan}`;
+                            t.opponent.gameLog += `${lan}\n`;
 
                             t.onFinish(this);
                             return;

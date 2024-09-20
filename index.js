@@ -37,7 +37,7 @@ console.log("Listening to port 8000");
 
 
 const { setGlobalLogId, setLogDirs } = require("./modules/logger");
-const { playTournament } = require("./modules/match-handler");
+const { playTournament, loadTournamentInfo } = require("./modules/match-handler");
 const { extractEngines } = require("./modules/engine");
 
 const activeEngines = extractEngines("./bots/");
@@ -45,6 +45,7 @@ const benchedEngines = extractEngines("./bench/");
 
 (async () => {
     
+    loadTournamentInfo(activeEngines[0], activeEngines[1]);
     playTournament(activeEngines[0], activeEngines[1], 1);
 
 })();

@@ -4,7 +4,13 @@ const { Piece } = require("../viewer/scripts/game/piece");
 const { getAllPositions } = require("./fetch-pos");
 const { Engine } = require("./engine");
 const { SPRT } = require("./analyze");
-const { saveLogs } = require("./logger");
+const { setGlobalLogId, saveLogs } = require("./logger");
+
+const fs = require("fs");
+
+// contains positions used by the tournament manager.
+let usedPositions = {};
+
 
 // starts a game between two engines. Returns a promise that resolves/rejects when the game ends.
 // If the game ends in a draw, promise is resolved with 0. Otherwise, the promise is resolved with
@@ -74,13 +80,23 @@ async function playTournament(oldVersion, newVersion, threads){
     const positions = getAllPositions();
 
     const round = async () => {
-        const idx = Math.floor(Math.random() * positions.length);
-        const fen = positions.splice(idx, 1)[0];
+        let fen;
+        while (!fen){
+            if (positions.length == 0)
+                throw new Error("Out of new positions");
+
+            const idx = Math.floor(Math.random() * positions.length);
+            fen = positions.splice(idx, 1)[0];
+
+            if (usedPositions[fen])
+                fen = undefined;
+        }
 
         try {
 
             // play a game and interpret the results
             const [ w1, l1, w2, l2 ] = await startADouble(oldVersion, newVersion, fen);
+
             if (w1 == 0){
                 Engine.addResult(oldVersion, newVersion, 0);
             }else{
@@ -92,6 +108,21 @@ async function playTournament(oldVersion, newVersion, threads){
             }else{
                 Engine.addResult(w2, l2, 1);
             }
+
+            // this position was now used
+            usedPositions[fen] = true;
+
+            // save all of the tournament data
+            fs.writeFile("./data/tournaments/used-positions.json", JSON.stringify(usedPositions), (err) => {
+                console.error(err);
+            });
+            const totalResults = {
+                [oldVersion.name]: oldVersion.resultTable,
+                [newVersion.name]: newVersion.resultTable
+            };
+            fs.writeFile("./data/tournaments/results.json", JSON.stringify(totalResults), (err) => {
+                console.error(err);
+            });
         }
         catch(err){
             console.error(err);
@@ -115,4 +146,35 @@ async function playTournament(oldVersion, newVersion, threads){
     }
 }
 
-module.exports = { startAGame, startADouble, playTournament };
+// reads from a specific folder: data/tournaments
+// expects to see under that folder: results.json and used-positions.json
+function loadTournamentInfo(oldVersion, newVersion){
+    const resultsPath = "./data/tournaments/results.json";
+    const usedPosPath = "./data/tournaments/used-positions.json";
+
+    if (!fs.existsSync(resultsPath) || !fs.existsSync(usedPosPath)){
+        console.warn(`Could not load tournament info, either ${resultsPath} or ${usedPosPath} does not exist.`);
+        return false;
+    }
+
+    const results = JSON.parse(fs.readFileSync(resultsPath));
+    const usedPos = JSON.parse(fs.readFileSync(usedPosPath));
+
+    // set results if they exist for these versions
+    oldVersion.resultTable = results[oldVersion.name] || {};
+    newVersion.resultTable = results[newVersion.name] || {};
+
+    const oldResults = oldVersion.getResultRow(newVersion.name);
+    const newResults = newVersion.getResultRow(oldVersion.name);
+
+    // calculate the total game count to determine a safe gameId for log files
+    const gameCount = oldResults.wins + oldResults.draws + oldResults.losses;
+    setGlobalLogId(gameCount);
+
+    
+    usedPositions = usedPos;
+
+    return true;
+}
+
+module.exports = { startAGame, startADouble, playTournament, loadTournamentInfo };
