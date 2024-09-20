@@ -1,25 +1,24 @@
 
 const fs = require("fs");
 
+const allPositions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
+
 // returns all positions currently stored in positions.txt
 // removes any duplicates in the positions.txt file
 function getAllPositions(){
-    let positions = fs.readFileSync("./positions.txt").toString().split("\n");
+    const positions = [];
 
-    // remove duplicates
-    let duplicatesRemoved = 0;
-    for (let i = 0; i < positions.length; i++){
-        let index = positions.indexOf(positions[i], i + 1);
-        while (index > -1){
-            positions.splice(index, 1);
-            duplicatesRemoved++;
-            index = positions.indexOf(positions[i], index);
-        }
-    }
-    console.log(`Removed ${duplicatesRemoved} duplicates`);
-    console.log(`Left with ${positions.length} positions`);
+    // do a shallow copy to allow modifying the objects when saving positions
+    for (const p of allPositions)
+        positions.push(p);
 
     return positions;
 }
 
-module.exports = { getAllPositions };
+function savePositions(){
+    fs.writeFile("./data/positions.json", JSON.stringify(allPositions), (err) => {
+        console.error(err);
+    });
+}
+
+module.exports = { getAllPositions, savePositions };

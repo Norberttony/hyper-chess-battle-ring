@@ -1,7 +1,7 @@
 
 const { Board, StartingFEN } = require("../viewer/scripts/game/game");
 const { Piece } = require("../viewer/scripts/game/piece");
-const { getAllPositions } = require("./fetch-pos");
+const { getAllPositions, savePositions } = require("./fetch-pos");
 const { Engine } = require("./engine");
 const { SPRT } = require("./analyze");
 const { setGlobalLogId, saveLogs } = require("./logger");
@@ -80,39 +80,50 @@ async function playTournament(oldVersion, newVersion, threads){
     const positions = getAllPositions();
 
     const round = async () => {
-        let fen;
-        while (!fen){
+        let pos;
+        while (!pos){
             if (positions.length == 0)
                 throw new Error("Out of new positions");
 
             const idx = Math.floor(Math.random() * positions.length);
-            fen = positions.splice(idx, 1)[0];
+            pos = positions.splice(idx, 1)[0];
 
-            if (usedPositions[fen])
-                fen = undefined;
+            if (usedPositions[pos.fen])
+                pos = undefined;
         }
 
         try {
 
             // play a game and interpret the results
-            const [ w1, l1, w2, l2 ] = await startADouble(oldVersion, newVersion, fen);
+            const [ w1, l1, w2, l2 ] = await startADouble(oldVersion, newVersion, pos.fen);
 
             if (w1 == 0){
                 Engine.addResult(oldVersion, newVersion, 0);
+                pos.draws++;
             }else{
                 Engine.addResult(w1, l1, 1);
+                if (w1 == oldVersion)
+                    pos.whiteWins++;
+                else
+                    pos.blackWins++
             }
 
             if (w2 == 0){
                 Engine.addResult(oldVersion, newVersion, 0);
+                pos.draws++;
             }else{
                 Engine.addResult(w2, l2, 1);
+                if (w1 == newVersion)
+                    pos.whiteWins++;
+                else
+                    pos.blackWins++
             }
 
             // this position was now used
-            usedPositions[fen] = true;
+            usedPositions[pos.fen] = true;
 
             // save all of the tournament data
+            savePositions();
             fs.writeFile("./data/tournaments/used-positions.json", JSON.stringify(usedPositions), (err) => {
                 console.error(err);
             });

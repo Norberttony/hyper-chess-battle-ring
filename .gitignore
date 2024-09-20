@@ -2,7 +2,13 @@
 debug/*
 bots/*
 bench/*
+
 data/tournaments/*
+data/positions.json
+
 node_modules
+
+pgn.txt
+positions.txt
 
 !.gitkeep
