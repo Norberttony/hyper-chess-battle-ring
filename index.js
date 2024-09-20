@@ -39,14 +39,45 @@ console.log("Listening to port 8000");
 const { setGlobalLogId, setLogDirs } = require("./modules/logger");
 const { playTournament, loadTournamentInfo } = require("./modules/match-handler");
 const { extractEngines } = require("./modules/engine");
+const { input } = require("./modules/input");
 
 const activeEngines = extractEngines("./bots/");
 const benchedEngines = extractEngines("./bench/");
 
 (async () => {
     
-    loadTournamentInfo(activeEngines[0], activeEngines[1]);
-    playTournament(activeEngines[0], activeEngines[1], 1);
+    while (true){
+        console.log("Type in a command:");
+        const cmd = (await input()).split(" ");
+        
+        if (cmd[0] == "bench"){
+            console.log("\nBench:");
+            for (const e of benchedEngines)
+                console.log(e.name);
+            console.log("");
+        }else if (cmd[0] == "list"){
+            console.log("\nBots:");
+            for (const e of activeEngines)
+                console.log(e.name);
+            console.log("");
+        }else if (cmd[0] == "add"){
+
+        }else if (cmd[0] == "remove"){
+            
+        }else if (cmd[0] == "tournament"){
+            console.log("\nWould you like to load previous tournament info? (y/n)");
+            const p = await input();
+            if (p == "y"){
+                loadTournamentInfo(activeEngines[0], activeEngines[1]);
+            }
+
+            console.log("\nNumber of threads?");
+            const t = parseInt(await input());
+            playTournament(activeEngines[0], activeEngines[1], t);
+        }else if (cmd[0] == "q"){
+            break;
+        }
+    }
 
 })();
 

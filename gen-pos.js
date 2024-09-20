@@ -1,8 +1,8 @@
 
-import fs from "fs";
+const fs = require("fs");
 
-import { Piece } from "./game-logic/piece.js";
-import { Board, StartingFEN } from "./game-logic/game.js";
+const { Piece } = require("./viewer/scripts/game/piece");
+const { Board, StartingFEN } = require("./viewer/scripts/game/game");
 
 const contents = fs.readFileSync("./pgn.txt").toString();
 
@@ -103,9 +103,8 @@ let FENs = "";
 let start = contents.indexOf("[");
 let end = contents.indexOf("[", contents.indexOf("1."));
 let prog = 0;
+let FENsAmt = 0;
 while (start != -1 && end != -1){
-    console.log(prog++);
-
     game.loadFEN(StartingFEN);
 
     let pgn = contents.substring(start, end);
@@ -126,27 +125,31 @@ while (start != -1 && end != -1){
     pgn = pgn.replace(/\s+/g, " ");
     pgn = pgn.trim();
 
-    let potentialFENs = [];
-
     // load the pgn
     const moves = pgn.split(" ");
+    let lastAdded = -99999;
     for (let i = 0; i < moves.length; i++){
         const m1 = game.getMoveOfSAN(moves[i])
         if (m1){
             game.makeMove(m1);
         }
 
-        if (isPositionQuietAndEqual(game)){
-            potentialFENs.push(game.getFEN());
+        // ensure the position is different enough from other similar positions
+        // and also that this isn't close to the opening phase of the game
+        if (i >= 8 && i - lastAdded >= 10 && isPositionQuietAndEqual(game)){
+            FENs += `${game.getFEN()}\n`;
+            lastAdded = i;
+            FENsAmt++;
         }
     }
 
-    recordFENSample(potentialFENs, Math.ceil(moves.length / 10));
-
     start = contents.indexOf("[", contents.indexOf("1.", end));
     end = contents.indexOf("[", contents.indexOf("1.", start));
+
+    console.log(prog++, FENsAmt);
 }
 
+/*
 for (let i = 0; i < 1000; i++){
     console.log(i);
     // can read the contents of any file with LAN (long algebraic notation) moves.
@@ -169,8 +172,10 @@ for (let i = 0; i < 1000; i++){
     recordFENSample(potentialFENs, Math.ceil(moves.length / 10));
     
 }
+    */
 
-fs.appendFileSync("./positions.txt", FENs);
+console.log(FENs);
+//fs.appendFileSync("./positions.txt", FENs);
 
 function randomInteger(min, max){
     return Math.floor(Math.random() * (max - min)) + min;

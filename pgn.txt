@@ -152,3 +152,259 @@
 1. Pg5 Pb5 2. Pa5 Pcc5 3. Pdd5 Nb7 4. Qd4 Pe3 5. Rxa3 Qf6 6. Qxe3 Qxe7 7. Pdxc5 Pd1 8. Rxd3 Nd5 9. Qd2 Pf3 10. Pxe5 Bd7 11. Ng2 Kd8 12. Nxe4 Bxf3 13. Nxg2 Uf3 14. Be2 Nc4 15. Pxc3 Pg3 16. Pa4 Bd4 17. Nd3 Bf4 18. Nd4 Bxc4 19. Qd4 Bxb4 20. P5xc4 Rg8 21. Pxf4 Ke8 22. Na8 Rxa2 23. Ke2 Qb4 24. Bxa1 Qxc4 25. Pxc5 Pa2 26. Ub7 Pg1 27. Bd1 Pd7 28. Ue4 Pe7 29. Bd6 Pa4 30. Ue6 Pa7 31. Pfg2 Kf7 32. Bd8 Pd7 33. Bf8# 1 - 0 
 
 
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.repl.co/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Pb4 2. Pdd4 Paa4 3. Pcc4 Ph4 4. Pff4 Pd5 5. Pgg4 Pe6 6. Qb3 Paa5 7. Pxa4 Qg5 8. Pe5 Rxh5 9. Ng2 Qxg6 10. Ke2 Pe4 11. Pc5 Pxg4 12. Nxg5 Rh3 13. Ug2 Ph7 14. Nh6 Qxf6 15. Bfxf4 Nxg1 16. Kd2 Kd8 17. Ke2 Be8# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe6 Pg5 2. Pe5 Pd5 3. Pff5 Ng6 4. Pxh5 Nxe4 5. Peg5 Pb3 6. Bd3 Bf5 7. Uh4 Rf6 8. Uf4 Pcd7 9. Qg4 Nxg3 10. Bxh3 Bxe6 11. Bf3 Ng4 12. Pxg3 Ub7 13. Nd4 Bg7 14. Pc6 Ub5 15. Nxd6 Uf1 16. Pe2 Be3 17. Nbd3 Bf2 18. Pxg2 Rf4 19. Nxg3 Qa5 20. Nxa3 Bd4 21. Bf2 Bd1# 0 - 1 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/2xhh"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pb4 Pc4 2. Pxd4 Nd6 3. Pcd2 Pf5 4. Pgg4 Ph4 5. Ng3 Nxa3 6. Pxa4 Nd5 7. Nxg6 Bxf4 8. Nxe5 Nxf5 9. Nxe4 Ph3 10. Bc4 Rxh4 11. Uf3 Pf7 12. Uh5 Pb4 13. Bc6 Ub7 14. Re5 Pd6 15. Rf4 Qb6 16. Rh6 Kd7 17. Pxe6 Kxd6 18. Qg4 Kxe5 19. Qxf4 Kxf4 20. Pa6 Ke5 21. Bb5 Qc5 22. Bxa5 Kxe6 23. Pa4 Pc7 24. Bc5 Pb6 25. Pf8 Kd7 26. Pxh4 Pg6 27. Pd6 Kd8 
+
+[Event "Hyper Chess Analysis"]
+[Site "http://localhost:8000/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pd6 Ph3 2. Kd2 Rh5 3. Pee6 Rd5 4. Pff6 Ph8 5. Bf4 Phh7 6. Ke1 Ph8 7. Bf5 Phh7 8. Kxd2 Pc3 9. Paa6 Bc4 10. Ra5 Bh4 11. Re5 Ph6 12. Re4 Bh5 13. Re5 Nh7 14. Ph3 Bg8 15. Phh2 Kf8 16. Ph3 Kxe8 17. Be5 Kf8 18. Phh2 Ke8 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Pg5 2. Ph5 Pgf5 3. Pgg5 Bh6 4. Pff4 Pee5 5. Pd5 Pxc5 6. Nxb6 Bxa6 7. Qd5 Qb6 8. Qxc5 Qb4 9. Pa3 Qd4 10. Qxb6 Pxb5 11. Pcc5 Pxd5 12. Bc5 Nf8 13. Pbb4 Ne7 14. Bxf8 Kxf8 15. Nd3 Bae6 16. Pe3 Rb2 17. Kd1 Nc7 18. Nxa6 Nc1 19. Be1 Bcd7 20. Kxc1 Rxd4
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe5 Pg5 2. Ph5 Ng7 3. Uh4 Pf5 4. Bc4 Nf6 5. Pd4 Pb5 6. Pff4 Pbxd5 7. Qd3 Ba6 8. Pb5 Ne6 9. Ba3 Pcc5 10. Nb4 Bf6 11. Pb7 Nbxb6 12. Nxb7 Bxc8 13. Ne3 Be5 14. Ke2 Ub8 15. Qe4 Na6 16. Qxd3 Bf5 17. Ug4 Rf6 18. Qe4 Ue5 19. Kd3 Qa5 20. Rb1 Qb4 21. Ba4 Nxa3 22. Rxa1 Qxa4 23. Rc3 Qb3 24. Rxb2 Ra6 25. Ke2 Bb7 26. Rxb5 Rxa3 27. Kxd2 Rxa4 28. Kxc3 Kxd8 29. Kd2 Kc7 30. Ke2 Kxb6 31. Ke3 Kc5 32. Ke4 Bd5 33. Ke3 Bd4 34. Kd2 Bf2 35. Kd3 Ph6 36. Pxe2 Ra3 37. Ke4 Rb4 38. Kd3 Kd5 39. Kc3 Rb6 40. Pa6 Ke4 41. Pg3 Rxg1 42. Pxf6 Kxf4 43. Pxf5 Kxf5 44. Pg7 Rxh2 45. Pa2 Rc7 46. Ph2 Kxg4 47. Kd3 Kf3 48. Kd4 Rd6 49. Kd5 Pa5 50. Pb2 Kf4 51. Kc6 Ke5 52. Kxd7 Pa7 53. Kc8 Kd5 54. Pb7 Kc6 55. Kb8 Kb6 56. Kc8 Pa8 57. Pd7 Pe8 58. Pd8 Ph1 59. Pd7 Rf8# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Ph6 Pg5 2. Pg6 Phxg7 3. Uh7 Pe3 4. Pf5 Kxe7 5. Nh2 Pxe5 6. Bh1 Ph7 7. Pc5 Ke8 8. Pdd5 Rf6 9. Kf2 Pb5 10. Nxd6 Rd4 11. Qd3 Rb4 12. Qc3 Re4 13. Nxf5 Nb6 14. Nxa6 Pxa5 15. Bh6 Uc6 16. Bd6 Qe7 17. Pb6 Bh6 18. Pe6 Kd8 19. Nxf8 Nxe8 20. Qg7 Bh2 21. Ke2 Nh5 22. Kd2 Qxe8 23. Qxf7 Qe5 24. Be1 Nxe8 25. Kc2 Qxf4 26. Rxf6 Ng6 27. Rf5 Nxe4 28. Bxe5 Qxg3 29. Kb3 Qxg4 30. Kb4 P5a6 31. Kb5 Pxc6 32. Pa5 Bb7 33. Pc4 Bb2 34. Pca4 Qd4 35. Pd6 Bb3 36. Pb4 Qc4 37. Pxd4 Pc4 38. Pba4 Bb6# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/07qh"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pa5 Pb4 2. Pb3 Pbh4 3. Phh3 P7h5 4. Ra3 Pff5 5. Na1 Nxa2 6. Rc3 Nxa6 7. Pg5 Nb3 8. Pdd3 Pff4 9. Pg4 Nb4 10. Ped2 Nf6 11. Pb2 Nxb1 12. Rxb3# 1 - 0 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/1ab8"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe3 Ph4 2. Pdd3 Pgg4 3. Pff3 Pcc4 4. Pcc3 Pbb4 5. Pbd2 Paa4 6. Pge2 Pdd4 7. Phf2 Pee4 8. Pac2 Pff4 9. Nxb5 Nxb4 10. Ba3 Pe6 11. Nh2 Qd5 12. Qb1 Qe4 13. Nxe5 Rxh5 14. Qb3 Nxb2 15. Bxc1 Qxd5 16. Ue4 Pxf4 17. Pd1 Bd7 18. Kd2 Rxf3 19. Bg2 Rh3# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Pb4 2. Pgg4 Pf4 3. Pdd4 Pxh4 4. Bg2 Pg3 5. Ph3 Pgg4 6. Pd5 Pxd4 7. Pxh5 Bb7 8. Pcc3 Bh6 9. Pg5 Bxg6 10. Ph7 Bh6 11. Be4 Pd2 12. Nxg5 Nxg4 13. Uh5 Rxd4 14. Qf3 Pde2 15. Qd3 Rd5 16. Pf3 Pxf2 17. Kxf2 Kf7 18. Kg3 Kg8 19. Kxf4 Kxh7 20. Kxg4 Bbc6 21. Pa6 Bcg6 22. Kf4 Rd6 23. Ra5 Bhg5 24. Kf3 Ue4 25. Na2 Bg3 26. Rxg5 Na8 27. Bg1 Ue2 28. Bg2 Be4# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe5 Pb4 2. Pg4 Ph4 3. Pff4 Pa3 4. Pcc4 Pxd4 5. Qb3 Pxc3 6. Bd3 Pc5 7. Pxd5 Pxe5 8. Nxb6 Nxb5 9. Bxa6 Ua7 10. Pb3 Qb6 11. Uc6 Bc7 12. Bc5 Kd8 13. Bxb5 Kc8 14. Bxd4 Rxh6 15. Pxf5 Kb7 16. Ph5 Kxa6 17. Ng6 Rxc1 18. Bxc5 Ub6 19. Pbxh3 Kb5 20. Nxa6 Kxc5 21. Na7 Bb6 22. Pd8 Be7 23. Na8 Ne8 24. Pg6 Be2# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Pb4 2. Pb3 Pa3 3. Pd5 Pf4 4. Qd4 Pxc3 5. Qxe5 Pxd4 6. Qxf6 Bc4 7. Qxg5 Ua5 8. Pc3 Be4 9. Nxf5 Nxc4 10. Bxb5 Nxb4 11. Pc5 Nxd6 12. Rc3 Nc6 13. Bc2 Pc4 14. Pg4 Ub4 15. Ud5 Ph5 16. Uf7 Pxe7 17. Pe2 Nh1 18. Kf1 Qd4 19. Ne5 Rh7 20. Pe1 Rxf5 21. Nxc5 Nd5 22. Be4 Nxf3 23. Pb1 Nxb3 24. Qg6 Rd3 25. Kg2 Bf3 26. Kh3 Rf1 27. Kh4 Pxg5 28. Kxg5 Bd5 29. Kg6 Be6 30. Kxg7 Nd3 31. Kh7 Bf6 32. Ph1 Rh3# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/4gat"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg5 Pb3 2. Pa4 Ug2 3. Pxb4 Pd4 4. Pe4 Pxf4 5. Ke2 Ngb3 6. Ra3 Bg4 7. Pc3 Bf3 8. Kd3 N8b5 9. Kc2 N5a4 10. Na2 Pcc4 11. Pbb5 Nxb6 12. Pbb3 Qd6 13. Ba1 Qb4 14. Rb2 Qxa5 15. Pg3 Pe2 16. Pxe3 Nxb1 17. Kxb1 Pxc2 18. Nxd2 Pg6 19. Qb3 Nxc2 20. Nxb2 Pdxe4 21. Na3 Paa6 22. Kc2 Kd7 23. Bc3 Bb8 24. Nb3 Bxb2 25. Kxb2 Ke6 26. Bc5 Qb5 27. Bc2 Kf5 28. Bxd2 Rd8 29. Kb1 Rc7 30. Kc1 Ra5 31. Kb1 Pf3 32. Ka1 Rb6 33. Kb1 Qd5 34. Bxh6 Pef4 35. Bf8 Pxh3 36. Kc1 Kg4 37. Kd1 Kg3 38. Ke2 Paa3 39. Bh8 Pgh6 40. Bc3 Qe4 41. Bd2 Pc6 42. Be1 Qe3 43. Kd2 Pb4 44. Kd3 Phh4 45. Kc3 Pb1 46. Kc2 Qe2 47. Bc1 Pb5 48. Kd3 Kxf2 49. Kc2 Pfe3 50. Kd2 Qc4 51. Be1 Kf3 52. Be2 Ke4 53. Ke1 Pf4 54. Bc2 Pd6 55. Bb2 Pf2 56. Bf6 Kf3 57. Bf5 Pec3 58. Bd3 Qa2 59. Kd2 Qb2 60. Be3 Kg3 61. Bd3 Pe6 62. Ke3 Pa4 63. Be4 Pf3 64. Ke2 Pa2 65. Bd4 Pd5 66. Bg7 Qb5 67. Kd2 Qd3 68. Kc1 Pee2 69. Kb1 Pa4 70. Kb2 Pdd4 71. Bh7 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe5 Ph3 2. Pg4 Rh4 3. Pff5 Ph7 4. Ph5 Ng6 5. Peg5 Bh6 6. Qf3 Kf8 7. Qg3 Pxf3 8. Kf2 Kxg7 9. Ng4 Kxg8 10. Kxf3 Nxg4 11. Ke3 Kf7 12. Uf3 Ke6 13. Ug3 Pb3 14. Pc3 Pxd3 15. Nxe4 Ud5 16. Kf3 Kxe5 17. Pa6 Ue4 18. Uf4 Bf8# 0 - 1 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "file:///C:/Users/norbe/Documents/Programming/z_Shelved/local-hyper-chess/index.html"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pa6 Pd5 2. Paa2 Pe4 3. Ph4 Pcc5 4. Pb5 Pbd7 5. Pa4 Ped4 6. Nb3 Ub7 7. Bb2 Qg5 8. Phh2 Be7 9. Pba5 Qf6 10. Pe5 Qe6 11. Qg4 P7d6 12. Bd3 Qd7 13. Pf1 Pe6 14. Phh5 Paa6 15. Pe3 Pcc4 16. Na3 Nf8 17. Bb5 Ua8 18. Pb4 Bec5 19. Phh3 Ne7 20. Ke2 Pee4 21. Nh2 Ned6 22. Ke1 Qa7 23. Paa4 Qc7 24. Nb3 Qa5 25. Pgg3 Bf5 26. Qd1 Pf8 27. Pff2 Qb6 28. Bc6 Pee5 29. Pfg2 Na7 30. Rc1 Qb5 31. Bc8 Nb7 32. Ra3 Kf7 33. Qf3 Nbb8 34. Bc7 Ph5 35. Uf1 Kf6 36. Ug1 Pgh7 37. Ra2 Na7 38. Bb6 Rg7 39. Bb8 Nb7 40. Qf2 Be6 41. Be4 Phf5 42. Bd3 Kf7 43. Pee2 Qxb6 44. Pa3 Ph6 45. Pb2 Paa4 46. Kf1 Pc8 47. Pb1 Pa7 48. Pbb2 Qb4 49. Nc2 Bg6 50. Pe1 Ke6 51. Peb1 Kd7 52. Nb3 Qxb5 53. Qe3 Kc7 54. Qxf2 Kxb8 55. Pbc2 Bb6 56. Qe3 Qb4 57. Qe4 Rg8 58. Nh1 Pee8 59. Qxf3 Phh5 60. Pa4 Pef8 61. Uh2 Nd8 62. Qf4 P5f6 63. Ra1 Pd5 64. Pcb2 Bf7 65. Qg5 Qa5 66. Pa3 Qa4 67. Pab3 Pfc6 68. Qe5 Qb4 69. Qxf5 Qxb5 70. Ke2 Pf4 71. Qe6 Bg6 72. Pb3 Qc4 73. Pb5 Pd6 74. Qe5 Qc6 75. Pa5 Qc4 76. Bf3 P8f5 77. Qe3 Pfc5 78. Ra3 Qa4 79. Qc3 Qe8 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg4 Ph4 2. Pbb4 Pxf4 3. Bh3 Pa4 4. Pcc4 Pg2 5. Nxg3 Nxg2 6. Bxf1 Rg7 7. Ug2 Pb5 8. Ug6 Bf7 9. Pe5 Nb6 10. Pe6 Pe4 11. Nxf5 Nxf6 12. Bd3 Pe6 13. Be4 Ke7 14. Bb7 Kxd6 15. Re5 Nxd4 16. Nxf8 Ke5 17. Nxh6 Nb6 18. Pd5 Kxd5 19. Nh5 Kxc4 20. Nxa5 Nxb8 21. Nxa3 Ua4 22. Bb2 Nxb3 23. Ph3 Nxb1 24. Pad2 Kb3 25. Pe3 Kxa3 26. Pee2 Ne4 27. Qc1 Uc2 28. Kf1 Nh1 29. Pe1 Ud3 30. Pe2 Ug3 31. Pg2 Ba6 32. Pe2 Nxf3 33. Qd1 Bd3 34. Pf2 Bd2 35. Pe2 Ug1 36. Qe1 Nxd1 37. Qe2 Nxf3 1/2 - 1/2 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Pb4 2. Pgg4 Pf4 3. Pdd4 Pxh4 4. Ng4 Pd5 5. Pc5 Pxb5 6. Nd3 Ph3 7. Bc5 Pxh4 8. Pxa5 Pab7 9. Ba7 Rh6 10. Ra4 Pf3 11. Pfd2 Ra6 12. Nxg3 Kxd7 13. Bh3 Ke8 14. Nd3 Rg6 15. Ug2 Ua6 16. Pb5 Uf6 17. Ug5 Pf5 18. Kf2 Ph7 19. Rc4 Pxh5 20. Pg2 Ud6 21. Pee5 Rxg5 22. Nxg6 Re5 23. Kg3 Nxb3 24. Nxc6 Bg8 25. Kxh4 Bcg4# 0 - 1 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://norberttony.github.io/local-hyper-chess/index.html"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg4 Pa6 2. Pbb4 Phh6 3. Ng3 Ua7 4. Pd5 Ph5 5. Nbb3 Pcc6 6. Qd4 Pce6 7. Qb6 Pxc6 8. Be3 Phf5 9. Ph7 Nxh2 10. Ug2 Pc3 11. Nxd3 Pdc7 12. Bh1 Kxd7 13. Bhxh3 Ph6 14. Bb6 Be8 15. Na3 Ba8 16. Ug3 P5f6 17. Ud6 Ph4 18. Bc3 Rxh6+ 19. Be3 Kc8 20. Pbc4 Nf8 21. Kf1 Pxf4 22. Rxd4 Pf5 23. Rxe5 Pe6 24. Pcf4 Kxb8 25. Nb2 Ph3 26. Rg5 Nb4 27. Bb3 Nxg4 28. Nxh8+ Kxc8 29. Rg8+ Rxg7 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://norberttony.github.io/local-hyper-chess/index.html"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pb3 Pc4 2. Pd4 Paa4 3. Pxb4 Bxc4 4. Pee4 Pbc7 5. Pab2 Bb4 6. Pa2 Bc5 7. Pcc4 Bd5 8. Pc5 Be5 9. Pdd5 Bf6 10. Qb3 Na7 11. Qxc2 Ph5 12. Pff5 Rh7 13. Pgg5 Nh8 14. Pc6 Pg8 15. Pdd6 Uc8 16. Pee6 Rxg6 17. Nb2 Pgg7 18. Qc3 Ph6 19. Qe5 Rxh5+ 20. Be2 Phh7 21. Uf3 Na5 22. Ug4 Nd5 23. Bcd1 Ng8 24. Bb3 Nh1 25. Nf1 Pe3 26. Bbd3 Nh8 27. Pxf3 Bg8 28. Be6 Ua6 29. Ph4 Pa7 30. Ne2 Be7 31. Pf6 Pg6 32. Rb1+ Nxb7 33. Nh1 Nb6 34. Nb2 Na5 35. Ba3 Qb8 36. Kf2 Ng7 37. Na1 Qb5 38. Kg3 Nxe5+ 39. Bxe4 Ne1 40. Nxd1 Be5 41. Nxf6 Pfe7 42. Nxh6 Kf7 43. Nxh8 Bg6 44. Nb8 Qb4 45. Nbxb3+ Kxg7 46. Kh3 Kh8 47. Bxf5 Be8 48. Bf7 Uc6 49. Bb2 Pe5 50. Nc3 Uc8 51. Ug8
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pe4 Ph4 2. Pgg4 Pxf4 3. Pdd4 Pb4 4. Pa4 Pcc4 5. Na2 Pd5 6. Bg2 Ph3 7. Bxg4 Pxd3 8. Pff4 Pgf7 9. Nd4 Rxh4 10. Nxd2 Ngxg3 11. Nxa5 Nbe5 12. Na3 Bg4 13. Nxh3 Be2 14. Uf3 Pb5 15. Nxh5 Nh8 16. Kxe2 Nxh4 17. Ug4 Pg5 18. Ud7 Paxc7 19. Pb7 Pf6 20. Nb5 Nxh1 21. Qd7 Kf7 22. Be3 P4c6 23. Be6 Pxd6 24. Nd5 Nxc6 25. Rh1 Nxe8 26. Kf3 Ph6 27. Kg4 Bg7 28. Kxg5 Kg8 29. Pa7 Kh7 30. Rd5 Pee6 31. Kf5 Nh5 32. Rxh1 Bxa1 33. Pc6 Qf6 34. Ke4 Ug8 35. Kf3 Bd4 36. Ke2 Ug2 37. Kf3 Be3# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/17ep"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg5 Pb5 2. Pa5 Pcc5 3. Pdd5 Nb7 4. Qd4 Pe3 5. Rxa3 Qf6 6. Qxe3 Qxe7 7. Pdxc5 Pd1 8. Rxd3 Nd5 9. Qd2 Pf3 10. Pxe5 Bd7 11. Ng2 Kd8 12. Nxe4 Bxf3 13. Nxg2 Uf3 14. Be2 Nc4 15. Pxc3 Pg3 16. Pa4 Bd4 17. Nd3 Bf4 18. Nd4 Bxc4 19. Qd4 Bxb4 20. P5xc4 Rg8 21. Pxf4 Ke8 22. Na8 Rxa2 23. Ke2 Qb4 24. Bxa1 Qxc4 25. Pxc5 Pa2 26. Ub7 Pg1 27. Bd1 Pd7 28. Ue4 Pe7 29. Bd6 Pa4 30. Ue6 Pa7 31. Pfg2 Kf7 32. Bd8 Pd7 33. Bf8# 1 - 0 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+{ I am playing against Collin, but I don't know which side is which. }
+
+1. Pa4 Pb5 2. Pe5 Ph4 3. Pff4 Rxh5 4. Qg4 Rh6 5. Pbb4 Paa5 6. Qg6 Pxg5 7. Pc5 Pd4 8. Bcc4 Pff5 9. Pxe4 Ngxb3 10. Pcb5 Nf7 11. Bf4 Pcxc5 12. Pg4 Nxg3 13. Ug2 Pxf4 14. Kf2 Bh3 15. Na2 Ra6 16. Pd3 Qd5 17. Nxe6 Nxd5 18. Ra3 Nxd2 19. Kf1 Rxc4 20. Rc3 Ra2# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/19gp"]
+[Result "*"]
+[Variant "Standard"]
+
+{ Judging from the opening, I am probably playing white here. Collin is definitely playing. }
+
+1. Pg5 Pb5 2. Pa5 Pcc5 3. Uf3 Pg6 4. Ph6 Pff5 5. Pxe5 Bf5 6. Pdd5 Nxc4 7. Ub3 Pdxd5 8. Qd4 Be4 9. Rxa4 Rf6 10. Qxe4 Ba6 11. Uh3 Nc8 12. Na1 Uc6 13. Pa2 Peg7 14. Qxf3 Re5 15. Nxf6 Ud5 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.repl.co/"]
+[Result "*"]
+[Variant "Standard"]
+
+{ I am probably playing white here. But perhaps everyone at the time was playing Pg5? }
+
+1. Pg5 Ph5 2. Pff5 Pe4 3. Ng4 Pbb4 4. Bf4 Pcc4 5. Pxd4 Nxg3 6. Nxg2 Pg6 7. Bf4 Pfe7 8. Pe6 Nxd5 9. Be5 Ph4 10. Bxc5 Pxc6 11. Pc3 Pd5 12. Ng4 Pce6 13. Pe5 Rxh5 14. Pe4 Pdd4 15. Qd3 Pg6 16. Ph3 Qd5 17. Pe6 Pxf4 18. Qxe2 Bd8 19. Qg4 Rh8 20. Nxh7 Kxf7 21. Rb1 Rd4 22. Ue4 Kxe8# 0 - 1 
+
+
+{ In a file titled "me-losing" }
+[Event "Hyper Chess Analysis"]
+[Site "http://localhost:8001/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg5 Pa5 2. Phh5 Ua6 3. Pa4 Ug6 4. Uf3 Pbb5 5. Ra3 Pca7 6. Pdd4 Na8 7. Pg2 Qb6 8. Qd3 Qc5 9. Pd6 Ba6 10. Nh1 Uf6 11. Pee4 Pe6 12. Uf2 Bxc6 13. Ud4 Uf5 14. Bff4 Nb8 15. Pg4 Nxg3 
+
+{ In a file titled "me-losing" }
+[Event "Hyper Chess Analysis"]
+[Site "http://localhost:8001/"]
+[Result "*"]
+[Variant "From Position"]
+[FEN "1n2kbnr/p2p1ppp/2b1p3/ppq2uPP/P2UPB2/R2Q4/1PP3P1/1NB1K2N w 15"]
+
+1. Pg3 Pb3 2. Pxb4 Bb5 3. Pbc4 Pab7 4. Pa2 Ba6 5. Qc3 Nd8 6. Qb4 Pa4 7. Qb5 Pa5 8. Kf1 Pdc7 9. Rd3 Pgg6 10. Pd2 Ng7 11. Ua1 Qxd5 12. Pc5 Bc4 13. Nb3 Pexc6 14. Nc3 Qd4 15. Nxe5 Ngxd4 16. Uc3 Re5 17. Ng1 Rb5+ 18. Rb1 Rxa4+ 19. Pc2 Pbb5 20. Rb4 Bc5 21. Ke1 Kxf8 22. Kxd1 Uf2 23. Bf4 Ue2 24. Ph2 Nxh4 25. Pd2 Nxh1 26. Ne1 Ra3 27. Rb2 Rxa4 28. Rc2 Bg1 29. Pa3 Pb8 30. Rb3 Rb5# 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pa4 Ph4 2. Pbb4 Pa5 3. Pd3 Ua6 4. Pdb3 Pdd4 5. Pca2 Qd6 6. P2a3 Qc5 7. Pb6 Pxb5 8. Pf4 Qb4 9. Bc4 Pee4 10. Qd3 Pgxg4 11. Qxc2 Qd2 12. Bc3 Qe3 13. Bc5 Pxd5 14. Rxc3 Pbb4 15. Bf3 Uc4 16. Pe3 Bf5 17. Nf1 P7b5 18. Be4 Rxd4 19. Qd3 Be4 20. Nf3 Bxf5 21. Nbd1 Bxf2 22. Uf1 Kd8 23. Pxe2 Kc8 24. Nd2 Bh6 25. Uf4 Bg5 26. Pe3 Pce7 27. Pe4 Rxe3 28. Nxd6 Uf1 29. Pb2 Nxe5 30. Pxe2 Nd8 31. Pg3 Uf2 32. Ph3 Nd1# 0 - 1 
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Ph5 Pb4 2. Pg4 Pa3 3. Pf3 Uc6 4. Pbb3 Pg6 5. Pcc4 Pxd4 6. Bc4 Ub5 7. Pexe4 Qd5 8. Nd3 Rc3 9. Nc2 Bf5 10. Pdxd3 Nh8 11. Pe6 Ped7 12. Pff4 Bf6 13. Ngg2 Qc5 14. Nd5 Bd6 15. Pdd4 Na8 16. Ne5 Phg7 17. Nd3 Nd5 18. Pff5 Qxb6 19. Nxc5 Qxa7 20. Ne3 Bc3 21. Kf2 Pgxf6 22. Ua8 Nxh4 23. Kxf3 Bg3 24. Ke4 Bgxd3 25. Kf3 Nh3 26. Kg2 Bg3 27. Uf3 Pxd4 28. Kxg3 Nh1 29. Kxh4 Pxf4 30. Rxb2 Bc5 31. Kxg5 Ph6 32. Ua8 Be5 33. Rxe2 Ke7 34. Kxh6 Kd7 35. Rd3 Kc8 36. Be2 Ph7 37. Bc2 Kd8 38. Uc8 Pe7 39. Kxh7# 1 - 0 
+
+
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Ph5 Pb4 2. Pd4 Paa4 3. Pb3 Pcc4 4. Pee4 Pg4 5. Uh3 Ne5 6. Nb2 Ng6 7. Be3 Ud5 8. Qd3 Pc3 9. Nh2 Pf3 10. Nxd6 Nxc6 11. Bh6 Pxe3 12. Bxb6 Ub7 13. Pxc4 Pxd4 14. Nxe5 Qd6 15. Rd4 Kd8 16. Bd3 Bxc4 17. Pfxe2 Qxc7 18. Pxb5 Ke8 19. Kd2 Qxd8 20. Uh5 Phf7 21. Pc5 Be6 22. Uh7 Kxd7 23. Kc3 Ub4 24. Pc4 Kc6 25. Bh3 Qd4 26. Pxe4 Kxc5 27. Pcd2 Kxc4# 0 - 1 
+
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/2lte"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg5 Ph5 2. Pff5 Pe4 3. Paa5 Pd3 4. Rxa4 Pc4 5. Pe3 Pch4 6. Pxc3 Pg6 7. Bb5 Bc6 8. Ne4 Bxf3 9. Ug2 Ph3 10. Pxg3 Ph4 11. Pdd5 Pfh7 12. Bd2 Pg5 13. Bf2 Pb6 14. Rb4 Pbh6 15. Kd2 Nd6 16. Bd7 Uc8 17. Rxb6 Ng7 18. Rxb8 Kxd7 19. Kxc2 Pgh5 20. Kd3 Kc7 21. Rb4 Bd6 22. Ue4 Rb8 23. Uc4 Bc5 24. Pxb5 Rb6 25. Uc6 Ne7 26. Rg4 Pa8 27. Kc4 Ng7 28. Pf6 Pf5 29. Bxf4# 1 - 0 
+
+{ Colin vs. Engine }
+[Event "Hyper Chess Analysis"]
+[Site "http://localhost:8000/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pg5 Pd4 2. Pff5 Pda4 3. Pa3 P7a5 4. Pc4 Ua6 5. Pbb4 Uf6 6. Pdd4 Be6 7. Pee4 Qd5 8. Kf2 Qxd6 9. Bc3 Qd5 10. Nd3 Qxc6 11. Ng2 Qc5 12. Qd2 Qxc6 13. Rd1 Ph4 14. Rh5 Ug6 ( 14... Qc5 15. Be2 Ph7 16. Uc1 Pxh6 17. Bce5 Ba2 18. Ke3 Na7 19. Kf4 Bb2 20. Nc2 Ng7 21. Nxa2 ) 15. Be2 Ph7 16. Uc1 Pxh6 17. Bce5 Ba2+ 18. Ke3 Na7+ 19. Kf4 Bb2 20. Nc2 Ng1 21. Nh1 Qd5 22. Bf6 Ng7 23. Nxa2 Nxe5+ 24. Kg4 Nxb1 25. Nhxa1 Nxe1 26. Qxc3 Uh5 27. Qf3 Pxc4+ 28. Qf4 Qf3+ 29. Ne2 Rxb2+ 30. Pe2 Rxc2# 
+
+
+{ Under a file titled "strange-collin-game" }
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/126g"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pa4 Ph5 2. Pbb4 Pgg5 3. Pgg4 Pff5 4. Phh4 Pdd5 5. Ng2 Ng6 6. Rd4 Pcc5 7. Nb3 Bc6 8. Pcc4 Pbb5 9. Pff4 Paa5 10. Ngg3 Pee5 11. Ue4 Ub7 12. Pcc2 Qb6 13. Pff2 Bcd6 14. Pcc4 Pc6 15. Pda2 Qc5 16. Rc3 Be6 17. Ud4 Pf4 18. Pxe4 Bf4 19. Pfh2 Rf8 20. Pee2 Be4 21. Qd3 Kd7 22. Nf4 Bf5 23. Bf3 Nh6 24. Qxc2 Bf7 25. Qe4 Pgg6 26. Qxe3 Bg7 27. Nf5 Pc8 28. Qg5 Nhxf4 29. Pxe4 Paa6 30. Pe6 Uc7 31. Pxc6 Ue5 32. Re3 Pgg5 33. Pxh6 Bg6 34. Pa5 Pcc5 35. Pgg2 Bxe4 36. Pf6 Kxd6 37. Rxf4 Rf5 38. Kf2 Pg3 39. Nb2 
+
+{ Under a file titled "strange-collin-game" }
+[Event "Hyper Chess Analysis"]
+[Site "https://c2863af4-eab7-49df-8187-eee1b1f0f444-00-2c22iku5cam2h.picard.replit.dev/"]
+[Result "*"]
+[Variant "Standard"]
+
+1. Pa4 Pa5 2. Pbb4 Pbb5 3. Pcc4 Pgg5 4. Pdd4 Ud5 5. Pe4 Ph3 6. Pf4 Pxa3 7. Ne3 Rxh4 8. Nh7 Ph5 9. Pgg4 Bh6 10. Nc2 Kxf8 11. Pg5 Pxf5 12. Qg4 Kxg7 13. Nxe8 Uf7 14. Uf3 Kf8 15. Ug3 Nxg2 16. Bxh3 Kxe8 17. Na4 Pxb3 18. Nxa6 Ud5 19. Nf6 Pa5 20. Ra3 Uc5 21. Bg5 Ub4 22. Bg6 Pxf7 23. Bhg3 Pa4 24. Kf2 Pb2 25. Ph3 Pxa2 26. Kf3 Uc3 27. B6g5 Ue3 28. Bd6 Pce7 29. Bc6 Pb7 30. Ph2 Pbd7 31. Be6 Pde7 32. Pcc2 Pxe5 33. Bf4 Kxd7 34. Pcd2 
+

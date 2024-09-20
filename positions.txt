@@ -3491,3 +3491,5 @@ unbqkbnr/pp1ppppp/8/5P2/2p5/8/PPPPPPP1/RNBQKBNU b 2
 unbqkbnr/pp1ppppp/8/7P/2p5/8/PPPPPPP1/RNBQKBNU w 2
 unbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNU b 1
 unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 1
+1nbqkbnr/upppppp1/p7/3P3p/1P4P1/1N4N1/P1P1PP1P/R1BQKB1U b 5
+un1qkb1r/8/2b3n1/pppppppp/PPPR1PPP/1N4N1/3PP3/2BQKB1U w 11
