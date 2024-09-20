@@ -36,15 +36,9 @@ server.listen(8000);
 console.log("Listening to port 8000");
 
 
-const fs = require("fs");
-
+const { setGlobalLogId, setLogDirs } = require("./modules/logger");
 const { playTournament } = require("./modules/match-handler");
-const { Engine, extractEngines } = require("./modules/engine");
-
-const { getAllPositions } = require("./modules/fetch-pos");
-const { SPRT } = require("./modules/analyze");
-
-const debugDir = "./debug/";
+const { extractEngines } = require("./modules/engine");
 
 const activeEngines = extractEngines("./bots/");
 const benchedEngines = extractEngines("./bench/");

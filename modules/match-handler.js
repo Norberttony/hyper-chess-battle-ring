@@ -4,7 +4,7 @@ const { Piece } = require("../viewer/scripts/game/piece");
 const { getAllPositions } = require("./fetch-pos");
 const { Engine } = require("./engine");
 const { SPRT } = require("./analyze");
-const fs = require("fs");
+const { saveLogs } = require("./logger");
 
 // starts a game between two engines. Returns a promise that resolves/rejects when the game ends.
 // If the game ends in a draw, promise is resolved with 0. Otherwise, the promise is resolved with
@@ -17,12 +17,16 @@ function startAGame(e1, e2, fen = StartingFEN){
 
         const onError = (proc, err) => {
             console.error(err);
+            saveLogs(proc, proc.opponent);
             rej(err);
         }
 
         const onFinish = (proc) => {
             const e1 = proc;
             const e2 = proc.opponent;
+
+            saveLogs(e1, e2);
+
             if (board.isGameOver()){
 
                 if (board.result == "/"){

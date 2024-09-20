@@ -12,6 +12,9 @@ class EngineProcess {
         this.side;
         this.opponent;
         this.proc;
+
+        this.procLog = "";
+        this.gameLog = "";
     }
 
     // sets up the board and side the engine will play
@@ -30,12 +33,13 @@ class EngineProcess {
             const lines = data.toString().split("\n");
 
             for (const l of lines){
+                this.procLog += `${l}\n`;
                 if (l.startsWith("makemove")){
                     // get move from command
                     const lan = l.trim().split(" ")[1];
                     const move = board.getLANMove(lan);
 
-                    console.log(lan);
+                    this.gameLog += `${lan}\n`;
 
                     // engine is making a move on the board
                     if (move){
@@ -43,6 +47,10 @@ class EngineProcess {
 
                         // if the game ends with this move, report it
                         if (t.board.isGameOver()){
+                            // of course, we have to update the opponent's game log with the move
+                            // but without continuing this game
+                            t.opponent.gameLog += `${lan}`;
+
                             t.onFinish(this);
                             return;
                         }
@@ -64,8 +72,15 @@ class EngineProcess {
         });
 
 
+        const fen = board.getFEN();
+
+        // write game log info
+        this.gameLog += `FEN: ${fen}\n`;
+        this.gameLog += `White: ${this.side == Piece.white ? this.engine.name : this.opponent.engine.name}\n`;
+        this.gameLog += `Black: ${this.side == Piece.black ? this.engine.name : this.opponent.engine.name}\n`;
+
         // write set up for FEN
-        this.write(board.getFEN());
+        this.write(fen);
 
         // write which side the opponent is playing
         this.write(this.side == Piece.white ? "b" : "w");
@@ -77,6 +92,7 @@ class EngineProcess {
 
     // opponent has played a move
     opponentMove(lan){
+        this.gameLog += `${lan}\n`;
         this.write(lan);
     }
 
@@ -89,6 +105,18 @@ class EngineProcess {
         if (this.proc){
             this.proc.stdin.write(`${cmd}\n`);
         }
+    }
+
+    saveProcLog(procLogDir){
+        fs.writeFile(procLogDir, this.procLog, (err) => {
+            console.error(err);
+        });
+    }
+
+    saveGameLog(gameLogDir){
+        fs.writeFile(gameLogDir, this.gameLog, (err) => {
+            console.error(err);
+        });
     }
 }
 
