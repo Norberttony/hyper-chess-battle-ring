@@ -21,24 +21,29 @@ function saveLogs(proc1, proc2){
     if (proc1.gameLog == proc2.gameLog){
         // save as just one game file
         fs.writeFile(`${gameLogsDir}${gameId}_game.txt`, proc1.gameLog, (err) => {
-            console.error(err);
+            if (err)
+                console.error("Error: ", err);
         });
     }else{
         // save both separately
         fs.writeFile(`${gameLogsDir}${gameId}_game_${proc1.engine.name}.txt`, proc1.gameLog, (err) => {
-            console.error(err);
+            if (err)
+                console.error("Error: ", err);
         });
         fs.writeFile(`${gameLogsDir}${gameId}_game_${proc2.engine.name}.txt`, proc2.gameLog, (err) => {
-            console.error(err);
+            if (err)
+                console.error("Error: ", err);
         });
     }
 
     // save debug files
     fs.writeFile(`${debugLogsDir}${gameId}_debug_${proc1.engine.name}.txt`, proc1.procLog, (err) => {
-        console.error(err);
+        if (err)
+            console.error("Error: ", err);
     });
     fs.writeFile(`${debugLogsDir}${gameId}_debug_${proc2.engine.name}.txt`, proc2.procLog, (err) => {
-        console.error(err);
+        if (err)
+            console.error("Error: ", err);
     });
 }
 

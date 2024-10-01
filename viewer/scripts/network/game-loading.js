@@ -25,7 +25,7 @@ function loadGame(){
         }
     }
 
-    xhr.open("GET", `game-${gameLoadingIndexInput.value}.txt`);
+    xhr.open("GET", `${gameLoadingIndexInput.value}_game.txt`);
     xhr.send();
 }
 

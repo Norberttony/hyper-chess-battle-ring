@@ -17,7 +17,8 @@ function getAllPositions(){
 
 function savePositions(){
     fs.writeFile("./data/positions.json", JSON.stringify(allPositions), (err) => {
-        console.error(err);
+        if (err)
+            console.error(err);
     });
 }
 

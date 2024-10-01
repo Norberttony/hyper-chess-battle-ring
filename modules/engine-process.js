@@ -109,13 +109,15 @@ class EngineProcess {
 
     saveProcLog(procLogDir){
         fs.writeFile(procLogDir, this.procLog, (err) => {
-            console.error(err);
+            if (err)
+                console.error("Error: ", err);
         });
     }
 
     saveGameLog(gameLogDir){
         fs.writeFile(gameLogDir, this.gameLog, (err) => {
-            console.error(err);
+            if (err)
+                console.error("Error: ", err);
         });
     }
 }

@@ -22,8 +22,12 @@ function startAGame(e1, e2, fen = StartingFEN){
     return new Promise((res, rej) => {
 
         const onError = (proc, err) => {
-            console.error(err);
+            console.error("Error: ", err);
             saveLogs(proc, proc.opponent);
+
+            proc.stop();
+            proc.opponent.stop();
+
             rej(err);
         }
 
@@ -32,6 +36,9 @@ function startAGame(e1, e2, fen = StartingFEN){
             const e2 = proc.opponent;
 
             saveLogs(e1, e2);
+
+            e1.stop();
+            e2.stop();
 
             if (board.isGameOver()){
 
@@ -77,6 +84,10 @@ async function startADouble(e1, e2, fen = StartingFEN){
 }
 
 async function playTournament(oldVersion, newVersion, threads){
+    const tournamentObject = {
+        playing: true
+    };
+
     const positions = getAllPositions();
 
     const round = async () => {
@@ -125,18 +136,20 @@ async function playTournament(oldVersion, newVersion, threads){
             // save all of the tournament data
             savePositions();
             fs.writeFile("./data/tournaments/used-positions.json", JSON.stringify(usedPositions), (err) => {
-                console.error(err);
+                if (err)
+                    console.error("Error: ", err);
             });
             const totalResults = {
                 [oldVersion.name]: oldVersion.resultTable,
                 [newVersion.name]: newVersion.resultTable
             };
             fs.writeFile("./data/tournaments/results.json", JSON.stringify(totalResults), (err) => {
-                console.error(err);
+                if (err)
+                    console.error("Error: ", err);
             });
         }
         catch(err){
-            console.error(err);
+            console.error("Error: ", err);
         }
         finally {
             // since the results might have changed, perform SPRT
@@ -144,8 +157,12 @@ async function playTournament(oldVersion, newVersion, threads){
             
             const hyp = SPRT(results.wins, results.draws, results.losses, 0, 20, 0.01, 0.01);
             if (!hyp){
-                // silly way of preventing stack overflow
-                setTimeout(round, 1);
+                if (tournamentObject.playing){
+                    // silly way of preventing stack overflow
+                    setTimeout(round, 1);
+                }else{
+                    console.log("Round finished...");
+                }
             }else{
                 console.log("Accept", hyp);
             }
@@ -155,6 +172,8 @@ async function playTournament(oldVersion, newVersion, threads){
     for (let i = 0; i < threads; i++){
         round();
     }
+
+    return tournamentObject;
 }
 
 // reads from a specific folder: data/tournaments
