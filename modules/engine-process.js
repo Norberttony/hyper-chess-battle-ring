@@ -1,4 +1,5 @@
 
+const fs = require("fs");
 const spawn = require("child_process").spawn;
 const { Piece } = require("../viewer/scripts/game/piece");
 

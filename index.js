@@ -1,40 +1,3 @@
-// create a web server so people can join and watch the games!
-const express = require("express");
-const http = require("http");
-
-const app = express();
-const server = http.createServer(app);
-
-const io = require("socket.io")(server);
-
-app.use(express.static(__dirname + "/viewer"));
-app.use(express.static(__dirname + "/debug"));
-
-app.use(express.json());
-
-app.get("/", (req, res) => {
-    res.sendFile("index.html");
-});
-
-const sockets = [];
-
-const moves = [];
-
-io.on("connection", (socket) => {
-
-    sockets.push(socket);
-
-    for (const m of moves){
-        socket.emit("move", m);
-    }
-
-    //socket.on("makemove", socketMakeMove);
-
-});
-
-server.listen(8000);
-console.log("Listening to port 8000");
-
 
 const fs = require("fs");
 
@@ -42,6 +5,9 @@ const { setGlobalLogId, setLogDirs } = require("./modules/logger");
 const { playTournament, loadTournamentInfo } = require("./modules/match-handler");
 const { extractEngines } = require("./modules/engine");
 const { input } = require("./modules/input");
+const { startWebServer, userVsEngine } = require("./modules/web-server");
+const { Piece } = require("./viewer/scripts/game/piece");
+
 
 const botsDir = "./bots/";
 const benchDir = "./bench/";
@@ -50,6 +16,8 @@ const activeEngines = extractEngines(botsDir);
 const benchedEngines = extractEngines(benchDir);
 
 (async () => {
+
+    const { io, server } = startWebServer();
     
     while (true){
         console.log("Type in a command:");
@@ -74,6 +42,11 @@ const benchedEngines = extractEngines(benchDir);
         }else if (cmd[0] == "tournament"){
 
             await startTournament();
+
+        }else if (cmd[0] == "play"){
+            
+            // assumes: first active engine plays as black.
+            userVsEngine(io, activeEngines[0], Piece.black);
 
         }else if (cmd[0] == "q"){
             break;
@@ -191,22 +164,4 @@ function socketMakeMove(move){
     moves.push(move);
 }
 
-function playerVsEngineHandler(engine, data){
-    console.log(data);
-
-    const lines = data.split("\n");
-
-    for (const l of lines){
-        const cmds = l.trim().split(" ");
-
-        switch(cmds[0]){
-            case "makemove":
-                moves.push(cmds[1]);
-                for (const socket of sockets)
-                    socket.emit("move", cmds[1]);
-                console.log(cmds[1]);
-                break;
-        }
-    }
-}
 */
