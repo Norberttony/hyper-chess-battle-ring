@@ -52,6 +52,15 @@ class EngineProcess {
                             // but without continuing this game
                             t.opponent.gameLog += `${lan}\n`;
 
+                            let logResult;
+                            if (t.board.result == "/"){
+                                logResult = "0";
+                            }else{
+                                logResult = t.board.side == Piece.black ? "1" : "-1";
+                            }
+                            t.gameLog += logResult;
+                            t.opponent.gameLog += logResult;
+
                             t.onFinish(this);
                             return;
                         }

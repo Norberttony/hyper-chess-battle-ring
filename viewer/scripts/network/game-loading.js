@@ -92,6 +92,14 @@ function loadLANGame(notation){
         }
     }
 
+    if (!result){
+        if (gameState.board.result == "/")
+            result = "0";
+        else
+            // whoever got checkmated is whoever it is to play right now.
+            result = gameState.board.turn == Piece.white ? "-1" : "1";
+    }
+
     dbFormat += `${fen}\t${wp}\t${bp}\t${result}\t\t${moveStr}\n`;
 }
 
@@ -171,6 +179,6 @@ function evaluateGame(index){
         }
     }
 
-    xhr.open("GET", `game-${index}.txt`);
+    xhr.open("GET", `${index}_game.txt`);
     xhr.send();
 }
