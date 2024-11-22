@@ -132,12 +132,12 @@ async function startTournament(){
     console.log("\nWould you like to load previous tournament info? (y/n)");
     const p = await input();
     if (p == "y"){
-        loadTournamentInfo(activeEngines[0], activeEngines[1]);
+        loadTournamentInfo(activeEngines[1], activeEngines[0]);
     }
 
     console.log("\nNumber of threads?");
     const t = parseInt(await input());
-    const tournament = await playTournament(activeEngines[0], activeEngines[1], t);
+    const tournament = await playTournament(activeEngines[1], activeEngines[0], t);
 
     // give user an option to stop the tournament
     // the tournament automatically stops when a hypothesis is proven with reasonable confidence,

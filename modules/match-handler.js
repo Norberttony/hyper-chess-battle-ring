@@ -21,8 +21,14 @@ function startAGame(e1, e2, fen = StartingFEN){
 
     return new Promise((res, rej) => {
 
+        let hasErrored = false;
+
         const onError = (proc, err) => {
             console.error("Error: ", err);
+            if (hasErrored)
+                return;
+            
+            hasErrored = true;
             saveLogs(proc, proc.opponent);
 
             proc.stop();

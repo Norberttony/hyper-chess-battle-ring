@@ -30,8 +30,19 @@ class EngineProcess {
 
         const t = this;
 
+        this.to = setTimeout(() => {
+            t.onError(t, "Took too long to respond");
+        }, 10000);
+
+        let prevMsg = "";
+
         this.proc.stdout.on("data", (data) => {
             const lines = data.toString().split("\n");
+
+            clearTimeout(t.to);
+            t.to = setTimeout(() => {
+                t.onError(t, "Took too long to respond");
+            }, 10000);
 
             for (const l of lines){
                 this.procLog += `${l}\n`;
@@ -51,6 +62,8 @@ class EngineProcess {
                             // of course, we have to update the opponent's game log with the move
                             // but without continuing this game
                             t.opponent.gameLog += `${lan}\n`;
+
+                            clearTimeout(t.to);
 
                             let logResult;
                             if (t.board.result == "/"){
@@ -107,8 +120,13 @@ class EngineProcess {
     }
 
     stop(){
-        this.proc.kill();
-        delete this.proc;
+        if (this.to)
+            clearTimeout(this.to);
+        
+        if (this.proc){
+            this.proc.kill();
+            delete this.proc;
+        }
     }
     
     write(cmd){
