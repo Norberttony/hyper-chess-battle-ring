@@ -39,10 +39,14 @@ class EngineProcess {
         this.proc.stdout.on("data", (data) => {
             const lines = data.toString().split("\n");
 
-            clearTimeout(t.to);
-            t.to = setTimeout(() => {
-                t.onError(t, "Took too long to respond");
-            }, 10000);
+            if (this.proc){
+                clearTimeout(t.to);
+                t.to = setTimeout(() => {
+                    if (t.proc){
+                        t.onError(t, "Took too long to respond");
+                    }
+                }, 10000);
+            }
 
             for (const l of lines){
                 this.procLog += `${l}\n`;
@@ -127,6 +131,18 @@ class EngineProcess {
             this.proc.kill();
             delete this.proc;
         }
+    }
+
+    // allows GC to collect this object
+    delete(){
+        if (this.onError)
+            delete this.onError;
+
+        if (this.onFinish)
+            delete this.onFinish;
+
+        if (this.engine)
+            delete this.engine;
     }
     
     write(cmd){

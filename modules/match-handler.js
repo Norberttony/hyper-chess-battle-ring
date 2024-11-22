@@ -38,6 +38,7 @@ function startAGame(e1, e2, fen = StartingFEN){
         }
 
         const onFinish = (proc) => {
+            hasErrored = true;
             const e1 = proc;
             const e2 = proc.opponent;
 
@@ -45,6 +46,9 @@ function startAGame(e1, e2, fen = StartingFEN){
 
             e1.stop();
             e2.stop();
+
+            e1.delete();
+            e2.delete();
 
             if (board.isGameOver()){
 
