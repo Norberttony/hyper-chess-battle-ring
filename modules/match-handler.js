@@ -47,9 +47,6 @@ function startAGame(e1, e2, fen = StartingFEN){
             e1.stop();
             e2.stop();
 
-            e1.delete();
-            e2.delete();
-
             if (board.isGameOver()){
 
                 if (board.result == "/"){
@@ -67,6 +64,9 @@ function startAGame(e1, e2, fen = StartingFEN){
             }else{
                 rej("Processes finished but game is not over");
             }
+
+            e1.delete();
+            e2.delete();
         }
 
         // players suddenly appear

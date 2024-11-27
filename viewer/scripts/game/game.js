@@ -1001,6 +1001,31 @@ class Board {
             }
         }
     }
+
+    // Returns the material constellation index.
+    // Assumes that there are never more than the original quantity of pieces.
+    getConstellationIdx(){
+        let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+        for (const p of this.squares){
+            if (p){
+                const col = Piece.getColor(p) == Piece.white ? 0 : 1;
+                const typ = Piece.getType(p);
+                pieceCounts[col][typ]++;
+            }
+        }
+
+        const mults = [ 0, 0, 2, 3, 3, 2, 9, 2 ];
+        let mult = 1;
+        let constellationIdx = 0;
+        for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
+            constellationIdx += pieceCounts[0][i] * mult;
+            mult *= mults[i];
+            constellationIdx += pieceCounts[1][i] * mult;
+            mult *= mults[i];
+        }
+
+        return constellationIdx;
+    }
 }
 
 if (typeof(exports) !== "undefined")
