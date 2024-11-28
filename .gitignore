@@ -4,7 +4,7 @@ bots/*
 bench/*
 
 data/tournaments/*
-data/positions.json
+data/*
 
 node_modules
 

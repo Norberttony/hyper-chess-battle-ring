@@ -5,6 +5,7 @@ const { getAllPositions, savePositions } = require("./fetch-pos");
 const { Engine } = require("./engine");
 const { SPRT } = require("./analyze");
 const { setGlobalLogId, saveLogs } = require("./logger");
+const { exportGame } = require("./database");
 
 const fs = require("fs");
 
@@ -29,7 +30,7 @@ function startAGame(e1, e2, fen = StartingFEN){
                 return;
             
             hasErrored = true;
-            saveLogs(proc, proc.opponent);
+            saveLogs(proc, proc.opponent, true);
 
             proc.stop();
             proc.opponent.stop();
@@ -42,7 +43,7 @@ function startAGame(e1, e2, fen = StartingFEN){
             const e1 = proc;
             const e2 = proc.opponent;
 
-            saveLogs(e1, e2);
+            const logId = saveLogs(e1, e2);
 
             e1.stop();
             e2.stop();
@@ -50,14 +51,14 @@ function startAGame(e1, e2, fen = StartingFEN){
             if (board.isGameOver()){
 
                 if (board.result == "/"){
-                    res(0);
+                    res([ 0, logId ]);
                 }else if (board.result == "#"){
                     // one of the players won...
                     if (e1.engine.side == e1.board.turn){
                         // e1 got checkmated, so e1 lost
-                        res(e2.engine);
+                        res([ e2.engine, logId ]);
                     }else{
-                        res(e1.engine);
+                        res([ e1.engine, logId ]);
                     }
                 }
 
@@ -85,10 +86,13 @@ function startAGame(e1, e2, fen = StartingFEN){
 }
 
 async function startADouble(e1, e2, fen = StartingFEN){
-    const w1 = await startAGame(e1, e2, fen);
+    const [ w1, logId1 ] = await startAGame(e1, e2, fen);
     const l1 = w1 == e1 ? e2 : e1;
-    const w2 = await startAGame(e2, e1, fen);
+    const [ w2, logId2 ] = await startAGame(e2, e1, fen);
     const l2 = w2 == e1 ? e2 : e1;
+
+    exportGame(logId1);
+    exportGame(logId2);
 
     return [ w1, l1, w2, l2 ];
 }

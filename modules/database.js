@@ -1,6 +1,11 @@
 // This file handles communicating with the database
 
 const https = require("https");
+const fs = require("fs");
+
+const { Board } = require("../viewer/scripts/game/game");
+const { getMoveSAN } = require("../viewer/scripts/game/san");
+const { Piece } = require("../viewer/scripts/game/piece");
 
 
 function createTable(tableName, columns){
@@ -144,4 +149,75 @@ function httpRequest(method, url, resolve, reject){
     req.end();
 }
 
-module.exports = { pollDatabase, getRowByNum, addRowByValues, fastAddRowByValues, createTable };
+const tables = {};
+
+async function exportGame(id){
+    if (!fs.existsSync(`./debug/${id}_game.txt`))
+        return false;
+
+    const data = fs.readFileSync(`./debug/${id}_game.txt`).toString();
+
+    const lines = data.split("\n");
+    const white = lines[1].split(" ")[1];
+    const black = lines[2].split(" ")[1];
+    
+    // create table if necessary
+    const sortedNames = [ white, black ].sort();
+    const tblName = `${sortedNames[0]}_${sortedNames[1]}`;
+
+    if (!tables[tblName]){
+        tables[tblName] = createTable(tblName, [ "FEN", "White", "Black", "Result", "Plies", "# Legal Moves", "# 1 Piece Captures", "# 2 Piece Captures", "# 3 Piece Captures", "# 4 Piece Captures", "# 5 Piece Captures", "End Piece Count", "Constellation Index", "Moves" ]);
+    }
+
+    await tables[tblName];
+
+    const FEN = lines[0].replace("FEN: ", "");
+
+    // move counts indexed by # of captured pieces
+    let moveCounts = [ 0, 0, 0, 0, 0, 0 ];
+
+    let moves = "";
+    const brd = new Board();
+    brd.loadFEN(FEN);
+    for (let i = 3; i < lines.length - 1; i++){
+        const moveList = brd.generateMoves(true);
+        for (const move of moveList){
+            moveCounts[move.captures.length]++;
+        }
+
+        const m = brd.getLANMove(lines[i]);
+        moves += getMoveSAN(brd, m, moveList) + " ";
+        brd.makeMove(m);
+    }
+
+    let result = lines[lines.length - 1];
+    if (brd.isGameOver() && brd.result == "#"){
+        if (brd.turn == Piece.black)
+            result = 1;
+        else
+            result = -1
+    }
+
+    let endPieceCount = 0;
+    let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+    for (const p of brd.squares){
+        if (p){
+            const col = Piece.getColor(p) == Piece.white ? 0 : 1;
+            const typ = Piece.getType(p);
+            endPieceCount++;
+            pieceCounts[col][typ]++;
+        }
+    }
+
+    let constellationIdx = "p";
+    for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
+        constellationIdx += pieceCounts[0][i];
+        constellationIdx += pieceCounts[1][i];
+    }
+
+    console.log(await fastAddRowByValues(tblName, [ FEN, white, black, result, lines.length - 4, ...moveCounts, endPieceCount, constellationIdx, moves ]));
+
+    return true;
+}
+
+module.exports = { pollDatabase, getRowByNum, addRowByValues, fastAddRowByValues, createTable, exportGame };
