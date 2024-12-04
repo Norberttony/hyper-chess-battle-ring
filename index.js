@@ -159,8 +159,10 @@ async function startTournament(){
 async function exportGames(){
     console.log("Exporting all games...");
 
-    let id = 600;
-    while (await exportGame(id)){
+    let id = 0;
+    while (id <= 393){
+        console.log(id);
+        await exportGame(id);
         id++;
     }
 

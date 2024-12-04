@@ -142,7 +142,7 @@ function httpRequest(method, url, resolve, reject){
         console.log("Got a request error", method, url);
         console.error(err);
         setTimeout(() => {
-            httpRequest_helper("GET", url, resolve, reject);
+            httpRequest("GET", url, resolve, reject);
         }, 1000);
     });
 
@@ -150,6 +150,8 @@ function httpRequest(method, url, resolve, reject){
 }
 
 const tables = {};
+
+let entireDB = "";
 
 async function exportGame(id){
     if (!fs.existsSync(`./debug/${id}_game.txt`))
@@ -166,7 +168,7 @@ async function exportGame(id){
     const tblName = `${sortedNames[0]}_${sortedNames[1]}`;
 
     if (!tables[tblName]){
-        tables[tblName] = createTable(tblName, [ "FEN", "White", "Black", "Result", "Plies", "# Legal Moves", "# 1 Piece Captures", "# 2 Piece Captures", "# 3 Piece Captures", "# 4 Piece Captures", "# 5 Piece Captures", "End Piece Count", "Constellation Index", "Moves" ]);
+        tables[tblName] = createTable(tblName, [ "ID", "FEN", "White", "Black", "Result", "Plies", "# Legal Moves", "# 1 Piece Captures", "# 2 Piece Captures", "# 3 Piece Captures", "# 4 Piece Captures", "# 5 Piece Captures", "End Piece Count", "Constellation Index", "Constellations", "Moves" ]);
     }
 
     await tables[tblName];
@@ -177,6 +179,10 @@ async function exportGame(id){
     let moveCounts = [ 0, 0, 0, 0, 0, 0 ];
 
     let moves = "";
+    let constellations;
+    let noCapturesTime = 0;
+    let madeMoves = 0;
+
     const brd = new Board();
     brd.loadFEN(FEN);
     for (let i = 3; i < lines.length - 1; i++){
@@ -188,6 +194,33 @@ async function exportGame(id){
         const m = brd.getLANMove(lines[i]);
         moves += getMoveSAN(brd, m, moveList) + " ";
         brd.makeMove(m);
+        madeMoves++;
+
+        if (m.captures.length > 0)
+            noCapturesTime = 0;
+        else
+            noCapturesTime++;
+
+        if (noCapturesTime == 5){
+            let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+            for (const p of brd.squares){
+                if (p){
+                    const col = Piece.getColor(p) == Piece.white ? 0 : 1;
+                    const typ = Piece.getType(p);
+                    pieceCounts[col][typ]++;
+                }
+            }
+
+            if (constellations)
+                constellations += " p";
+            else
+                constellations = "p";
+
+            for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
+                constellations += pieceCounts[0][i];
+                constellations += pieceCounts[1][i];
+            }
+        }
     }
 
     let result = lines[lines.length - 1];
@@ -215,7 +248,7 @@ async function exportGame(id){
         constellationIdx += pieceCounts[1][i];
     }
 
-    console.log(await fastAddRowByValues(tblName, [ FEN, white, black, result, lines.length - 4, ...moveCounts, endPieceCount, constellationIdx, moves ]));
+    console.log(await fastAddRowByValues(tblName, [ id, FEN, white, black, result, madeMoves, ...moveCounts, endPieceCount, constellationIdx, constellations, moves ]));
 
     return true;
 }
