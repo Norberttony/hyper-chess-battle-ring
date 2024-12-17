@@ -33,8 +33,8 @@ class Engine {
         }
     }
     
-    createProcess(onFinish, onError){
-        return new EngineProcess(this, onFinish, onError);
+    createProcess(onReadLine){
+        return new EngineProcess(this, onReadLine);
     }
 
     getResultRow(oppName){

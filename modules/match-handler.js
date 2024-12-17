@@ -13,83 +13,89 @@ const fs = require("fs");
 let usedPositions = {};
 
 
-// starts a game between two engines. Returns a promise that resolves/rejects when the game ends.
-// If the game ends in a draw, promise is resolved with 0. Otherwise, the promise is resolved with
-// the winner (e1 or e2).
-function startAGame(e1, e2, fen = StartingFEN){
+// starts a game between two engines.
+// If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
+async function startAGame(e1, e2, fen = StartingFEN){
     const board = new Board();
     board.loadFEN(fen);
 
-    return new Promise((res, rej) => {
+    const p1 = e1.createProcess();
+    const p2 = e2.createProcess();
 
-        let hasErrored = false;
+    let gameLog = `FEN: ${fen}\nWhite: ${e1.name}\nBlack: ${e2.name}\n`;
 
-        const onError = (proc, err) => {
-            console.error("Error: ", err);
-            if (hasErrored)
-                return;
-            
-            hasErrored = true;
-            saveLogs(proc, proc.opponent, true);
+    try {
+        // ensure all engines are ready
+        await p1.prompt("uciready", "uciok");
+        await p2.prompt("uciready", "uciok");
 
-            proc.stop();
-            proc.opponent.stop();
+        p1.write(`position fen ${fen}`);
+        p2.write(`position fen ${fen}`);
 
-            rej(err);
-        }
+        await p1.prompt("isready", "readyok");
+        await p2.prompt("isready", "readyok");
 
-        const onFinish = (proc) => {
-            hasErrored = true;
-            const e1 = proc;
-            const e2 = proc.opponent;
+        while (!board.isGameOver()){
+            const activeProcess = board.turn == Piece.white ? p1 : p2;
 
-            const logId = saveLogs(e1, e2);
+            const currFEN = board.getFEN();
+            activeProcess.write(`position fen ${currFEN}`);
+            await activeProcess.prompt("isready", "readyok");
 
-            e1.stop();
-            e2.stop();
+            const uciMove = await activeProcess.prompt("go movetime 200", "bestmove", 10000);
+            const lan = uciMove.split(" ")[1];
 
-            if (board.isGameOver()){
-
-                if (board.result == "/"){
-                    res([ 0, logId ]);
-                }else if (board.result == "#"){
-                    // one of the players won...
-                    if (e1.engine.side == e1.board.turn){
-                        // e1 got checkmated, so e1 lost
-                        res([ e2.engine, logId ]);
-                    }else{
-                        res([ e1.engine, logId ]);
-                    }
-                }
-
-            }else{
-                rej("Processes finished but game is not over");
+            const move = board.getLANMove(lan);
+            if (!move){
+                throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}`);
             }
+            board.makeMove(move);
 
-            e1.delete();
-            e2.delete();
+            gameLog += `${lan}\n`;
         }
+    }
+    catch(err){
+        console.error(err);
+    }
+    finally {
+        let resultNum = -2;
+        if (board.result == "/")
+            resultNum = 0;
+        else if (board.result == "#")
+            resultNum = board.turn == Piece.white ? -1 : 1; // if WTP but no moves that get out of checkmate, black won.
 
-        // players suddenly appear
-        const e1proc = e1.createProcess(onFinish, onError);
-        const e2proc = e2.createProcess(onFinish, onError);
+        gameLog += resultNum;
 
-        // players walk up to the board
-        e1proc.setOpponent(e2proc);
-        e2proc.setOpponent(e1proc);
+        p1.stop();
+        p2.stop();
 
-        // players shake hands and begin
-        e1proc.setup(board, Piece.white);
-        e2proc.setup(board, Piece.black);
+        // save into logs
+        const isError = resultNum == -2;
+        const logId = saveLogs(gameLog, e1.name, p1.log, e2.name, p2.log, isError);
 
-    });
+        if (resultNum == 1)
+            return [ e1, logId ];
+        else if (resultNum == -1)
+            return [ e2, logId ];
+        else if (resultNum == 0)
+            return [ 0, logId ];
+
+        return [ resultNum, logId ];
+    }
 }
 
 async function startADouble(e1, e2, fen = StartingFEN){
     const [ w1, logId1 ] = await startAGame(e1, e2, fen);
     const l1 = w1 == e1 ? e2 : e1;
+
+    if (w1 == -2)
+        throw new Error("Game error");
+
     const [ w2, logId2 ] = await startAGame(e2, e1, fen);
     const l2 = w2 == e1 ? e2 : e1;
+    
+    if (w2 == -2)
+        throw new Error("Game error");
 
     exportGame(logId1);
     exportGame(logId2);

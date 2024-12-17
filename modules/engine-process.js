@@ -1,168 +1,80 @@
 
-const fs = require("fs");
-const spawn = require("child_process").spawn;
-const { Piece } = require("../viewer/scripts/game/piece");
+const { spawn } = require("child_process");
 
 class EngineProcess {
-    constructor(engine, onFinish, onError){
+    constructor(engine, onReadLine = () => 0){
         this.engine = engine;
-        this.onFinish = onFinish;
-        this.onError = onError;
-
-        this.board;
-        this.side;
-        this.opponent;
-        this.proc;
-
-        this.procLog = "";
-        this.gameLog = "";
-    }
-
-    // sets up the board and side the engine will play
-    setup(board, side){
-        if (this.proc)
-            this.stop();
-
         this.proc = spawn(this.engine.path);
 
-        this.board = board;
-        this.side = side;
+        this.onReadLine = onReadLine;
 
-        const t = this;
+        // for prompt
+        this.promptPrefix;
+        this.onPromptSuccess;
+        this.promptTimeout;
 
-        this.to = setTimeout(() => {
-            t.onError(t, "Took too long to respond");
-        }, 10000);
-
-        let prevMsg = "";
+        this.log = "";
+        this.broken = "";
 
         this.proc.stdout.on("data", (data) => {
-            const lines = data.toString().split("\n");
-
-            if (this.proc){
-                clearTimeout(t.to);
-                t.to = setTimeout(() => {
-                    if (t.proc){
-                        t.onError(t, "Took too long to respond");
-                    }
-                }, 10000);
-            }
-
-            for (const l of lines){
-                this.procLog += `${l}\n`;
-                if (l.startsWith("makemove")){
-                    // get move from command
-                    const lan = l.trim().split(" ")[1];
-                    const move = board.getLANMove(lan);
-
-                    this.gameLog += `${lan}\n`;
-
-                    // engine is making a move on the board
-                    if (move){
-                        t.board.makeMove(move);
-
-                        // if the game ends with this move, report it
-                        if (t.board.isGameOver()){
-                            // of course, we have to update the opponent's game log with the move
-                            // but without continuing this game
-                            t.opponent.gameLog += `${lan}\n`;
-
-                            clearTimeout(t.to);
-
-                            let logResult;
-                            if (t.board.result == "/"){
-                                logResult = "0";
-                            }else{
-                                logResult = t.board.side == Piece.black ? "1" : "-1";
-                            }
-                            t.gameLog += logResult;
-                            t.opponent.gameLog += logResult;
-
-                            t.onFinish(this);
-                            return;
-                        }
-
-                        if (t.opponent){
-                            t.opponent.opponentMove(lan);
-                        }else{
-                            t.onError(this, "Opponent not set");
-                        }
-                    }else{
-                        t.onError(this, `Could not recognize move of LAN ${lan}`);
-                    }
-                }
-            }
+            this.getLines(data.toString());
         });
 
-        this.proc.stdout.on("error", (err) => {
-            t.onError(this, err);
+        this.proc.on("error", (err) => {
+            throw new Error(err);
         });
-
-
-        const fen = board.getFEN();
-
-        // write game log info
-        this.gameLog += `FEN: ${fen}\n`;
-        this.gameLog += `White: ${this.side == Piece.white ? this.engine.name : this.opponent.engine.name}\n`;
-        this.gameLog += `Black: ${this.side == Piece.black ? this.engine.name : this.opponent.engine.name}\n`;
-
-        // write set up for FEN
-        this.write(fen);
-
-        // write which side the opponent is playing
-        this.write(this.side == Piece.white ? "b" : "w");
     }
 
-    setOpponent(engineProcess){
-        this.opponent = engineProcess;
+    getLines(stdoutData){
+        // stdout data might have multiple lines, and the last line might be cut off.
+        const lines = (this.broken + stdoutData).split("\r\n");
+        if (!stdoutData.endsWith("\r\n") || lines[lines.length - 1] == "")
+            this.broken = lines.pop();
+
+        for (const l of lines){
+            this.log += `${l}\n`;
+            this.onReadLine(l);
+            if (this.promptPrefix && l.startsWith(this.promptPrefix)){
+                this.onPromptSuccess(l);
+                clearTimeout(this.promptTimeout);
+                delete this.promptPrefix;
+            }
+        }
     }
 
-    // opponent has played a move
-    opponentMove(lan){
-        this.gameLog += `${lan}\n`;
-        this.write(lan);
+    prompt(cmd, prefix, timeoutMs = 10000){
+        if (this.promptPrefix)
+            throw new Error("Cannot prompt a process that is in the process of responding to another prompt.");
+        return new Promise((res, rej) => {
+            this.promptPrefix = prefix;
+            this.onPromptSuccess = (line) => {
+                res(line);
+            };
+
+            this.promptTimeout = setTimeout(() => {
+                console.error(`Prompt ${cmd} failed to achieve prefix ${prefix} after ${timeoutMs}ms`);
+                rej();
+            }, timeoutMs);
+
+            this.write(cmd);
+        });
     }
 
     stop(){
-        if (this.to)
-            clearTimeout(this.to);
-        
         if (this.proc){
             this.proc.kill();
             delete this.proc;
+            delete this.promptPrefix;
+            clearTimeout(this.promptTimeout);
         }
     }
 
-    // allows GC to collect this object
-    delete(){
-        if (this.onError)
-            delete this.onError;
-
-        if (this.onFinish)
-            delete this.onFinish;
-
-        if (this.engine)
-            delete this.engine;
-    }
-    
     write(cmd){
         if (this.proc){
-            this.proc.stdin.write(`${cmd}\n`);
+            const msg = `${cmd}\n`;
+            this.log += ` > ${msg}`;
+            this.proc.stdin.write(msg);
         }
-    }
-
-    saveProcLog(procLogDir){
-        fs.writeFile(procLogDir, this.procLog, (err) => {
-            if (err)
-                console.error("Error: ", err);
-        });
-    }
-
-    saveGameLog(gameLogDir){
-        fs.writeFile(gameLogDir, this.gameLog, (err) => {
-            if (err)
-                console.error("Error: ", err);
-        });
     }
 }
 

@@ -12,3 +12,5 @@ pgn.txt
 positions.txt
 
 !.gitkeep
+
+.env

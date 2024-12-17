@@ -21,11 +21,11 @@ const benchedEngines = extractEngines(benchDir);
 (async () => {
 
     const { io, server } = startWebServer();
-    
+
     while (true){
         console.log("Type in a command:");
         const cmd = (await input()).split(" ");
-        
+
         if (cmd[0] == "bench"){
 
             displayBench();
@@ -159,10 +159,9 @@ async function startTournament(){
 async function exportGames(){
     console.log("Exporting all games...");
 
-    let id = 0;
-    while (id <= 393){
+    let id = 1508;
+    while (await exportGame(id)){
         console.log(id);
-        await exportGame(id);
         id++;
     }
 
