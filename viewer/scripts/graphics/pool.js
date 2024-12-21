@@ -1,47 +1,52 @@
-// handles elements going in and out of the pool.
+// handles generating elements to represent the pieces. Whenever a piece is taken, its element
+// is put into a pool for later use.
 
 var draggingElem = document.getElementById("dragging");
 var gameElem = document.getElementById("game");
 
 // fetches an element from the pool
-function fetchElem(className, f, r){
+function fetchElem(className, f, r, boardFlipped){
     let elem = document.getElementById("element-pool");
     if (!elem){
         elem = document.createElement("div");
     }
 
     elem.id = "";
-    setElemLocation(elem, f, r);
+    setElemLocation(elem, f, r, boardFlipped);
     elem.className = className;
 
     return elem;
 }
 
 // sets the location of an element on the board
-function setElemLocation(elem, f, r){
-    elem.style.transform = `translate(${(isDisplayFlipped ? 7 - f : f) * 100}%, ${(isDisplayFlipped ? r : 7 - r) * 100}%)`;
+function setElemLocation(elem, f, r, boardFlipped){
+    elem.style.transform = `translate(${(boardFlipped ? 7 - f : f) * 100}%, ${(boardFlipped ? r : 7 - r) * 100}%)`;
 }
 
 // either creates a completely new move highlight, or fetches an unused element.
-function getMoveHighlightFromPool(f, r){
-    return fetchElem("moveHighlight", f, r);
+function getMoveHighlightFromPool(f, r, boardFlipped){
+    return fetchElem("board-graphics__move-highlight", f, r, boardFlipped);
 }
 
 // either creates a completely new move highlight, or fetches an unused element.
-function getLastMoveHighlightFromPool(f, r){
-    return fetchElem("lastMoveHighlight", f, r);
+function getLastMoveHighlightFromPool(f, r, boardFlipped){
+    return fetchElem("board-graphics__move-highlight--last", f, r, boardFlipped);
 }
 
 // either creates a completely new piece, or fetches an unused element.
-function getPieceFromPool(f, r, pieceType, pieceColor){
-    let piece = fetchElem("piece", f, r);
+function getPieceFromPool(f, r, boardFlipped, pieceType, pieceColor){
+    let piece = fetchElem("board-graphics__piece", f, r, boardFlipped);
 
-    piece.onpointerdown = piecePointerdown;
+    const coords = `${f}_${r}`;
+    const fen = PieceTypeToFEN[pieceType];
 
-    piece.id = `${f}_${r}`;
-
+    piece.dataset.coords = coords;
+    piece.dataset.pieceType = fen;
+    
+    piece.classList.add(coords);
+    piece.classList.add(`board-graphics__piece--type-${fen}`);
+    
     piece.style.backgroundPositionY = colorToBackground[pieceColor];
-    piece.classList.add(PieceTypeToFEN[pieceType]);
     
     return piece;
 }
@@ -51,12 +56,16 @@ function setElemToPool(elem){
     elem.id = "element-pool";
     elem.className = "";
     elem.innerHTML = "";
+
+    for (const key in elem.dataset)
+        delete elem.dataset[key];
+
     elem.onpointerdown = function(){}
     elem.onpointerup = function(){}
 }
 
 // puts a class into the pool
-function setClassToPool(classSelector, container = gameElem){
+function setClassToPool(classSelector, container){
     let elems = container.getElementsByClassName(classSelector);
     while (elems.length > 0)
         setElemToPool(elems[0]);
@@ -64,15 +73,23 @@ function setClassToPool(classSelector, container = gameElem){
 
 // puts all pieces back into the pool.
 function setAllPiecesToPool(container){
-    setClassToPool("piece", container);
+    setClassToPool("board-graphics__piece", container);
 }
 
 // puts all highlights back into pool.
 function setAllMoveHighlightsToPool(container){
-    setClassToPool("moveHighlight", container);
+    setClassToPool("board-graphics__move-highlight", container);
 }
 
 // puts all last move highlights back into pool.
 function setAllLastMoveHighlightsToPool(container){
-    setClassToPool("lastMoveHighlight", container);
+    setClassToPool("board-graphics__move-highlight--last", container);
+}
+
+// attaches a glyph to the piece element
+function attachGlyph(elem, src){
+    const div = document.createElement("div");
+    div.classList.add("glyph");
+    div.style.backgroundImage = `url(${src})`;
+    elem.appendChild(div);
 }

@@ -1,3 +1,4 @@
+
 #dialog-box-container {
     background-color: rgba(0, 0, 0, 0.4);
 
@@ -40,7 +41,7 @@
     z-index: 10;
 }
 
-#create-game-popup, #invite-popup {
+#create-game, #invite-popup {
     background: black;
     padding: 30px;
     border-radius: 18px;
@@ -56,23 +57,43 @@
     margin: 3px 0px;
 }
 
-#create-game-popup .game_container {
+/* Create game styles start */
+
+#create-game__board {
     --game-width: 100%;
     --game-height: 100%;
     width: 40vh;
     height: 40vh;
+    
+    grid-template-areas: 'board';
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
 }
 
-#create-game-fen {
+#create-game__fen {
     width: 450px;
     max-width: 100%;
 }
 
-.input-pair {
+#create-game__fen:read-only {
+    opacity: 0.5;
+}
+
+.create-game-form__input-pair {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
 }
+
+.create-game-form:not(.create-game-form--multiplayer) .create-game-form__input-pair--multiplayer {
+    display: none;
+}
+
+.create-game-form:not(.create-game-form--bot) .create-game-form__input-pair--bot {
+    display: none;
+}
+
+/* Create game styles end */
 
 #invite-popup p {
     margin: 0px;
@@ -108,4 +129,9 @@
 
 #result-box_rematch {
     display: var(--player-elems-visibility);
+}
+
+#dialog_title {
+    font-weight: bold;
+    font-size: x-large;
 }

@@ -2,14 +2,6 @@
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
 
-if (typeof module !== "undefined"){
-    var { algebraicToSquare, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank, getFileFromSq, getRankFromSq } = require("./coords");
-    var { Piece, PieceTypeToFEN, FENToPiece, PieceASCII } = require("./piece");
-    ({ Move } = require("./move"));
-    var { numSquaresToEdge, dirOffsets } = require("./pre-game");
-    var { getMoveSAN } = require("./san");
-}
-
 // removes all glyphs from SAN
 function removeGlyphs(san){
     san = san.replace(/[#+?!]/g, "");
@@ -46,11 +38,6 @@ class Board {
         // fullmove counter
         this.fullmove = 1;
 
-        // last capture stack
-        this.lastCaptures = [ 0 ];
-
-        this.positions = {};
-
         this.loadFEN(StartingFEN);
     }
     // returns any unique identifiers to a position (arrangement of pieces, castling rights, en passant, whose turn it is, etc)
@@ -75,11 +62,9 @@ class Board {
         return result;
     }
     // checks if the current player is checkmated... or stalemated...
-    isGameOver(){
+    isGameOver(moves = this.generateMoves()){
         if (this.result) return this.result;
 
-        let moves = this.generateMoves();
-        
         // yup. this code is not broken. ha ha.
         this.nextTurn();
 
@@ -658,7 +643,7 @@ class Board {
 
         return !attacksKing;
     }
-    // checks if a certain square is attacked by the side to play
+    // checks if a certain square is attacked
     isAttacked(sq){
 
         // go through every move
@@ -712,7 +697,7 @@ class Board {
         }
 
         // go through all of the captures
-        for (const { sq, captured } of move.captures){
+        for (const {sq, captured} of move.captures){
             this.squares[sq] = 0;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // remove coordinator from list
@@ -745,38 +730,18 @@ class Board {
         
         // fullmove
         if (Piece.ofColor(this.turn, Piece.black)){
-            if (this.fullmove != "-")
-                this.fullmove++;
+            if (this.fullmove != "-") this.fullmove++;
         }
-
-        // last capture
-        const lastCapture = this.lastCaptures[this.lastCaptures.length - 1] + 1;
-        this.lastCaptures.push(move.captures.length == 0 ? lastCapture : 0);
-
-        if (lastCapture >= 100)
-            this.setResult("/", "fifty move rule");
 
         // set turn
         this.nextTurn();
-
-        // for three-fold
-        const pos = this.getPosition();
-        if (!this.positions[pos])
-            this.positions[pos] = 0;
-
-        if (++this.positions[pos] == 3)
-            this.setResult("/", "threefold repetition");
     }
     // un-does a move on the board (make sure that the move being undone is the most recent made move)
     unmakeMove(move){
-        // for three-fold
-        const pos = this.getPosition();
-        this.positions[pos]--;
-        
         // unmove the piece and uncapture whatever it captured.
         this.squares[move.from] = this.squares[move.to];
         this.squares[move.to] = 0;
-        for (const { sq, captured } of move.captures){
+        for (const {sq, captured} of move.captures){
             this.squares[sq] = captured;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // add coordinator back to list
@@ -804,8 +769,6 @@ class Board {
                 }
             }
         }
-
-        this.lastCaptures.pop();
 
         // set turn
         this.nextTurn();
@@ -849,17 +812,23 @@ class Board {
     // ==== STATE UPDATES ==== //
     // gets move given SAN
     getMoveOfSAN(san){
-        if (!san) return;
+        if (!san)
+            return;
 
-        const moves = this.generateMoves(true);
+        // take a short cut by considering the destination square of the san and the move piece's type
+        san = removeGlyphs(san);
+        const toSq = algebraicToSquare(san.substring(san.length - 2));
+        const pieceType = FENToPiece[this.turn == Piece.white ? san[0] : san[0].toLowerCase()];
 
-        //const start = performance.now();
+        const moves = this.generateMoves(false);
 
         for (const m of moves){
+            // only consider SAN if to squares and piece types match
+            if (m.to != toSq || this.squares[m.from] != pieceType)
+                continue;
+
             const SAN = getMoveSAN(this, m, moves);
-            if (removeGlyphs(SAN) == removeGlyphs(san)){
-                //const end = performance.now();
-                //console.log(end - start);
+            if (removeGlyphs(SAN) == san){
                 return m;
             }
         }
@@ -979,54 +948,16 @@ class Board {
 
         return FEN;
     }
+
+    getMoveOfLAN(LAN){
+        const moves = this.generateMoves(true);
+        LAN = LAN.trim();
+
+        for (const m of moves){
+            if (m.uci == LAN){
+                return m;
+            }
+        }
+    }
     // ==== END STATE UPDATES ==== //
-
-    playLANMove(LAN){
-        const moves = this.generateMoves(true);
-
-        for (const m of moves){
-            if (m.uci == LAN){
-                this.makeMove(m);
-                return m;
-            }
-        }
-    }
-
-    getLANMove(LAN){
-        const moves = this.generateMoves(true);
-
-        for (const m of moves){
-            if (m.uci == LAN){
-                return m;
-            }
-        }
-    }
-
-    // Returns the material constellation index.
-    // Assumes that there are never more than the original quantity of pieces.
-    getConstellationIdx(){
-        let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
-        for (const p of this.squares){
-            if (p){
-                const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-                const typ = Piece.getType(p);
-                pieceCounts[col][typ]++;
-            }
-        }
-
-        const mults = [ 0, 0, 2, 3, 3, 2, 9, 2 ];
-        let mult = 1;
-        let constellationIdx = 0;
-        for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
-            constellationIdx += pieceCounts[0][i] * mult;
-            mult *= mults[i];
-            constellationIdx += pieceCounts[1][i] * mult;
-            mult *= mults[i];
-        }
-
-        return constellationIdx;
-    }
 }
-
-if (typeof(exports) !== "undefined")
-    module.exports = { Board, StartingFEN };

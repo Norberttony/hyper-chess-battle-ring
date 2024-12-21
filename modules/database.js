@@ -4,7 +4,7 @@ const https = require("https");
 const fs = require("fs");
 
 const { Board } = require("../viewer/scripts/game/game");
-const { getMoveSAN } = require("../viewer/scripts/game/san");
+const { getMoveSAN } = require("../viewer/scripts/graphics/san");
 const { Piece } = require("../viewer/scripts/game/piece");
 
 
