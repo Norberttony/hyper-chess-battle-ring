@@ -68,3 +68,6 @@ const colorToBackground = {
     [Piece.white]: "0%",
     [Piece.black]: "100%"
 };
+
+if (typeof(exports) !== "undefined")
+    module.exports = { Piece, PieceTypeToFEN, FENToPiece, PieceASCII };

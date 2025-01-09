@@ -1,3 +1,7 @@
+
+if (typeof(exports) !== "undefined")
+    var { squareToAlgebraic } = require("./coords");
+
 // The move class contains all relevant information about any move...
 //  - "to"          is a square index of where the moving piece is going to
 //  - "from"        is a square index of where the moving piece is moving from
@@ -17,3 +21,6 @@ class Move {
         return `${squareToAlgebraic(this.from)}${squareToAlgebraic(this.to)}`;
     }
 }
+
+if (typeof(exports) !== "undefined")
+    module.exports = { Move };

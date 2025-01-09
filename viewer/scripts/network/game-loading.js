@@ -112,7 +112,7 @@ function prettyLoadLANGame(notation){
     gameState.loadFEN(fen.replace("FEN: ", ""));
     
     for (const uci of notationElems){
-        const move = gameState.state.getMoveOfLAN(uci);
+        const move = gameState.state.getLANMove(uci);
         if (move)
             gameState.makeMove(move);
     }

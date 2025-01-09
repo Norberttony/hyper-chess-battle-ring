@@ -30,3 +30,6 @@ function getFileFromSq(sq){
 function getRankFromSq(sq){
     return Math.floor(sq / 8);
 }
+
+if (typeof module !== "undefined")
+    module.exports = { algebraicToSquare, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank, getFileFromSq, getRankFromSq };

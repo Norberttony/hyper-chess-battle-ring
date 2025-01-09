@@ -24,3 +24,6 @@ for (let r = 0; r < 8; r++){
         ]);
     }
 }
+
+if (typeof(exports) !== "undefined")
+    module.exports = { numSquaresToEdge, dirOffsets };

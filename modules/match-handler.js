@@ -113,8 +113,9 @@ async function playTournament(oldVersion, newVersion, threads){
     const round = async () => {
         let pos;
         while (!pos){
+            // does not throw error to avoid it interrupting any file-related I/O
             if (positions.length == 0)
-                throw new Error("Out of new positions");
+                return console.error("Out of new positions");
 
             const idx = Math.floor(Math.random() * positions.length);
             pos = positions.splice(idx, 1)[0];
