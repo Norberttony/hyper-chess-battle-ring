@@ -35,6 +35,10 @@ async function startAGame(e1, e2, fen = StartingFEN){
         await p1.prompt("isready", "readyok");
         await p2.prompt("isready", "readyok");
 
+        const repeats = {};
+        repeats[board.getPosition()] = 1;
+        let lastCapture = 0;
+
         while (!board.isGameOver()){
             const activeProcess = board.turn == Piece.white ? p1 : p2;
 
@@ -42,7 +46,7 @@ async function startAGame(e1, e2, fen = StartingFEN){
             activeProcess.write(`position fen ${currFEN}`);
             await activeProcess.prompt("isready", "readyok");
 
-            const uciMove = await activeProcess.prompt("go movetime 200", "bestmove", 10000);
+            const uciMove = await activeProcess.prompt("go movetime 250", "bestmove", 10000);
             const lan = uciMove.split(" ")[1];
 
             const move = board.getLANMove(lan);
@@ -52,6 +56,25 @@ async function startAGame(e1, e2, fen = StartingFEN){
             board.makeMove(move);
 
             gameLog += `${lan}\n`;
+
+            lastCapture++;
+            if (move.captures.length > 0)
+                lastCapture = 0;
+            if (lastCapture >= 100){
+                board.result = "/";
+                break;
+            }
+
+            const pos = board.getPosition();
+            if (!repeats[pos])
+                repeats[pos] = 1;
+            else
+                repeats[pos]++;
+
+            if (repeats[pos] >= 3){
+                board.result = "/";
+                break;
+            }
         }
     }
     catch(err){

@@ -1,7 +1,7 @@
 // Contains helper functions for pieces, such as their numerical representations. FEN to piece
 // conversions are also stored here.
 
-const Piece = {
+var Piece = {
     none: 0,
     king: 1,
     retractor: 2,
@@ -33,9 +33,9 @@ const Piece = {
     }
 };
 
-const PieceASCII = ["?", "K", "Q", "B", "N", "R", "P", "U"];
+var PieceASCII = ["?", "K", "Q", "B", "N", "R", "P", "U"];
 
-const FENToPiece = {
+var FENToPiece = {
     k: Piece.black | Piece.king,
     q: Piece.black | Piece.retractor,
     b: Piece.black | Piece.chameleon,
@@ -53,7 +53,7 @@ const FENToPiece = {
     U: Piece.white | Piece.immobilizer
 };
 
-const PieceTypeToFEN = {
+var PieceTypeToFEN = {
     [Piece.king]: "k",
     [Piece.retractor]: "q",
     [Piece.chameleon]: "b",
@@ -64,7 +64,7 @@ const PieceTypeToFEN = {
 };
 
 // for graphical purposes
-const colorToBackground = {
+var colorToBackground = {
     [Piece.white]: "0%",
     [Piece.black]: "100%"
 };
