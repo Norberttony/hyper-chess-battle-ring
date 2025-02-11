@@ -19,6 +19,12 @@ async function startAGame(e1, e2, fen = StartingFEN){
     const board = new Board();
     board.loadFEN(fen);
 
+    // total time and increment in ms
+    let wtime = 10000;
+    let btime = 10000;
+    let winc = 100;
+    let binc = 100;
+
     const p1 = e1.createProcess();
     const p2 = e2.createProcess();
 
@@ -43,11 +49,30 @@ async function startAGame(e1, e2, fen = StartingFEN){
             const activeProcess = board.turn == Piece.white ? p1 : p2;
 
             const currFEN = board.getFEN();
-            activeProcess.write(`position fen ${currFEN}`);
             await activeProcess.prompt("isready", "readyok");
 
-            const uciMove = await activeProcess.prompt("go movetime 250", "bestmove", 10000);
+            const start = new Date();
+            const uciMove = await activeProcess.prompt(`go wtime ${wtime} winc ${winc} btime ${btime} binc ${binc}`, "bestmove", 10000);
+            const end = new Date();
+
+            // subtract elapsed time...
+            if (board.turn == Piece.white)
+                wtime += winc - (end - start);
+            else
+                btime += binc - (end - start);
+
+            if (wtime <= 0){
+                board.result = "0-1";
+                break;
+            }else if (btime <= 0){
+                board.result = "1-0";
+                break;
+            }
+
             const lan = uciMove.split(" ")[1];
+
+            p1.write(`position moves ${lan}`);
+            p2.write(`position moves ${lan}`);
 
             const move = board.getLANMove(lan);
             if (!move){
@@ -86,6 +111,10 @@ async function startAGame(e1, e2, fen = StartingFEN){
             resultNum = 0;
         else if (board.result == "#")
             resultNum = board.turn == Piece.white ? -1 : 1; // if WTP but no moves that get out of checkmate, black won.
+        else if (board.result == "1-0")
+            resultNum = 1;
+        else if (board.result == "0-1")
+            resultNum = -1;
 
         gameLog += resultNum;
 
