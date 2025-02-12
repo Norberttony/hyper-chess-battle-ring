@@ -1,7 +1,8 @@
 
-const { spawn } = require("child_process");
+import { spawn } from "child_process";
 
-class EngineProcess {
+
+export class EngineProcess {
     constructor(engine, onReadLine = () => 0){
         this.engine = engine;
         this.proc = spawn(this.engine.path);
@@ -77,5 +78,3 @@ class EngineProcess {
         }
     }
 }
-
-module.exports = { EngineProcess };

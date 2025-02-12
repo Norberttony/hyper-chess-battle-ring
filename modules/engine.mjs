@@ -1,8 +1,9 @@
 
-const fs = require("fs");
-const { EngineProcess } = require("./engine-process");
+import fs from "fs";
+import { EngineProcess } from "./engine-process.mjs";
 
-class Engine {
+
+export class Engine {
     constructor(name, path){
         this.name = name;
         this.path = path;
@@ -48,7 +49,7 @@ class Engine {
 }
 
 // extracts engines from a directory.
-function extractEngines(dir){
+export function extractEngines(dir){
     const engines = [];
 
     fs.readdirSync(dir).forEach(file => {
@@ -61,5 +62,3 @@ function extractEngines(dir){
 
     return engines;
 }
-
-module.exports = { Engine, extractEngines };

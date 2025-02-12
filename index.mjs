@@ -1,16 +1,17 @@
 
-const fs = require("fs");
+import fs from "fs";
 
-require("dotenv").config();
+import dotenv from "dotenv";
 
-const { setGlobalLogId, setLogDirs } = require("./modules/logger");
-const { playTournament, loadTournamentInfo } = require("./modules/match-handler");
-const { extractEngines } = require("./modules/engine");
-const { input } = require("./modules/input");
-const { startWebServer, userVsEngine } = require("./modules/web-server");
-const { Piece } = require("./viewer/scripts/game/piece");
-const { exportGame } = require("./modules/database");
+import { playTournament, loadTournamentInfo } from "./modules/match-handler.mjs";
+import { extractEngines } from "./modules/engine.mjs";
+import { input } from "./modules/input.mjs";
+import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
+import { Piece } from "./viewer/scripts/game/piece.mjs";
+import { exportGame } from "./modules/database.mjs";
 
+
+dotenv.config();
 
 const botsDir = "./bots/";
 const benchDir = "./bench/";

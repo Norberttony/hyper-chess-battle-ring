@@ -7,10 +7,13 @@ class NetworkWidget extends BoardWidget {
 
         this.active = false;
         this.color = undefined;
+        this.userJustMadeMove = false;
 
         // the server keeps track of ply count to determine whose turn it is, but this requires
         // offsetting it by 1 if a custom position with BTP was chosen.
         this.plyOffset = 0;
+
+        this.lastUpdate = new Date();
 
         if (location != WIDGET_LOCATIONS.NONE){
             const container = document.createElement("div");
@@ -34,7 +37,7 @@ class NetworkWidget extends BoardWidget {
             this.takebackButton = getFirstElemOfClass(gameButtons, "pgn-viewer__takeback");
             this.outputElem = outputElem;
 
-            this.resignButton.addEventListener("onclick", () => {
+            this.resignButton.addEventListener("click", () => {
                 if (this.active && confirm("Are you sure you want to resign?"))
                     pollDatabase("POST", {
                         type: "resign",
@@ -43,7 +46,7 @@ class NetworkWidget extends BoardWidget {
                         rowNum: this.rowNum
                     });
             });
-            this.drawButton.addEventListener("onclick", () => {
+            this.drawButton.addEventListener("click", () => {
                 if (this.active && confirm("Are you sure you want to offer a draw?"))
                     pollDatabase("POST", {
                         type: "draw",
@@ -52,6 +55,17 @@ class NetworkWidget extends BoardWidget {
                         rowNum: this.rowNum
                     });
             });
+            this.takebackButton.addEventListener("click", () => {
+                if (this.active && confirm("Are you sure you want to offer a takeback?")){
+                    this.userJustMadeMove = false;
+                    pollDatabase("POST", {
+                        type: "takeback",
+                        gameId: this.gameId,
+                        userId: this.userId,
+                        rowNum: this.rowNum
+                    });
+                }
+            })
         }
 
 
@@ -64,29 +78,24 @@ class NetworkWidget extends BoardWidget {
     }
 
     enable(){
-        if (this.location){
-            this.resignButton.removeAttribute("disabled");
-            this.drawButton.removeAttribute("disabled");
-            this.takebackButton.removeAttribute("disabled");
-        }
-        this.active = true;
+        this.activateGameControls();
+        if (this.gameId)
+            this.setActive();
     }
 
     disable(){
-        if (this.location && this.active){
-            this.resignButton.setAttribute("disabled", "true");
-            this.drawButton.setAttribute("disabled", "true");
-            this.takebackButton.setAttribute("disabled", "true");
-        }
-        this.active = false;
+        this.activatePreGameControls();
+        this.unsetActive();
     }
 
-    async setNetworkId(gameId, rowNum, userId, active = true){
+    setNetworkId(gameId, rowNum, userId, active = true){
         this.gameId = gameId;
         this.rowNum = rowNum;
         this.userId = userId;
-        this.active = active;
-        return await this.refreshGame(true);
+        if (active)
+            this.setActive();
+        
+        return this.refreshGame(active);
     }
 
     async startUpdate(){
@@ -100,11 +109,32 @@ class NetworkWidget extends BoardWidget {
         if (!this.active)
             return;
 
-        const rawData = await pollDatabase("GET", {
-            type: "gameStatus",
-            gameId: this.gameId,
-            rowNum: this.rowNum
-        });
+        let rawData;
+        try {
+            console.log("Fetching from db");
+            rawData = await pollDatabase("GET", {
+                type: "gameStatus",
+                gameId: this.gameId,
+                rowNum: this.rowNum
+            });
+            console.log("Fetched.");
+            this.boardgfx.finishedLoading();
+        }
+        catch(err){
+            console.error("Failed to fetch game status. Check internet connection or database.");
+            this.boardgfx.loading();
+            return;
+        }
+
+        if (!this.active)
+            return;
+        
+        if (new Date() - this.lastUpdate >= 60000){
+            console.log("Refreshing game...");
+            await this.refreshGame();
+            // it is possible that rawData is now inaccurate.
+            return;
+        }
 
         if (!this.active)
             return;
@@ -121,11 +151,30 @@ class NetworkWidget extends BoardWidget {
                 const move = moves[i + 1];
 
                 if (plyCount - myPlyCount > 1){
+                    this.userJustMadeMove = false;
                     // must refresh the game by refetching it from the database
+                    await this.refreshGame();
                 }else if (plyCount - myPlyCount == 1){
+                    this.userJustMadeMove = false;
                     this.boardgfx.addMoveToEnd(move);
                     this.boardgfx.applyChanges();
                     myPlyCount++;
+                }else{
+                    // verify that these moves are on the board. if not, maybe a takeback occurred, or
+                    // some moves were deleted in place of new ones...
+                    let cmpTo = this.boardgfx.mainVariation;
+                    for (let i = 0; i < myPlyCount - plyCount; i++){
+                        cmpTo = cmpTo.prev;
+                    }
+
+                    let isLastIter = i + 2 >= 2 * Math.floor(moves.length / 2);
+                    let clientInterpolation = this.userJustMadeMove && myPlyCount - plyCount == 1;
+                    if (cmpTo.san != move || isLastIter && myPlyCount != plyCount && !clientInterpolation){
+                        // looks like they don't match.
+                        this.boardgfx.deleteVariation(cmpTo);
+                        this.boardgfx.addMoveToEnd(move);
+                        this.boardgfx.applyChanges();
+                    }
                 }
             }
         }
@@ -159,6 +208,8 @@ class NetworkWidget extends BoardWidget {
                 termination: gameInfo.termination
             });
         }
+
+        this.lastUpdate = new Date();
     }
 
     async refreshGame(forceActive = false){
@@ -167,10 +218,12 @@ class NetworkWidget extends BoardWidget {
             return console.error("Cannot refresh game without gameId and rowNum"), this.boardgfx.finishedLoading();
 
         const gameInfo = await fetchGame(this.gameId, this.rowNum, this.userId);
+        console.log("Refreshing game...", gameInfo);
+        if (gameInfo.status == "err")
+            throw new Error(gameInfo.msg);
         const { names, fen, color, moves, archived } = gameInfo;
 
-        if (!this.active && !forceActive)
-            return;
+        this.lastUpdate = new Date();
 
         if (names){
             let [ whiteName, blackName ] = names.split("_");
@@ -179,6 +232,10 @@ class NetworkWidget extends BoardWidget {
             else if (color == "black" && blackName == "Anonymous")
                 blackName = "You";
             this.boardgfx.setNames(whiteName, blackName);
+        }else if (color == "white" || color == "black"){
+            this.boardgfx.setNames(color == "white" ? "You" : "Anonymous", color == "white" ? "Anonymous" : "You");
+        }else{
+            this.boardgfx.setNames("Anonymous (white)", "Anonymous (black)");
         }
 
         this.boardgfx.loadFEN(fen);
@@ -192,45 +249,65 @@ class NetworkWidget extends BoardWidget {
         else if (color == "white")
             this.boardgfx.allowInputFrom[Piece.white] = true;
 
-        // play out moves
-        const movesSplit = moves.split(" ");
-        let res;
-        let term;
-        for (const m of movesSplit){
-            if (m != ""){
-                if (m.startsWith("1-0") || m.startsWith("0-1") || m.startsWith("1/2-1/2")){
-                    res = m;
-                    term = movesSplit[movesSplit.length - 1];
-                    break;
-                }else{
-                    const move = this.boardgfx.state.getMoveOfSAN(m);
-                    this.boardgfx.makeMove(move);
-                }
-            }
-        }
-        this.boardgfx.applyChanges();
-
         if (color == "none"){
             delete this.color;
-            activatePreGameControls();
+            this.activatePreGameControls();
+            
         }else{
             this.color = color[0];
-            activateGameControls();
+            this.activateGameControls();
         }
+
+        // play out moves
+        const movesString = moves.trim();
+        const moveObjects = await gameLoader.doTask({ fen, moves: movesString });
+        for (const m of moveObjects){
+            const move = new Move(m.to, m.from, m.captures);
+            this.boardgfx.makeMove(move);
+        }
+        this.boardgfx.applyChanges();
 
         // if archived skip to beginning
         if (archived){
             this.boardgfx.jumpToVariation(this.boardgfx.variationRoot);
             this.boardgfx.applyChanges();
-            activatePreGameControls();
+            this.activatePreGameControls();
         }
         this.boardgfx.pgnData.setHeader("Event", "Hyper Chess Online Game");
 
         this.boardgfx.finishedLoading();
 
-        this.startUpdate();
-
         return gameInfo;
+    }
+
+    setActive(){
+        if (!this.active){
+            this.active = true;
+            this.lastUpdate = new Date();
+            this.startUpdate();
+        }
+    }
+
+    unsetActive(){
+        if (this.active){
+            this.active = false;
+        }
+    }
+
+    activateGameControls(){
+        if (this.location){
+            this.resignButton.removeAttribute("disabled");
+            this.drawButton.removeAttribute("disabled");
+            this.takebackButton.removeAttribute("disabled");
+        }
+    }
+
+    activatePreGameControls(){
+        if (this.location && this.active){
+            this.resignButton.setAttribute("disabled", "true");
+            this.drawButton.setAttribute("disabled", "true");
+            this.takebackButton.setAttribute("disabled", "true");
+        }
     }
 
     // =========================== //
@@ -250,6 +327,7 @@ class NetworkWidget extends BoardWidget {
         if (variation.isMain() && this.userId){
             // the move wasn't from this user. let's send it over to the other user.
             console.log("SEND MOVE TO USER", variation.san);
+            this.userJustMadeMove = true;
             pollDatabase("POST", {
                 type: "move",
                 gameId: this.gameId,
@@ -266,36 +344,17 @@ class NetworkWidget extends BoardWidget {
 
         this.active = false;
     
-        const { result, turn, termination } = event.detail;
-    
-        // get result text of game
-        let resultNum;
-        if      (result == "0-1" || (result == "#" && turn == Piece.white))
-            resultNum = -1;
-        else if (result == "1-0" || (result == "#" && turn == Piece.black))
-            resultNum = 1;
-        else
-            resultNum = 0;
+        const { result, turn, termination, winner } = event.detail;
     
         // an on-board result will either be / or #, whereas a result from the server will either
         // be 1-0, 0-1, or 1/2-1/2. It is a bit confusing and likely needs reworking, but... this works
         if (result){
-            let resultText;
-    
-            if (resultNum == -1){
-                resultText = "0-1";
-            }else if (resultNum == 1){
-                resultText = "1-0";
-            }else{
-                resultText = "1/2-1/2";
-            }
-    
             pollDatabase("POST", {
                 gameId: this.gameId,
                 userId: this.userId,
                 rowNum: this.rowNum,
                 type: "result",
-                result: resultText,
+                result,
                 termination: termination
             });
     
@@ -304,23 +363,23 @@ class NetworkWidget extends BoardWidget {
         }
     
         let resultText;
-        switch(resultNum){
-            case -1:
+        switch(result){
+            case "0-1":
                 resultText = `Black won by ${termination}`;
                 break;
-            case 0:
+            case "1/2-1/2":
                 resultText = "Game ended in a draw";
                 break;
-            case 1:
+            case "1-0":
                 resultText = `White won by ${termination}`;
                 break;
         }
     
         // did this player win?
         let mewin;
-        if (resultNum == 0){
+        if (result == "1/2-1/2"){
             mewin = "drew";
-        }else if (this.color == "w" && resultNum == 1 || this.color == "b" && resultNum == -1){
+        }else if (this.color == "w" && result == "1-0" || this.color == "b" && result == "0-1"){
             mewin = "won";
         }else{
             mewin = "lost";
@@ -335,6 +394,6 @@ class NetworkWidget extends BoardWidget {
         this.boardgfx.pgnData.setHeader("Termination", termination);
     
         displayResultBox(resultText, mewin, termination);
-        activatePreGameControls();
+        this.activatePreGameControls();
     }
 }

@@ -1,16 +1,21 @@
 
-const { Board } = require("../viewer/scripts/game/game");
-const { Piece } = require("../viewer/scripts/game/piece");
+import { Board } from "../viewer/scripts/game/game.mjs";
 
-function startWebServer(){
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export function startWebServer(){
     // create a web server so people can join and watch the games!
-    const express = require("express");
-    const http = require("http");
-
     const app = express();
     const server = http.createServer(app);
 
-    const io = require("socket.io")(server);
+    const io = new Server(server);
 
     app.use(express.static(__dirname + "/../viewer"));
     app.use(express.static(__dirname + "/../debug"));
@@ -28,7 +33,7 @@ function startWebServer(){
 }
 
 // user plays against engine given io, engine, and engine's side to play
-function userVsEngine(io, engine, stp){
+export function userVsEngine(io, engine, stp){
 
     console.log("Setting up IO...");
 
@@ -76,5 +81,3 @@ function userVsEngine(io, engine, stp){
 
     console.log("IO set up! Be sure to refresh any connections");
 }
-
-module.exports = { startWebServer, userVsEngine };

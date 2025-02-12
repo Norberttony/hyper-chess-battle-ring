@@ -1,14 +1,14 @@
 // This file handles communicating with the database
 
-const https = require("https");
-const fs = require("fs");
+import https from "https";
+import fs from "fs";
 
-const { Board } = require("../viewer/scripts/game/game");
-const { getMoveSAN } = require("../viewer/scripts/game/san");
-const { Piece } = require("../viewer/scripts/game/piece");
+import { Board } from "../viewer/scripts/game/game.mjs";
+import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
+import { Piece } from "../viewer/scripts/game/piece.mjs";
 
 
-function createTable(tableName, columns){
+export function createTable(tableName, columns){
     return pollDatabase("POST", {
         cmd: "table",
         table: tableName,
@@ -16,7 +16,7 @@ function createTable(tableName, columns){
     });
 }
 
-function getRowByNum(tableName, rowNum){
+export function getRowByNum(tableName, rowNum){
     return pollDatabase("GET", {
         cmd: "row",
         table: tableName,
@@ -24,7 +24,7 @@ function getRowByNum(tableName, rowNum){
     });
 }
 
-function addRowByValues(tableName, rowValues){
+export function addRowByValues(tableName, rowValues){
     return pollDatabase("POST", {
         cmd: "rowValues",
         table: tableName,
@@ -32,7 +32,7 @@ function addRowByValues(tableName, rowValues){
     });
 }
 
-function fastAddRowByValues(tableName, rowValues){
+export function fastAddRowByValues(tableName, rowValues){
     return pollDatabase("POST", {
         cmd: "fastRowValues",
         table: tableName,
@@ -43,7 +43,7 @@ function fastAddRowByValues(tableName, rowValues){
 
 const DB_URL = `https://script.google.com/macros/s/${process.env.DB_ID}/exec`;
 
-function pollDatabase(method, params){
+export function pollDatabase(method, params){
     const urlParams = new URLSearchParams(params);
     const url = `${DB_URL}?${urlParams}`;
 
@@ -74,7 +74,7 @@ function pollDatabase(method, params){
     });
 }
 
-function sleep(amt){
+export function sleep(amt){
     return new Promise((res, rej) => {
         setTimeout(() => {
             res();
@@ -83,7 +83,7 @@ function sleep(amt){
 }
 
 // Courtesy of https://stackoverflow.com/questions/3710204
-function isJSON(str){
+export function isJSON(str){
     try {
         const o = JSON.parse(str);
 
@@ -151,9 +151,7 @@ function httpRequest(method, url, resolve, reject){
 
 const tables = {};
 
-let entireDB = "";
-
-async function exportGame(id){
+export async function exportGame(id){
     if (!fs.existsSync(`./debug/${id}_game.txt`))
         return false;
 
@@ -191,7 +189,7 @@ async function exportGame(id){
             moveCounts[move.captures.length]++;
         }
 
-        const m = brd.getLANMove(lines[i]);
+        const m = brd.getMoveOfLAN(lines[i]);
         moves += getMoveSAN(brd, m, moveList) + " ";
         brd.makeMove(m);
         madeMoves++;
@@ -252,5 +250,3 @@ async function exportGame(id){
 
     return true;
 }
-
-module.exports = { pollDatabase, getRowByNum, addRowByValues, fastAddRowByValues, createTable, exportGame };

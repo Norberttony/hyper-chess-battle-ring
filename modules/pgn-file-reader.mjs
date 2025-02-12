@@ -1,13 +1,14 @@
 
-const fs = require("fs");
+import fs from "fs";
 
-const { Board } = require("../viewer/scripts/game/game");
-const { Piece } = require("../viewer/scripts/game/piece");
-const { getMoveSAN } = require("../viewer/scripts/game/san");
+import { Board } from "../viewer/scripts/game/game.mjs";
+import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
+
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
-function splitPGNs(pgnsString){
+export function splitPGNs(pgnsString){
     const games = [];
 
     let globalIdx = 0;
@@ -30,7 +31,7 @@ function splitPGNs(pgnsString){
 
 // converts a specific kind of format used by the battle-ring. In this case, LAN files are sequences
 // of moves in LAN separated by line breaks.
-function convertLANToPGN(lanFilePath){
+export function convertLANToPGN(lanFilePath){
     const lanFile = fs.readFileSync(lanFilePath).toString();
     const lanMoves = lanFile.split("\n");
 
@@ -62,7 +63,7 @@ function convertLANToPGN(lanFilePath){
         pgn += `${counter++}... `;
     }
     for (const lan of lanMoves){
-        const move = board.getLANMove(lan);
+        const move = board.getMoveOfLAN(lan);
         if (move){
             const san = getMoveSAN(board, move);
             board.makeMove(move);
@@ -82,7 +83,7 @@ function convertLANToPGN(lanFilePath){
 }
 
 // returns a dictionary where keys are header names and values are header values.
-function extractHeaders(pgn){
+export function extractHeaders(pgn){
     const headers = {};
 
     let leftBracket = pgn.indexOf("[");
@@ -108,7 +109,7 @@ function extractHeaders(pgn){
     return headers;
 }
 
-function extractMoves(pgn){
+export function extractMoves(pgn){
     // remove headers
     pgn = pgn.replace(/\[.+?\]\s*/g, "");
 
@@ -127,5 +128,3 @@ function extractMoves(pgn){
 
     return pgn;
 }
-
-module.exports = { splitPGNs, extractHeaders, extractMoves, convertLANToPGN };

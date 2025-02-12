@@ -231,6 +231,26 @@ class BoardGraphics {
         return false;
     }
 
+    deleteVariation(variation, isHelper = false){
+        for (const n of variation.next)
+            this.deleteVariation(n, true);
+
+        this.dispatchEvent("delete-variation", { variation });
+
+        // if removing part of the main variation, scroll back
+        if (variation == this.mainVariation)
+            this.mainVariation = variation.prev;
+
+        if (variation == this.currentVariation)
+            this.previousVariation();
+
+        // only apply changes if this is the root of the call tree
+        if (!isHelper){
+            variation.prev.next.splice(variation.prev.next.indexOf(variation), 1);
+            this.applyChanges(false);
+        }
+    }
+
     // ========================== //
     // === HANDLING MAKE MOVE === //
     // ========================== //
@@ -270,7 +290,7 @@ class BoardGraphics {
     // applyChanges method.
     makeMove(move){
         const SAN = getMoveSAN(this.state, move);
-
+        
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
             if (v.san == SAN){
@@ -302,7 +322,7 @@ class BoardGraphics {
 
         // the only issue is that this does not handle board (if moved to its latest state)
         if (this.positions[pos] >= 3)
-            this.state.setResult("/", "three-fold repetition");
+            this.state.setResult("1/2-1/2", "three-fold repetition", 0);
 
         // handle the fifty move rule
         this.lastCapture++;
@@ -311,15 +331,16 @@ class BoardGraphics {
         }
         variation.fiftyMoveRuleCounter = this.lastCapture;
         if (this.lastCapture >= 100)
-            this.state.setResult("/", "fifty move rule");
+            this.state.setResult("1/2-1/2", "fifty move rule", 0);
 
         // check and dispatch event for any results
         this.state.isGameOver();
         if (this.state.result){
             this.dispatchEvent("result", {
-                result:         this.state.result,
+                result:         this.state.result.result,
                 turn:           this.state.turn,
-                termination:    this.state.termination
+                termination:    this.state.result.termination,
+                winner:         this.state.result.winner
             });
         }
     }
@@ -387,6 +408,43 @@ class BoardGraphics {
     
     dispatchEvent(name, detail){
         this.skeleton.dispatchEvent(new CustomEvent(name, { detail }));
+    }
+
+    // parses a list of PGN tokens
+    readVariation(pgnSplit, start){
+        let toUndo = 0;
+
+        for (let i = start; i < pgnSplit.length; i++){
+            const pgn = pgnSplit[i];
+
+            if (pgn.startsWith("(")){
+
+                this.previousVariation();
+
+                // start a variation!
+                i = this.readVariation(pgnSplit, i + 1);
+
+                // continue with main variation
+                this.nextVariation(0);
+
+            }else if (pgn.startsWith(")")){
+
+                for (let j = 0; j < toUndo; j++){
+                    this.previousVariation();
+                }
+
+                return i;
+            }else if (pgn.length == 0){
+                // avoid having to search for a move that clearly doesn't exist.
+                continue;
+            }else{
+                const move = this.state.getMoveOfSAN(pgn);
+                if (move){
+                    this.makeMove(move);
+                    toUndo++;
+                }
+            }
+        }
     }
 }
 

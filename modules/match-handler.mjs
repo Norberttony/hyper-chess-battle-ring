@@ -1,13 +1,14 @@
 
-const { Board, StartingFEN } = require("../viewer/scripts/game/game");
-const { Piece } = require("../viewer/scripts/game/piece");
-const { getAllPositions, savePositions } = require("./fetch-pos");
-const { Engine } = require("./engine");
-const { SPRT } = require("./analyze");
-const { setGlobalLogId, saveLogs } = require("./logger");
-const { exportGame } = require("./database");
+import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
+import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { getAllPositions, savePositions } from "./fetch-pos.mjs";
+import { Engine } from "./engine.mjs";
+import { SPRT } from "./analyze.mjs";
+import { setGlobalLogId, saveLogs } from "./logger.mjs";
+import { exportGame } from "./database.mjs";
 
-const fs = require("fs");
+import fs from "fs";
+
 
 // contains positions used by the tournament manager.
 let usedPositions = {};
@@ -15,7 +16,7 @@ let usedPositions = {};
 
 // starts a game between two engines.
 // If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
-async function startAGame(e1, e2, fen = StartingFEN){
+export async function startAGame(e1, e2, fen = StartingFEN){
     const board = new Board();
     board.loadFEN(fen);
 
@@ -74,7 +75,7 @@ async function startAGame(e1, e2, fen = StartingFEN){
             p1.write(`position moves ${lan}`);
             p2.write(`position moves ${lan}`);
 
-            const move = board.getLANMove(lan);
+            const move = board.getMoveOfLAN(lan);
             if (!move){
                 throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}`);
             }
@@ -136,7 +137,7 @@ async function startAGame(e1, e2, fen = StartingFEN){
     }
 }
 
-async function startADouble(e1, e2, fen = StartingFEN){
+export async function startADouble(e1, e2, fen = StartingFEN){
     const [ w1, logId1 ] = await startAGame(e1, e2, fen);
     const l1 = w1 == e1 ? e2 : e1;
 
@@ -155,7 +156,7 @@ async function startADouble(e1, e2, fen = StartingFEN){
     return [ w1, l1, w2, l2 ];
 }
 
-async function playTournament(oldVersion, newVersion, threads){
+export async function playTournament(oldVersion, newVersion, threads){
     const tournamentObject = {
         playing: true
     };
@@ -251,7 +252,7 @@ async function playTournament(oldVersion, newVersion, threads){
 
 // reads from a specific folder: data/tournaments
 // expects to see under that folder: results.json and used-positions.json
-function loadTournamentInfo(oldVersion, newVersion){
+export function loadTournamentInfo(oldVersion, newVersion){
     const resultsPath = "./data/tournaments/results.json";
     const usedPosPath = "./data/tournaments/used-positions.json";
 
@@ -279,5 +280,3 @@ function loadTournamentInfo(oldVersion, newVersion){
 
     return true;
 }
-
-module.exports = { startAGame, startADouble, playTournament, loadTournamentInfo };

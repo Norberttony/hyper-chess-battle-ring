@@ -1,8 +1,9 @@
 
-const fs = require("fs");
+import fs from "fs";
 
-const { Piece } = require("./viewer/scripts/game/piece");
-const { Board, StartingFEN } = require("./viewer/scripts/game/game");
+import { Piece } from "./viewer/scripts/game/piece.mjs";
+import { Board, StartingFEN } from "./viewer/scripts/game/game.mjs";
+
 
 const contents = fs.readFileSync("./pgn.txt").toString();
 

@@ -1,7 +1,8 @@
 
-const fs = require("fs");
+import fs from "fs";
 
-const PGN_Handler = require("./modules/pgn-file-reader");
+import * as PGN_Handler from "./modules/pgn-file-reader.mjs";
+
 
 for (let i = 0; true; i++){
     const path = `./debug/${i}_game.txt`;

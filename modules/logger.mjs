@@ -1,21 +1,22 @@
 
-const fs = require("fs");
+import fs from "fs";
+
 
 let globalLogId = 0;
 
 let gameLogsDir = "./debug/";
 let debugLogsDir = "./debug/";
 
-function setGlobalLogId(val){
+export function setGlobalLogId(val){
     globalLogId = val;
 }
 
-function setLogDirs(gamesNewDir, debugNewDir){
+export function setLogDirs(gamesNewDir, debugNewDir){
     gameLogsDir = gamesNewDir;
     debugLogsDir = debugNewDir;
 }
 
-function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isError = false){
+export function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isError = false){
     const gameId = globalLogId;
     
     if (!isError)
@@ -40,5 +41,3 @@ function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isError = f
 
     return isError ? -1 : gameId;
 }
-
-module.exports = { setGlobalLogId, setLogDirs, saveLogs };
