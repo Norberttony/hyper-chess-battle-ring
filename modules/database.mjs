@@ -2,11 +2,14 @@
 
 import https from "https";
 import fs from "fs";
+import dotenv from "dotenv";
 
 import { Board } from "../viewer/scripts/game/game.mjs";
 import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
 
+
+dotenv.config();
 
 export function createTable(tableName, columns){
     return pollDatabase("POST", {

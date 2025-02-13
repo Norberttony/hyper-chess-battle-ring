@@ -5,7 +5,7 @@ import pathModule from "path"
 import { SPRT } from "./analyze.mjs";
 import { getAllPositions, savePositions } from "./fetch-pos.mjs";
 import { startADouble } from "./match-handler.mjs";
-import { setGlobalLogId } from "./logger.mjs";
+import { setGlobalLogId, setLogDirs } from "./logger.mjs";
 
 
 export class Tournament_Handler {
@@ -44,6 +44,14 @@ export class Tournament_Handler {
             fs.mkdirSync(this.path);
         }
 
+        this.gamesPath = pathModule.join(this.path, "games");
+        if (!fs.existsSync(this.gamesPath))
+            fs.mkdirSync(this.gamesPath);
+
+        this.debugPath = pathModule.join(this.path, "debug");
+        if (!fs.existsSync(this.debugPath))
+            fs.mkdirSync(this.debugPath);
+
         // if not intending to use previous results, this will overwrite them.
         if (!usePrevious || !fs.existsSync(this.resultsPath) || !fs.existsSync(this.positionsPath)){
             fs.writeFileSync(this.resultsPath, JSON.stringify(this.results));
@@ -74,6 +82,9 @@ export class Tournament_Handler {
         if (this.playing)
             return console.warn(`Tournament ${this.name} has already started.`);
         console.log(`Starting ${this.name} with ${threadAmt} threads`);
+
+        setLogDirs(this.gamesPath, this.debugPath);
+
         this.playing = true;
 
         for (let i = 0; i < threadAmt; i++){

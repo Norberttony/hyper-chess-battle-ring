@@ -1,5 +1,6 @@
 
 import fs from "fs";
+import path from "path";
 
 
 let globalLogId = 0;
@@ -24,17 +25,17 @@ export function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isEr
 
     const idHeader = isError ? `${gameId}_error_` : gameId;
 
-    fs.writeFileSync(`${gameLogsDir}${idHeader}_game.txt`, gameLog, (err) => {
+    fs.writeFileSync(path.join(gameLogsDir, `${idHeader}_game.txt`), gameLog, (err) => {
         if (err)
             console.error("Error: ", err);
     });
 
     // save debug files
-    fs.writeFile(`${debugLogsDir}${idHeader}_debug_${proc1Name}.txt`, proc1Log, (err) => {
+    fs.writeFile(path.join(debugLogsDir, `${idHeader}_debug_${proc1Name}.txt`), proc1Log, (err) => {
         if (err)
             console.error("Error: ", err);
     });
-    fs.writeFile(`${debugLogsDir}${idHeader}_debug_${proc2Name}.txt`, proc2Log, (err) => {
+    fs.writeFile(path.join(debugLogsDir, `${idHeader}_debug_${proc2Name}.txt`), proc2Log, (err) => {
         if (err)
             console.error("Error: ", err);
     });

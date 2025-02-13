@@ -1,8 +1,6 @@
 
 import fs from "fs";
 
-import dotenv from "dotenv";
-
 import { Tournament_Handler } from "./modules/tournament-handler.mjs";
 import { extractEngines } from "./modules/engine.mjs";
 import { input } from "./modules/input.mjs";
@@ -10,8 +8,6 @@ import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 import { exportGame } from "./modules/database.mjs";
 
-
-dotenv.config();
 
 const botsDir = "./bots/";
 const benchDir = "./bench/";
@@ -148,7 +144,9 @@ async function startTournament(){
     const tournament = new Tournament_Handler(activeEngines[0], activeEngines[1], usePrevious);
 
     console.log("\nNumber of threads?");
-    const t = parseInt(await input());
+    let t = NaN;
+    while (isNaN(t))
+        t = parseInt(await input());
     tournament.start(t);
 
     // give user an option to stop the tournament
