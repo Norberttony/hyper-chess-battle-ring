@@ -30,9 +30,6 @@ export function SPRT(wins, draws, losses, h_0, h_1, alpha, beta){
     const l_a = Math.log(beta / (1 - alpha));
     const l_b = Math.log((1 - beta) / alpha);
 
-    console.log(ratio);
-    console.log(l_a, l_b);
-
     if (ratio > l_b)
         return "H1";
     else if (ratio < l_a)

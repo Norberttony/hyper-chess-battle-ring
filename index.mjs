@@ -3,7 +3,7 @@ import fs from "fs";
 
 import dotenv from "dotenv";
 
-import { playTournament, loadTournamentInfo } from "./modules/match-handler.mjs";
+import { Tournament_Handler } from "./modules/tournament-handler.mjs";
 import { extractEngines } from "./modules/engine.mjs";
 import { input } from "./modules/input.mjs";
 import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
@@ -138,21 +138,25 @@ async function startTournament(){
     console.log(`Starting a tournament between ${activeEngines[0].name} and ${activeEngines[1].name}...`);
 
     console.log("\nWould you like to load previous tournament info? (y/n)");
+    let usePrevious = false;
     const p = await input();
     if (p == "y"){
         loadTournamentInfo(activeEngines[0], activeEngines[1]);
+        usePrevious = true;
     }
+
+    const tournament = new Tournament_Handler(activeEngines[0], activeEngines[1], usePrevious);
 
     console.log("\nNumber of threads?");
     const t = parseInt(await input());
-    const tournament = await playTournament(activeEngines[0], activeEngines[1], t);
+    tournament.start(t);
 
     // give user an option to stop the tournament
     // the tournament automatically stops when a hypothesis is proven with reasonable confidence,
     // but to return to the CLI, the user still has to type in "stop."
     const s = await input();
     if (s == "stop"){
-        tournament.playing = false;
+        tournament.stop();
         console.log("Finishing up final doubles...");
     }
 }
