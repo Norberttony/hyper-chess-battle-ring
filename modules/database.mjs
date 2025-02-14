@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { Board } from "../viewer/scripts/game/game.mjs";
 import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { getGameLogPath } from "./logger.mjs";
 
 
 dotenv.config();
@@ -155,10 +156,11 @@ function httpRequest(method, url, resolve, reject){
 const tables = {};
 
 export async function exportGame(id){
-    if (!fs.existsSync(`./debug/${id}_game.txt`))
+    const path = getGameLogPath(id);
+    if (!fs.existsSync(path))
         return false;
 
-    const data = fs.readFileSync(`./debug/${id}_game.txt`).toString();
+    const data = fs.readFileSync(path).toString();
 
     const lines = data.split("\n");
     const white = lines[1].split(" ")[1];

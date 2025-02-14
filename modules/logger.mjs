@@ -17,6 +17,10 @@ export function setLogDirs(gamesNewDir, debugNewDir){
     debugLogsDir = debugNewDir;
 }
 
+export function getGameLogPath(id){
+    return path.join(gameLogsDir, `${id}_game.txt`);
+}
+
 export function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isError = false){
     const gameId = globalLogId;
     

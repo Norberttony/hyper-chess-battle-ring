@@ -48,10 +48,6 @@ const benchedEngines = extractEngines(benchDir);
             // assumes: first active engine plays as black.
             userVsEngine(io, activeEngines[0], Piece.black);
 
-        }else if (cmd[0] == "export"){
-            
-            exportGames();
-
         }else if (cmd[0] == "q"){
             break;
         }
@@ -157,18 +153,6 @@ async function startTournament(){
         tournament.stop();
         console.log("Finishing up final doubles...");
     }
-}
-
-async function exportGames(){
-    console.log("Exporting all games...");
-
-    let id = 1508;
-    while (await exportGame(id)){
-        console.log(id);
-        id++;
-    }
-
-    console.log("Stopped after", id, "games");
 }
 
 // user plays against engine
