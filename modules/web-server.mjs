@@ -1,14 +1,17 @@
 
-import { Board } from "../viewer/scripts/game/game.mjs";
 
+import fs from "fs";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import pathModule from "path";
+
+import { Board } from "../viewer/scripts/game/game.mjs";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { getGameLogPath } from "./logger.mjs";
 
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = pathModule.dirname(fileURLToPath(import.meta.url));
 
 export function startWebServer(){
     // create a web server so people can join and watch the games!
@@ -18,12 +21,39 @@ export function startWebServer(){
     const io = new Server(server);
 
     app.use(express.static(__dirname + "/../viewer"));
-    app.use(express.static(__dirname + "/../debug"));
 
     app.use(express.json());
 
     app.get("/", (req, res) => {
         res.sendFile("index.html");
+    });
+
+    app.get("/game/:id", (req, res) => {
+        const gamePath = pathModule.join(__dirname, "..", getGameLogPath(req.params.id));
+        res.sendFile(gamePath);
+    });
+
+    app.get("/game/:tournament/:id", (req, res) => {
+        const gamePath = pathModule.join(__dirname, "..", `data/tournaments/${req.params.tournament}/games/${req.params.id}_game.txt`);
+        res.sendFile(gamePath);
+    });
+
+    app.get("/tournaments", (req, res) => {
+        const dirPath = pathModule.join(__dirname, "..", "data/tournaments");
+        fs.readdir(dirPath, (err, files) => {
+            if (err)
+                throw new Error(err);
+
+            const tournamentNames = [];
+            for (const file of files){
+                // using a blocking I/O operation may not be a good idea
+                // but performance isn't so necessary here :)
+                if (fs.statSync(pathModule.join(dirPath, file)).isDirectory()){
+                    tournamentNames.push(file);
+                }
+            }
+            res.send(JSON.stringify(tournamentNames));
+        });
     });
 
     server.listen(8000);
