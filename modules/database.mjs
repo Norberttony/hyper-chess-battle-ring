@@ -57,7 +57,6 @@ export function pollDatabase(method, params){
 
         function sendSignal(){
             try {
-                console.log(method, params);
                 httpRequest(method, url, (data) => {
 
                     const end = new Date();
@@ -67,8 +66,6 @@ export function pollDatabase(method, params){
                 }, rej);
             }
             catch(err){
-                console.error(err);
-                console.log("Retrying to connect...");
                 setTimeout(sendSignal, 1000);
             }
         }
@@ -118,13 +115,9 @@ function httpRequest(method, url, resolve, reject){
 
             const data = event.toString();
             if (data[0] == "<"){
-                console.error(data);
-                console.error(method, url);
-
                 // try again...
                 return httpRequest("GET", res.headers.location, resolve, reject);
             }else if (data == "none"){
-                console.log("WHAT? NONE?", url);
                 resolve({});
             }else if (!isJSON(data)){
                 const attempt2 = (memoryBank[url] || "") + data;
@@ -143,8 +136,6 @@ function httpRequest(method, url, resolve, reject){
     });
 
     req.on("error", (err) => {
-        console.log("Got a request error", method, url);
-        console.error(err);
         setTimeout(() => {
             httpRequest("GET", url, resolve, reject);
         }, 1000);
