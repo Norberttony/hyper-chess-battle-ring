@@ -1,19 +1,17 @@
 
 import fs from "fs";
+import pathModule from "path";
 
 import { Tournament_Handler } from "./modules/tournament-handler.mjs";
 import { extractEngines } from "./modules/engine.mjs";
 import { input } from "./modules/input.mjs";
 import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
-import { exportGame } from "./modules/database.mjs";
 
 
 const botsDir = "./bots/";
 const benchDir = "./bench/";
 
-const activeEngines = extractEngines(botsDir);
-const benchedEngines = extractEngines(benchDir);
 
 (async () => {
 
@@ -46,7 +44,7 @@ const benchedEngines = extractEngines(benchDir);
         }else if (cmd[0] == "play"){
             
             // assumes: first active engine plays as black.
-            userVsEngine(io, activeEngines[0], Piece.black);
+            userVsEngine(io, extractEngines(botsDir)[0], Piece.black);
 
         }else if (cmd[0] == "q"){
             break;
@@ -57,14 +55,14 @@ const benchedEngines = extractEngines(benchDir);
 
 function displayBench(){
     console.log("\nBench:");
-    for (const e of benchedEngines)
+    for (const e of extractEngines(benchDir))
         console.log(e.name);
     console.log("");
 }
 
 function displayBots(){
     console.log("\nBots:");
-    for (const e of activeEngines)
+    for (const e of extractEngines(botsDir))
         console.log(e.name);
     console.log("");
 }
@@ -79,23 +77,12 @@ function getEngineWithName(arr, name){
 }
 
 function addToBots(name){
-    const idx = getEngineWithName(benchedEngines, name);
-    if (idx > -1){
-
-        // set proper path
-        const engine = benchedEngines[idx];
-        const newPath = engine.path.replace(benchDir, botsDir);
-        fs.renameSync(engine.path, newPath);
-        engine.path = newPath;
-
-        // move engine to active array
-        benchedEngines.splice(idx, 1);
-        activeEngines.push(engine);
-
+    const oldPath = pathModule.join(benchDir, name + ".exe");
+    if (fs.existsSync(oldPath)){
+        fs.renameSync(oldPath, pathModule.join(botsDir, name + ".exe"));
         console.log("Successfully moved to bots!");
-
     }else{
-        if (getEngineWithName(activeEngines, name) > -1)
+        if (getEngineWithName(extractEngines(botsDir), name) > -1)
             console.log(`${name} is already added`);
         else
             console.log(`Could not find ${name} in either the bench or bots`);
@@ -103,30 +90,20 @@ function addToBots(name){
 }
 
 function addToBench(name){
-    const idx = getEngineWithName(activeEngines, name);
-    if (idx > -1){
-
-        // set proper path
-        const engine = activeEngines[idx];
-        const newPath = engine.path.replace(botsDir, benchDir);
-        fs.renameSync(engine.path, newPath);
-        engine.path = newPath;
-
-        // move engine to active array
-        activeEngines.splice(idx, 1);
-        benchedEngines.push(engine);
-
-        console.log("Successfully moved to bench!");
-
+    const oldPath = pathModule.join(botsDir, name + ".exe");
+    if (fs.existsSync(oldPath)){
+        fs.renameSync(oldPath, pathModule.join(benchDir, name + ".exe"));
+        console.log("Successfully moved to bots!");
     }else{
-        if (getEngineWithName(benchedEngines, name) > -1)
-            console.log(`${name} is already benched`);
+        if (getEngineWithName(extractEngines(benchDir), name) > -1)
+            console.log(`${name} is already added`);
         else
             console.log(`Could not find ${name} in either the bench or bots`);
     }
 }
 
 async function startTournament(){
+    const activeEngines = extractEngines(botsDir);
     console.log(`Starting a tournament between ${activeEngines[0].name} and ${activeEngines[1].name}...`);
 
     console.log("\nWould you like to load previous tournament info? (y/n)");
