@@ -4,6 +4,8 @@ import { Piece } from "../viewer/scripts/game/piece.mjs";
 import { saveLogs } from "./logger.mjs";
 import { exportGame } from "./database.mjs";
 
+import { Game_Data } from "./game-data.mjs";
+
 
 // starts a game between two engines.
 // If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
@@ -36,6 +38,7 @@ export async function startAGame(e1, e2, fen = StartingFEN){
         const repeats = {};
         repeats[board.getPosition()] = 1;
         let lastCapture = 0;
+        const moveObjects = [];
 
         while (!board.isGameOver()){
             const activeProcess = board.turn == Piece.white ? p1 : p2;
@@ -71,6 +74,7 @@ export async function startAGame(e1, e2, fen = StartingFEN){
                 throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}`);
             }
             board.makeMove(move);
+            moveObjects.push(move);
 
             gameLog += `${lan}\n`;
 
@@ -115,12 +119,14 @@ export async function startAGame(e1, e2, fen = StartingFEN){
         const isError = resultNum == -2;
         const logId = saveLogs(gameLog, e1.name, p1.log, e2.name, p2.log, isError);
 
+        let winner;
+
         if (resultNum == 1)
-            return [ e1, logId ];
+            winner = e1;
         else if (resultNum == -1)
-            return [ e2, logId ];
+            winner = e2;
         else if (resultNum == 0)
-            return [ 0, logId ];
+            winner = 0;
 
         return [ resultNum, logId ];
     }

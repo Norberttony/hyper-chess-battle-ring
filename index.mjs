@@ -110,7 +110,6 @@ async function startTournament(){
     let usePrevious = false;
     const p = await input();
     if (p == "y"){
-        loadTournamentInfo(activeEngines[0], activeEngines[1]);
         usePrevious = true;
     }
 
