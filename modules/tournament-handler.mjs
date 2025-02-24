@@ -5,7 +5,7 @@ import pathModule from "path"
 import { SPRT } from "./analyze.mjs";
 import { getAllPositions } from "./fetch-pos.mjs";
 import { startADouble } from "./match-handler.mjs";
-import { setGlobalLogId, setLogDirs } from "./logger.mjs";
+import { Game_Logger } from "./logger.mjs";
 
 
 export class Tournament_Handler {
@@ -56,8 +56,9 @@ export class Tournament_Handler {
             this.results = JSON.parse(fs.readFileSync(this.resultsPath).toString());
         }
 
+        this.logger = new Game_Logger(this.name);
         const res = this.results[this.#players[0].name][this.#players[1].name];
-        setGlobalLogId(res.wins + res.draws + res.losses);
+        this.logger.gameId = res.wins + res.draws + res.losses;
     }
 
     save(){
@@ -147,11 +148,11 @@ export class Tournament_Handler {
             }
 
             // play some games
-            const [ w1, l1, w2, l2 ] = await startADouble(this.#players[0], this.#players[1], pos.fen);
+            const [ g1, g2 ] = await startADouble(this.#players[0], this.#players[1], pos.fen, this.logger);
 
             // record results
-            this.recordResult(this.#players[0], this.#players[1], w1, pos);
-            this.recordResult(this.#players[1], this.#players[0], w2, pos);
+            this.recordResult(this.#players[0], this.#players[1], g1.winner, pos);
+            this.recordResult(this.#players[1], this.#players[0], g2.winner, pos);
             this.displayResults();
 
             this.save();

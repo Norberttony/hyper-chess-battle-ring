@@ -1,12 +1,13 @@
 
 import fs from "fs";
-import path from "path";
+import pathModule from "path";
 
 import { Board } from "../viewer/scripts/game/game.mjs";
 
 
 export class Game_Logger {
     constructor(tournName){
+        this.gameId = 0;
         this.path = pathModule.join("./data/tournaments", tournName);
         if (!fs.existsSync(this.path)){
             throw new Error(`Cannot log games for tournament ${tournName} as its folder does not exist.`);
@@ -30,56 +31,19 @@ export class Game_Logger {
             log += `${m.uci}\n`;
             b.makeMove(m);
         }
+        if (b.isGameOver())
+            log += `${b.result.result} ${b.result.termination}`;
 
-        fs.writeFileSync(path.join(this.gamesPath, `${id}_game.txt`));
+        fs.writeFileSync(pathModule.join(this.gamesPath, `${id}_game.txt`), log);
     }
 
     logDouble(game1Data, game2Data){
-        
+        this.logGame(this.gameId++, game1Data);
+        this.logGame(this.gameId++, game2Data);
     }
 }
 
 
-let globalLogId = 0;
-
-let gameLogsDir = "./debug/";
-let debugLogsDir = "./debug/";
-
-export function setGlobalLogId(val){
-    globalLogId = val;
-}
-
-export function setLogDirs(gamesNewDir, debugNewDir){
-    gameLogsDir = gamesNewDir;
-    debugLogsDir = debugNewDir;
-}
-
 export function getGameLogPath(id, dirPath = gameLogsDir){
     return path.join(dirPath, `${id}_game.txt`);
-}
-
-export function saveLogs(gameLog, proc1Name, proc1Log, proc2Name, proc2Log, isError = false){
-    const gameId = globalLogId;
-    
-    if (!isError)
-        globalLogId++;
-
-    const idHeader = isError ? `${gameId}_error_` : gameId;
-
-    fs.writeFileSync(path.join(gameLogsDir, `${idHeader}_game.txt`), gameLog, (err) => {
-        if (err)
-            console.error("Error: ", err);
-    });
-
-    // save debug files
-    fs.writeFile(path.join(debugLogsDir, `${idHeader}_debug_${proc1Name}.txt`), proc1Log, (err) => {
-        if (err)
-            console.error("Error: ", err);
-    });
-    fs.writeFile(path.join(debugLogsDir, `${idHeader}_debug_${proc2Name}.txt`), proc2Log, (err) => {
-        if (err)
-            console.error("Error: ", err);
-    });
-
-    return isError ? -1 : gameId;
 }

@@ -1,9 +1,6 @@
 
 import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
-import { saveLogs } from "./logger.mjs";
-import { exportGame } from "./database.mjs";
-
 import { Game_Data } from "./game-data.mjs";
 
 
@@ -14,15 +11,15 @@ export async function startAGame(e1, e2, fen = StartingFEN){
     board.loadFEN(fen);
 
     // total time and increment in ms
-    let wtime = 10000;
-    let btime = 10000;
+    let wtime = 1000;
+    let btime = 1000;
     let winc = 100;
     let binc = 100;
 
     const p1 = e1.createProcess();
     const p2 = e2.createProcess();
 
-    let gameLog = `FEN: ${fen}\nWhite: ${e1.name}\nBlack: ${e2.name}\n`;
+    const moveObjects = [];
 
     try {
         // ensure all engines are ready
@@ -38,7 +35,6 @@ export async function startAGame(e1, e2, fen = StartingFEN){
         const repeats = {};
         repeats[board.getPosition()] = 1;
         let lastCapture = 0;
-        const moveObjects = [];
 
         while (!board.isGameOver()){
             const activeProcess = board.turn == Piece.white ? p1 : p2;
@@ -76,8 +72,6 @@ export async function startAGame(e1, e2, fen = StartingFEN){
             board.makeMove(move);
             moveObjects.push(move);
 
-            gameLog += `${lan}\n`;
-
             lastCapture++;
             if (move.captures.length > 0){
                 lastCapture = 0;
@@ -110,14 +104,8 @@ export async function startAGame(e1, e2, fen = StartingFEN){
         else if (board.result.result == "0-1")
             resultNum = -1;
 
-        gameLog += resultNum;
-
         p1.stop();
         p2.stop();
-
-        // save into logs
-        const isError = resultNum == -2;
-        const logId = saveLogs(gameLog, e1.name, p1.log, e2.name, p2.log, isError);
 
         let winner;
 
@@ -125,28 +113,26 @@ export async function startAGame(e1, e2, fen = StartingFEN){
             winner = e1;
         else if (resultNum == -1)
             winner = e2;
-        else if (resultNum == 0)
-            winner = 0;
+        else
+            winner = resultNum;
 
-        return [ resultNum, logId ];
+        return new Game_Data(fen, moveObjects, e1, e2, winner, p1.log, p2.log);
     }
 }
 
-export async function startADouble(e1, e2, fen = StartingFEN){
-    const [ w1, logId1 ] = await startAGame(e1, e2, fen);
-    const l1 = w1 == e1 ? e2 : e1;
+export async function startADouble(e1, e2, fen = StartingFEN, logger = undefined){
+    const g1 = await startAGame(e1, e2, fen);
 
-    if (w1 == -2)
+    if (g1.winner == -2)
         throw new Error("Game error");
 
-    const [ w2, logId2 ] = await startAGame(e2, e1, fen);
-    const l2 = w2 == e1 ? e2 : e1;
+    const g2 = await startAGame(e2, e1, fen);
     
-    if (w2 == -2)
+    if (g2.winner == -2)
         throw new Error("Game error");
 
-    exportGame(logId1);
-    exportGame(logId2);
+    if (logger)
+        logger.logDouble(g1, g2);
 
-    return [ w1, l1, w2, l2 ];
+    return [ g1, g2 ];
 }

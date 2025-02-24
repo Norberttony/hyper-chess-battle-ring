@@ -7,7 +7,6 @@ import dotenv from "dotenv";
 import { Board } from "../viewer/scripts/game/game.mjs";
 import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
-import { getGameLogPath } from "./logger.mjs";
 
 
 dotenv.config();
