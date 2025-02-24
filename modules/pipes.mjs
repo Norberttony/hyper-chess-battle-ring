@@ -104,3 +104,11 @@ export class Constellations_Pipe extends Pipe {
         return pieceCounts;
     }
 }
+
+export class Result_Pipe extends Pipe {
+    constructor(){
+        super("result");
+    }
+
+    end = (board) => this.ctx = board.result;
+}

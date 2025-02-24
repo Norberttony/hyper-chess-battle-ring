@@ -7,7 +7,7 @@ import { getAllPositions } from "./fetch-pos.mjs";
 import { startADouble } from "./match-handler.mjs";
 import { Game_Logger } from "./logger.mjs";
 
-import { Game_Length_Pipe, Capture_Count_Pipe, Constellations_Pipe } from "./pipes.mjs";
+import { Game_Length_Pipe, Capture_Count_Pipe, Constellations_Pipe, Result_Pipe } from "./pipes.mjs";
 
 
 export class Tournament_Handler {
@@ -61,7 +61,8 @@ export class Tournament_Handler {
         this.logger = new Game_Logger(this.name, [
             new Game_Length_Pipe(),
             new Capture_Count_Pipe(),
-            new Constellations_Pipe()
+            new Constellations_Pipe(),
+            new Result_Pipe()
         ]);
         const res = this.results[this.#players[0].name][this.#players[1].name];
         this.logger.gameId = res.wins + res.draws + res.losses;
