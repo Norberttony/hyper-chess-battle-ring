@@ -145,16 +145,9 @@ function httpRequest(method, url, resolve, reject){
 
 const tables = {};
 
-export async function exportGame(id){
-    const path = getGameLogPath(id);
-    if (!fs.existsSync(path))
-        return false;
-
-    const data = fs.readFileSync(path).toString();
-
-    const lines = data.split("\n");
-    const white = lines[1].split(" ")[1];
-    const black = lines[2].split(" ")[1];
+export async function exportGame(gameData){
+    const white = gameData.white.name;
+    const black = gameData.black.name;
     
     // create table if necessary
     const sortedNames = [ white, black ].sort();
@@ -179,16 +172,6 @@ export async function exportGame(id){
     const brd = new Board();
     brd.loadFEN(FEN);
     for (let i = 3; i < lines.length - 1; i++){
-        const moveList = brd.generateMoves(true);
-        for (const move of moveList){
-            moveCounts[move.captures.length]++;
-        }
-
-        const m = brd.getMoveOfLAN(lines[i]);
-        moves += getMoveSAN(brd, m, moveList) + " ";
-        brd.makeMove(m);
-        madeMoves++;
-
         if (m.captures.length > 0)
             noCapturesTime = 0;
         else
