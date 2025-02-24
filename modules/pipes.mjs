@@ -1,4 +1,7 @@
 
+import { Piece } from "../viewer/scripts/game/piece.mjs";
+
+
 export class Pipe {
     constructor(name){
         this.name = name;
@@ -27,8 +30,10 @@ export class Pipe_Manager {
 
     end(board){
         const data = {};
-        for (const p of this.pipes)
-            data[p.name] = p.end(board);
+        for (const p of this.pipes){
+            p.end(board);
+            data[p.name] = p.ctx;
+        }
         return data;
     }
 }
@@ -42,7 +47,19 @@ export class Game_Length_Pipe extends Pipe {
 
     start = () => this.ctx.gameLength = 0;
     all   = () => this.ctx.gameLength++;
-    end   = () => this.ctx.gameLength;
+}
+
+export class Capture_Count_Pipe extends Pipe {
+    constructor(){
+        super("capture-count");
+    }
+
+    start = () => this.ctx.moveCounts = [ 0, 0, 0, 0, 0, 0 ];
+    all(board){
+        const moves = board.generateMoves(true);
+        for (const m of moves)
+            this.ctx.moveCounts[m.captures.length]++;
+    }
 }
 
 // keeps track of the material constellations in stable positions.
@@ -50,37 +67,40 @@ export class Game_Length_Pipe extends Pipe {
 export class Constellations_Pipe extends Pipe {
     constructor(){
         super("constellations");
+        this.addAtStability = 8;
     }
 
     start(){
-        this.ctx.stability = 0;
+        this.stability = 0;
         this.ctx.constellations = [];
+        this.ctx.constellationEnd;
     }
 
     all(board, move){
+        if (!move)
+            return;
         if (move.captures.length > 0){
-            this.ctx.stability = 0;
-        }else if (++this.ctx.stability == 8){
-            // count frequency of each piece for each side independently.
-            let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
-            for (const p of board.squares){
-                if (p){
-                    const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-                    const typ = Piece.getType(p);
-                    pieceCounts[col][typ]++;
-                }
-            }
-
-            let constellation = "";
-            for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
-                constellation += pieceCounts[0][i];
-                constellation += pieceCounts[1][i];
-            }
-            this.ctx.constellations.push(constellation);
+            this.stability = 0;
+        }else if (++this.stability == this.addAtStability){
+            this.ctx.constellations.push(this.getConstellation(board));
         }
     }
 
-    end(){
-        return this.ctx.constellations;
+    end(board){
+        // always add a constellation of the final position
+        this.ctx.constellationEnd = this.getConstellation(board);
+    }
+
+    getConstellation(board){
+        // count frequency of each piece for each side independently.
+        let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+        for (const p of board.squares){
+            if (p){
+                const col = Piece.getColor(p) == Piece.white ? 0 : 1;
+                const typ = Piece.getType(p);
+                pieceCounts[col][typ]++;
+            }
+        }
+        return pieceCounts;
     }
 }

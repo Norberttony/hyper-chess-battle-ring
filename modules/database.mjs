@@ -1,12 +1,7 @@
 // This file handles communicating with the database
 
 import https from "https";
-import fs from "fs";
 import dotenv from "dotenv";
-
-import { Board } from "../viewer/scripts/game/game.mjs";
-import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
-import { Piece } from "../viewer/scripts/game/piece.mjs";
 
 
 dotenv.config();
@@ -141,90 +136,4 @@ function httpRequest(method, url, resolve, reject){
     });
 
     req.end();
-}
-
-const tables = {};
-
-export async function exportGame(gameData){
-    const white = gameData.white.name;
-    const black = gameData.black.name;
-    
-    // create table if necessary
-    const sortedNames = [ white, black ].sort();
-    const tblName = `${sortedNames[0]}_${sortedNames[1]}`;
-
-    if (!tables[tblName]){
-        tables[tblName] = createTable(tblName, [ "ID", "FEN", "White", "Black", "Result", "Plies", "# Legal Moves", "# 1 Piece Captures", "# 2 Piece Captures", "# 3 Piece Captures", "# 4 Piece Captures", "# 5 Piece Captures", "End Piece Count", "Constellation Index", "Constellations", "Moves" ]);
-    }
-
-    await tables[tblName];
-
-    const FEN = lines[0].replace("FEN: ", "");
-
-    // move counts indexed by # of captured pieces
-    let moveCounts = [ 0, 0, 0, 0, 0, 0 ];
-
-    let moves = "";
-    let constellations;
-    let noCapturesTime = 0;
-    let madeMoves = 0;
-
-    const brd = new Board();
-    brd.loadFEN(FEN);
-    for (let i = 3; i < lines.length - 1; i++){
-        if (m.captures.length > 0)
-            noCapturesTime = 0;
-        else
-            noCapturesTime++;
-
-        if (noCapturesTime == 5){
-            let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
-            for (const p of brd.squares){
-                if (p){
-                    const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-                    const typ = Piece.getType(p);
-                    pieceCounts[col][typ]++;
-                }
-            }
-
-            if (constellations)
-                constellations += " p";
-            else
-                constellations = "p";
-
-            for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
-                constellations += pieceCounts[0][i];
-                constellations += pieceCounts[1][i];
-            }
-        }
-    }
-
-    let result = lines[lines.length - 1];
-    if (brd.isGameOver() && brd.result == "#"){
-        if (brd.turn == Piece.black)
-            result = 1;
-        else
-            result = -1
-    }
-
-    let endPieceCount = 0;
-    let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
-    for (const p of brd.squares){
-        if (p){
-            const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-            const typ = Piece.getType(p);
-            endPieceCount++;
-            pieceCounts[col][typ]++;
-        }
-    }
-
-    let constellationIdx = "p";
-    for (let i = Piece.retractor; i <= Piece.immobilizer; i++){
-        constellationIdx += pieceCounts[0][i];
-        constellationIdx += pieceCounts[1][i];
-    }
-
-    console.log(await fastAddRowByValues(tblName, [ id, FEN, white, black, result, madeMoves, ...moveCounts, endPieceCount, constellationIdx, constellations, moves ]));
-
-    return true;
 }
