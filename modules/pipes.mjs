@@ -40,13 +40,14 @@ export class Pipe_Manager {
 
 
 // counts the total number of moves that occurred in the game.
+// ctx is just the game length
 export class Game_Length_Pipe extends Pipe {
     constructor(){
         super("game-length");
     }
 
-    start = () => this.ctx.gameLength = 0;
-    all   = () => this.ctx.gameLength++;
+    start = () => this.ctx = 0;
+    all   = () => this.ctx++;
 }
 
 export class Capture_Count_Pipe extends Pipe {
@@ -54,11 +55,11 @@ export class Capture_Count_Pipe extends Pipe {
         super("capture-count");
     }
 
-    start = () => this.ctx.moveCounts = [ 0, 0, 0, 0, 0, 0 ];
+    start = () => this.ctx = [ 0, 0, 0, 0, 0, 0 ];
     all(board){
         const moves = board.generateMoves(true);
         for (const m of moves)
-            this.ctx.moveCounts[m.captures.length]++;
+            this.ctx[m.captures.length]++;
     }
 }
 

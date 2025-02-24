@@ -6,8 +6,8 @@ import { SPRT } from "./analyze.mjs";
 import { getAllPositions } from "./fetch-pos.mjs";
 import { startADouble } from "./match-handler.mjs";
 import { Game_Logger } from "./logger.mjs";
-
 import { Game_Length_Pipe, Capture_Count_Pipe, Constellations_Pipe, Result_Pipe } from "./pipes.mjs";
+import { generateReport } from "./report.mjs";
 
 
 export class Tournament_Handler {
@@ -112,10 +112,12 @@ export class Tournament_Handler {
                 if (this.playing){
                     this.startThread();
                 }else{
-                    if (this.activeGamesCount)
+                    if (this.activeGamesCount){
                         console.log(`Waiting for ${this.activeGamesCount} game(s) to finish...`);
-                    else
+                    }else{
                         console.log("Final game finished!");
+                        generateReport(Object.values(this.logger.pipeData));
+                    }
                 }
             });
     }
