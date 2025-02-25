@@ -46,11 +46,11 @@ export async function startAGame(e1, e2, fen = StartingFEN){
             const uciMove = await activeProcess.prompt(`go wtime ${wtime} winc ${winc} btime ${btime} binc ${binc}`, "bestmove", 10000);
             const end = new Date();
 
-            // subtract elapsed time...
+            // subtract elapsed time.
             if (board.turn == Piece.white)
-                wtime += winc - (end - start);
+                wtime -= end - start;
             else
-                btime += binc - (end - start);
+                btime -= end - start;
 
             if (wtime <= 0){
                 board.setResult("0-1", "time out", Piece.black);
@@ -59,6 +59,9 @@ export async function startAGame(e1, e2, fen = StartingFEN){
                 board.setResult("1-0", "time out", Piece.white);
                 break;
             }
+
+            wtime += winc;
+            btime += binc;
 
             const lan = uciMove.split(" ")[1];
 
@@ -96,27 +99,18 @@ export async function startAGame(e1, e2, fen = StartingFEN){
         console.error(err);
     }
     finally {
-        let resultNum = -2;
+        let winner = -2;
         if (board.result.result == "1/2-1/2")
-            resultNum = 0;
+            winner = 0;
         else if (board.result.result == "1-0")
-            resultNum = 1;
+            winner = e1;
         else if (board.result.result == "0-1")
-            resultNum = -1;
+            winner = e2;
 
         p1.stop();
         p2.stop();
 
-        let winner;
-
-        if (resultNum == 1)
-            winner = e1;
-        else if (resultNum == -1)
-            winner = e2;
-        else
-            winner = resultNum;
-
-        return new Game_Data(fen, moveObjects, e1, e2, winner, p1.log, p2.log);
+        return new Game_Data(fen, moveObjects, e1, e2, board.result, winner, p1.log, p2.log);
     }
 }
 

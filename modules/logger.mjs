@@ -45,8 +45,12 @@ export class Game_Logger {
             b.makeMove(m);
             this.pipeManager.all(b, m);
         }
-        if (b.isGameOver())
-            log += `${b.result.result} ${b.result.termination}`;
+        // keep board state consistent with gameData
+        if (!b.isGameOver() && gameData.result)
+            b.setResult(gameData.result.result, gameData.result.termination, gameData.result.winner);
+
+        if (gameData.result)
+            log += `${gameData.result.result} ${gameData.result.termination}`;
 
         fs.writeFileSync(pathModule.join(this.gamesPath, fileName), log);
 
