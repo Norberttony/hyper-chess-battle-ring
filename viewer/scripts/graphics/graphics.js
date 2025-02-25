@@ -1,29 +1,26 @@
 
 let widgets;
 
-(async () => {
+module_loader.waitForAll()
+    .then(() => {
+        window.gameState = new BoardGraphics(true, true, document.getElementById("main-board"));
 
-    // if necessary, wait until all of the modules have actually loaded.
-    await module_loader.waitForAll();
+        widgets = {
+            annotator: new AnnotatorWidget(gameState),
+            animation: new AnimationWidget(gameState),
+            audio: new AudioWidget(gameState),
+            pgn: new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT),
+            network: new NetworkWidget(gameState, WIDGET_LOCATIONS.RIGHT),
+            extras: new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM),
+            players: new PlayersWidget(gameState),
+            web_phil: new WebPhilWidget(gameState)
+        };
+        widgets.web_phil.disable();
 
-    window.gameState = new BoardGraphics(true, true, document.getElementById("main-board"));
+        widgets.players.setNames("-", "-");
 
-    widgets = {
-        annotator: new AnnotatorWidget(gameState),
-        animation: new AnimationWidget(gameState),
-        audio: new AudioWidget(gameState),
-        pgn: new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT),
-        network: new NetworkWidget(gameState, WIDGET_LOCATIONS.RIGHT),
-        extras: new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM),
-        players: new PlayersWidget(gameState),
-        web_phil: new WebPhilWidget(gameState)
-    };
-    widgets.web_phil.disable();
-
-    widgets.players.setNames("-", "-");
-
-    gameState.display();
-})();
+        gameState.display();
+    });
 
 function hideNames(){
     widgets.players.disable();
