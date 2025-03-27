@@ -4,10 +4,11 @@ import pathModule from "path"
 
 import { SPRT } from "./analyze.mjs";
 import { getAllPositions } from "./fetch-pos.mjs";
-import { startADouble } from "./match-handler.mjs";
 import { Game_Logger } from "./logger.mjs";
 import { Game_Length_Pipe, Capture_Count_Pipe, Constellations_Pipe, Result_Pipe } from "./pipes.mjs";
 import { generateReport } from "./report.mjs";
+import { TaskManager } from "./task-manager.mjs";
+import { Move } from "../viewer/scripts/game/move.mjs";
 
 
 export class Tournament_Handler {
@@ -81,6 +82,13 @@ export class Tournament_Handler {
             return console.warn(`Tournament ${this.name} has already started.`);
         console.log(`Starting ${this.name} with ${threadAmt} threads`);
 
+        const workerData = {
+            e1Name: this.#players[0].name,
+            e1Path: this.#players[0].path,
+            e2Name: this.#players[1].name,
+            e2Path: this.#players[1].path
+        }
+        this.matchManager = new TaskManager("./modules/match-worker.mjs", threadAmt, workerData);
         this.playing = true;
 
         for (let i = 0; i < threadAmt; i++){
@@ -134,40 +142,47 @@ export class Tournament_Handler {
             this.results[white.name][black.name].draws++;
             this.results[black.name][white.name].draws++;
             pos.draws++;
-        }else if (white == winner){
+        }else if (white.path == winner.path){
             this.results[white.name][black.name].wins++;
             this.results[black.name][white.name].losses++;
             pos.whiteWins++;
-        }else if (black == winner){
+        }else if (black.path == winner.path){
             this.results[black.name][white.name].wins++;
             this.results[white.name][black.name].losses++;
             pos.blackWins++;
+        }else{
+            console.warn("Could not interpret winner: ", winner);
         }
     }
 
-    playRound(){
-        return new Promise(async (res, rej) => {
-            let pos;
+    async playRound(){
+        let pos;
+        try {
+            pos = this.getUnplayedPosition();
+        }
+        catch(err){
+            rej(err);
+        }
 
-            try {
-                pos = this.getUnplayedPosition();
-            }
-            catch(err){
-                rej(err);
-            }
+        return this.matchManager.doTask(pos)
+            .then((jsonData) => {
+                const [ g1, g2 ] = JSON.parse(jsonData);
 
-            // play some games
-            const [ g1, g2 ] = await startADouble(this.#players[0], this.#players[1], pos.fen, this.logger);
+                // recreate moves
+                for (let m = 0; m < g1.moves.length; m++)
+                    g1.moves[m] = new Move(g1.moves[m].to, g1.moves[m].from, g1.moves[m].captures);
+                for (let m = 0; m < g2.moves.length; m++)
+                    g2.moves[m] = new Move(g2.moves[m].to, g2.moves[m].from, g2.moves[m].captures);
 
-            // record results
-            this.recordResult(this.#players[0], this.#players[1], g1.winner, pos);
-            this.recordResult(this.#players[1], this.#players[0], g2.winner, pos);
-            this.displayResults();
+                this.logger.logDouble(g1, g2);
 
-            this.save();
+                // record results
+                this.recordResult(this.#players[0], this.#players[1], g1.winner, pos);
+                this.recordResult(this.#players[1], this.#players[0], g2.winner, pos);
+                this.displayResults();
 
-            res();
-        });
+                this.save();
+            });
     }
 
     displayResults(){

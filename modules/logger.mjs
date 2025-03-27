@@ -56,6 +56,9 @@ export class Game_Logger {
 
         this.pipeData[`${id}_game`] = this.pipeManager.end(b);
         fs.writeFileSync(this.dataFilePath, JSON.stringify(this.pipeData));
+
+        fs.writeFileSync(pathModule.join(this.debugPath, `${id}_game_white.txt`), gameData.whiteLog);
+        fs.writeFileSync(pathModule.join(this.debugPath, `${id}_game_black.txt`), gameData.blackLog);
     }
 
     logDouble(game1Data, game2Data){
