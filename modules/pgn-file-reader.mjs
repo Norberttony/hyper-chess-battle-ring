@@ -1,10 +1,14 @@
 
-import fs from "fs";
-
-import { Board } from "../viewer/scripts/game/game.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
 import { getMoveSAN } from "../viewer/scripts/game/san.mjs";
 
+
+export function PGNHeadersToString(headers){
+    let pgn = "";
+    for (const [ name, value ] of Object.entries(headers))
+        pgn += `[${name} "${value}"]\n`;
+    return pgn;
+}
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
@@ -29,55 +33,27 @@ export function splitPGNs(pgnsString){
     }
 }
 
-// converts a specific kind of format used by the battle-ring. In this case, LAN files are sequences
-// of moves in LAN separated by line breaks.
-export function convertLANToPGN(lanFilePath){
-    const lanFile = fs.readFileSync(lanFilePath).toString();
-    const lanMoves = lanFile.split("\n");
-
-    const board = new Board();
-    let pgn = "";
-
-    // interpret headers
-    while (lanMoves.length){
-        const hdr = lanMoves[0];
-        if (hdr.startsWith("White: ")){
-            pgn += `[White "${hdr.replace("White: ", "").trim()}]\n`;
-        }else if (hdr.startsWith("Black: ")){
-            pgn += `[Black "${hdr.replace("Black: ", "").trim()}"]\n`;
-        }else if (hdr.startsWith("FEN: ")){
-            const fen = hdr.replace("FEN: ", "").trim();
-            pgn += `[FEN "${fen}"]\n`;
-            board.loadFEN(fen);
-        }else{
-            break;
-        }
-        lanMoves.shift();
-    }
-
-    pgn += "\n";
+// takes in a list of moves
+export function convertToPGN(headers, moves, board, result = "*"){
+    let pgn = `${PGNHeadersToString(headers)}\n`;
 
     // play out each move
     let counter = board.fullmove;
     if (board.turn == Piece.black){
         pgn += `${counter++}... `;
     }
-    for (const lan of lanMoves){
-        const move = board.getMoveOfLAN(lan);
-        if (move){
-            const san = getMoveSAN(board, move);
-            board.makeMove(move);
+    for (const move of moves){
+        const san = getMoveSAN(board, move);
+        board.makeMove(move);
 
-            if (board.getFEN() == "1pkP1b2/qun1BPrb/PRUP2PB/4K3/8/1P6/5N2/8 w 43")
-                console.log(lanFilePath);
-
-            if (board.turn == Piece.black){
-                pgn += `${counter++}. ${san} `;
-            }else{
-                pgn += `${san} `;
-            }
+        if (board.turn == Piece.black){
+            pgn += `${counter++}. ${san} `;
+        }else{
+            pgn += `${san} `;
         }
     }
+
+    pgn += result;
 
     return pgn.trim();
 }

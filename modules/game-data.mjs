@@ -1,6 +1,6 @@
 
 export class Game_Data {
-    constructor(fen, moves, white, black, result, winner, whiteLog, blackLog){
+    constructor(fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
         this.fen = fen;
         this.moves = moves;
         this.white = white;
@@ -10,6 +10,7 @@ export class Game_Data {
         this.loser = 0;
         this.whiteLog = whiteLog;
         this.blackLog = blackLog;
+        this.timeControl = timeControl;
 
         if (this.winner == this.white)
             this.loser = this.black;

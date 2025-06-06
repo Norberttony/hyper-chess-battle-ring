@@ -1,5 +1,4 @@
 
-
 import fs from "fs";
 import express from "express";
 import http from "http";
@@ -34,7 +33,7 @@ export function startWebServer(){
     });
 
     app.get("/game/:tournament/:id", (req, res) => {
-        const gamePath = pathModule.join(__dirname, "..", `data/tournaments/${req.params.tournament}/games/${req.params.id}_game.txt`);
+        const gamePath = pathModule.join(__dirname, "..", `data/tournaments/${req.params.tournament}/games/${req.params.id}_game.pgn`);
         res.sendFile(gamePath);
     });
 

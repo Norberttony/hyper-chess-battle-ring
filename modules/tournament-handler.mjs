@@ -5,8 +5,6 @@ import pathModule from "path"
 import { SPRT } from "./analyze.mjs";
 import { getAllPositions } from "./fetch-pos.mjs";
 import { Game_Logger } from "./logger.mjs";
-import { Game_Length_Pipe, Capture_Count_Pipe, Constellations_Pipe, Result_Pipe } from "./pipes.mjs";
-import { generateReport } from "./report.mjs";
 import { TaskManager } from "./task-manager.mjs";
 import { Move } from "../viewer/scripts/game/move.mjs";
 
@@ -59,12 +57,7 @@ export class Tournament_Handler {
             this.results = JSON.parse(fs.readFileSync(this.resultsPath).toString());
         }
 
-        this.logger = new Game_Logger(this.name, [
-            new Game_Length_Pipe(),
-            new Capture_Count_Pipe(),
-            new Constellations_Pipe(),
-            new Result_Pipe()
-        ]);
+        this.logger = new Game_Logger(this.name);
         const res = this.results[this.#players[0].name][this.#players[1].name];
         this.logger.gameId = res.wins + res.draws + res.losses;
     }
@@ -92,7 +85,7 @@ export class Tournament_Handler {
         this.playing = true;
 
         for (let i = 0; i < threadAmt; i++){
-            this.startThread();
+            this.#startThread();
         }
     }
 
@@ -100,9 +93,10 @@ export class Tournament_Handler {
         this.playing = false;
     }
 
-    startThread(){
-        if (!this.playing)
-            return console.warn("Use Tournament_Handler.start instead of manually starting threads.");
+    // internal method for starting a parallel thread that will handle playing games.
+    #startThread(){
+        if (this.positions.length == 0)
+            return console.warn("Cannot continue thread; out of positions");
 
         this.activeGamesCount++;
         this.playRound()
@@ -118,13 +112,12 @@ export class Tournament_Handler {
                 }
 
                 if (this.playing){
-                    this.startThread();
+                    this.#startThread();
                 }else{
                     if (this.activeGamesCount){
                         console.log(`Waiting for ${this.activeGamesCount} game(s) to finish...`);
                     }else{
                         console.log("Final game finished!");
-                        generateReport(Object.values(this.logger.pipeData));
                     }
                 }
             });
@@ -156,13 +149,7 @@ export class Tournament_Handler {
     }
 
     async playRound(){
-        let pos;
-        try {
-            pos = this.getUnplayedPosition();
-        }
-        catch(err){
-            rej(err);
-        }
+        const pos = this.getUnplayedPosition();
 
         return this.matchManager.doTask(pos)
             .then((jsonData) => {

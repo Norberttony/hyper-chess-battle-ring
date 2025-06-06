@@ -6,12 +6,15 @@ import { Game_Data } from "./game-data.mjs";
 
 // starts a game between two engines.
 // If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
-export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { wtime: 1000, winc: 100, btime: 1000, binc: 100 }){
+export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time: 1000, inc: 100 }){
     const board = new Board();
     board.loadFEN(fen);
 
     // total time and increment in ms
-    let { wtime, winc, btime, binc } = timeControl;
+    let wtime = timeControl.time;
+    let btime = timeControl.time;
+    let winc = timeControl.inc;
+    let binc = timeControl.inc;
 
     const p1 = e1.createProcess();
     const p2 = e2.createProcess();
@@ -107,17 +110,17 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { wtim
         p1.stop();
         p2.stop();
 
-        return new Game_Data(fen, moveObjects, e1, e2, board.result, winner, p1.log, p2.log);
+        return new Game_Data(fen, moveObjects, e1, e2, board.result, winner, p1.log, p2.log, timeControl);
     }
 }
 
-export async function startADouble(e1, e2, fen = StartingFEN, timeControl = { wtime: 1000, winc: 100, btime: 1000, binc: 100 }){
+export async function startADouble(e1, e2, fen = StartingFEN, timeControl = { time: 1000, inc: 100 }){
     const g1 = await startAGame(e1, e2, fen, timeControl);
 
     if (g1.winner == -2)
         throw new Error("Game error");
 
-    const g2 = await startAGame(e2, e1, fen, { wtime: timeControl.btime, winc: timeControl.binc, btime: timeControl.wtime, binc: timeControl.winc });
+    const g2 = await startAGame(e2, e1, fen, timeControl);
     
     if (g2.winner == -2)
         throw new Error("Game error");

@@ -2,13 +2,13 @@
 import fs from "fs";
 import pathModule from "path";
 
-import { Board } from "../viewer/scripts/game/game.mjs";
-import { Pipe_Manager } from "./pipes.mjs";
+import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
+import { convertToPGN } from "./pgn-file-reader.mjs";
 
 
 export class Game_Logger {
-    constructor(tournName, pipes = []){
-        this.gameId = 0;
+    constructor(tournName){
+        this.gameId = 1;
         this.path = pathModule.join("./data/tournaments", tournName);
         if (!fs.existsSync(this.path)){
             throw new Error(`Cannot log games for tournament ${tournName} as its folder does not exist.`);
@@ -25,38 +25,36 @@ export class Game_Logger {
         this.dataFilePath = pathModule.join(this.path, "data.json");
         if (!fs.existsSync(this.dataFilePath))
             fs.writeFileSync(this.dataFilePath, "{}");
-
-        this.pipeData = JSON.parse(fs.readFileSync(this.dataFilePath).toString());
-        this.pipeManager = new Pipe_Manager(pipes);
     }
 
     logGame(id, gameData){
-        const fileName = `${id}_game.txt`;
-        let log = `FEN: ${gameData.fen}\nWhite: ${gameData.white.name}\nBlack: ${gameData.black.name}\n`;
+        const fileName = `${id}_game.pgn`;
+
+        const { time, inc } = gameData.timeControl;
+
+        const headers = {
+            "Date": getPGNDateNow(),
+            "Round": id,
+            "Event": "Battle Ring Tournament",
+            "Site": "Hyper Chess Battle Ring",
+            "White": gameData.white.name,
+            "Black": gameData.black.name,
+            "Result": gameData.result.result,
+            "Termination": gameData.result.termination,
+            "TimeControl": `${time / 60000}+${inc / 1000}`
+        };
+
+        if (gameData.fen != StartingFEN){
+            headers.FEN = gameData.fen;
+            headers.Variant = "From Position";
+        }
 
         const b = new Board();
         b.loadFEN(gameData.fen);
 
-        this.pipeManager.start(b);
-        this.pipeManager.all(b);
+        const pgn = convertToPGN(headers, gameData.moves, b, gameData.result.result);
 
-        for (const m of gameData.moves){
-            log += `${m.uci}\n`;
-            b.makeMove(m);
-            this.pipeManager.all(b, m);
-        }
-        // keep board state consistent with gameData
-        if (!b.isGameOver() && gameData.result)
-            b.setResult(gameData.result.result, gameData.result.termination, gameData.result.winner);
-
-        if (gameData.result)
-            log += `${gameData.result.result} ${gameData.result.termination}`;
-
-        fs.writeFileSync(pathModule.join(this.gamesPath, fileName), log);
-
-        this.pipeData[`${id}_game`] = this.pipeManager.end(b);
-        fs.writeFileSync(this.dataFilePath, JSON.stringify(this.pipeData));
-
+        fs.writeFileSync(pathModule.join(this.gamesPath, fileName), pgn);
         fs.writeFileSync(pathModule.join(this.debugPath, `${id}_game_white.txt`), gameData.whiteLog);
         fs.writeFileSync(pathModule.join(this.debugPath, `${id}_game_black.txt`), gameData.blackLog);
     }
@@ -69,5 +67,15 @@ export class Game_Logger {
 
 
 export function getGameLogPath(id, dirPath = gameLogsDir){
-    return path.join(dirPath, `${id}_game.txt`);
+    return path.join(dirPath, `${id}_game.pgn`);
+}
+
+// returns the current date in the form YYYY.MM.DD
+function getPGNDateNow(){
+    const date = new Date();
+    const y = date.getFullYear().toString().padStart(4, "0");
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const d = (date.getDay() + 1).toString().padStart(2, "0");
+
+    return `${y}.${m}.${d}`;
 }
