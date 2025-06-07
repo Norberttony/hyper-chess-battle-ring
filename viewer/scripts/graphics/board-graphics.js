@@ -114,13 +114,28 @@ class BoardGraphics {
     }
 
     loadPGN(pgn){
-        // check if we have to load from position
         let fen = StartingFEN;
+        
         const headers = extractHeaders(pgn);
+        
+        // check if we have to load from position
         if (headers.Variant == "From Position"){
             fen = headers.FEN;
         }
+
+        let whiteScore = "";
+        let blackScore = "";
+        if (headers.Result)
+            [ whiteScore, blackScore ] = headers.Result.split("-");
+
+        this.setNames((headers.White || "") + " | " + whiteScore, (headers.Black || "") + " | " + blackScore);
+
         this.loadFEN(fen);
+
+        // set headers of pgnData
+        this.pgnData.clearHeaders();
+        for (const [ name, value ] of Object.entries(headers))
+            this.pgnData.setHeader(name, value);
 
         // remove headers
         pgn = pgn.replace(/\[.+?\]\s*/g, "");

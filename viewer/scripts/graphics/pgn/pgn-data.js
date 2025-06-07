@@ -25,6 +25,10 @@ class PGNData {
         };
     }
 
+    clearHeaders(){
+        this.headers = {};
+    }
+
     clear(){
         this.initHeaders();
     }
