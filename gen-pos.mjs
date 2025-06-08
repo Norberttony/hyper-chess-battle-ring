@@ -3,16 +3,17 @@ import fs from "fs";
 
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 import { Board, StartingFEN } from "./viewer/scripts/game/game.mjs";
+import { extractHeaders, splitPGNs } from "./modules/pgn-file-reader.mjs";
+import { getAllPositions } from "./modules/fetch-pos.mjs";
 
-
-const contents = fs.readFileSync("./pgn.txt").toString();
 
 // returns true if the position is quiet (no capture moves) AND if the material is equal AND if the
 // pseudolegal moves are exactly the same as the legal moves (no pins, checks, king attacks)
 // Equal material occurs when both opponents have the same number of each piece type.
 function isPositionQuietAndEqual(board){
     // 8 entries, first one is empty, the next index relevant piece type
-    let pieceCounts = [0, 0, 0, 0, 0, 0, 0, 0];
+    const pieceCounts = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+    const hasPiece = [ false, false, false, false, false, false, false, false, false ];
     let zeroCounts = 8; // the number of zeroes
     for (let s = 0; s < 64; s++){
         const val = board.squares[s];
@@ -28,6 +29,8 @@ function isPositionQuietAndEqual(board){
         const type = Piece.getType(val);
         const perspective = Piece.getColor(val) == Piece.white ? 1 : -1;
 
+        hasPiece[type] = true;
+
         // will now be imbalanced
         if (pieceCounts[type] == 0)
             zeroCounts--;
@@ -41,6 +44,12 @@ function isPositionQuietAndEqual(board){
 
     if (zeroCounts != 8)
         return false;
+
+    // ensure there is at least 1 of each piece type
+    for (let i = Piece.king; i <= Piece.immobilizer; i++){
+        if (!hasPiece[i])
+            return false;
+    }
 
     // now test for a quiet position
     for (const m of board.generateMoves(false)){
@@ -75,40 +84,17 @@ function isPositionQuietAndEqual(board){
     return true;
 }
 
-function recordFENSample(potentialFENs, maxSamples){
-    const samplesAmt = Math.max(potentialFENs.length, maxSamples);
-    const samples = [];
-    let rand;
-    while (samples.length != samplesAmt && potentialFENs.length > 0){
-        rand = randomInteger(0, potentialFENs.length);
-        const val = potentialFENs[rand];
-        if (samples.indexOf(val) == -1){
-            samples.push(val);
-        }
-        potentialFENs.splice(rand, 1);
-    }
 
-    for (const fen of samples){
-        FENs += `${fen}\n`;
-        console.log(fen);
-    }
-
-    return samples;
-}
-
-
+const pgns = splitPGNs(fs.readFileSync("./compiled.pgn").toString());
 const game = new Board();
 
-let FENs = "";
+let FENs = [];
 
-let start = contents.indexOf("[");
-let end = contents.indexOf("[", contents.indexOf("1."));
-let prog = 0;
-let FENsAmt = 0;
-while (start != -1 && end != -1){
-    game.loadFEN(StartingFEN);
+for (let pgn of pgns){
+    const headers = extractHeaders(pgn);
+    const FEN = headers.FEN || StartingFEN;
 
-    let pgn = contents.substring(start, end);
+    game.loadFEN(FEN);
 
     // remove headers
     pgn = pgn.replace(/\[.+?\]\s*/g, "");
@@ -136,48 +122,29 @@ while (start != -1 && end != -1){
         }
 
         // ensure the position is different enough from other similar positions
-        // and also that this isn't close to the opening phase of the game
-        if (i >= 8 && i - lastAdded >= 10 && isPositionQuietAndEqual(game)){
-            FENs += `${game.getFEN()}\n`;
+        // and also that this isn't too close to the opening phase of the game
+        if (i >= 8 && i - lastAdded >= 4 && isPositionQuietAndEqual(game)){
+            FENs.push(game.getFEN());
             lastAdded = i;
-            FENsAmt++;
         }
     }
-
-    start = contents.indexOf("[", contents.indexOf("1.", end));
-    end = contents.indexOf("[", contents.indexOf("1.", start));
-
-    console.log(prog++, FENsAmt);
 }
 
-/*
-for (let i = 0; i < 1000; i++){
-    console.log(i);
-    // can read the contents of any file with LAN (long algebraic notation) moves.
-    const contents = fs.readFileSync(`./debug/game-${i}.txt`).toString();
+// determine FENs that were already in the set
+const positions = getAllPositions();
+const alreadyHasFENs = new Set();
+for (const { fen } of positions)
+    alreadyHasFENs.add(fen);
 
-    game.loadFEN(StartingFEN);
-
-    const moves = contents.split("\n");
-    let potentialFENs = [];
-    for (let j = 3; j < moves.length - 1; j++){
-        if (!moves[j])
-            continue;
-        game.playLANMove(moves[j].trim());
-
-        if (isPositionQuietAndEqual(game)){
-            potentialFENs.push(game.getFEN());
-        }
+// add non-duplicate FENs into position set
+let newPositions = 0;
+for (const fen of FENs){
+    if (!alreadyHasFENs.has(fen)){
+        positions.push({ fen, whiteWins: 0, draws: 0, blackWins: 0 });
+        newPositions++;
     }
-
-    recordFENSample(potentialFENs, Math.ceil(moves.length / 10));
-    
 }
-    */
 
-console.log(FENs);
-//fs.appendFileSync("./positions.txt", FENs);
+fs.writeFileSync("./data/positions.json", JSON.stringify(positions));
 
-function randomInteger(min, max){
-    return Math.floor(Math.random() * (max - min)) + min;
-}
+console.log(`Found ${newPositions} new positions`);

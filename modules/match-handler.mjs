@@ -70,7 +70,9 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
 
             const move = board.getMoveOfLAN(lan);
             if (!move){
-                throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}`);
+                const winner = board.turn == Piece.white ? Piece.black : Piece.white;
+                board.setResult(winner == Piece.black ? "0-1" : "1-0", "illegal move", winner);
+                throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${activeProcess.engine.name}`);
             }
             board.makeMove(move);
             moveObjects.push(move);
@@ -100,12 +102,14 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
     }
     finally {
         let winner = -2;
-        if (board.result.result == "1/2-1/2")
-            winner = 0;
-        else if (board.result.result == "1-0")
-            winner = e1;
-        else if (board.result.result == "0-1")
-            winner = e2;
+        if (board.result){
+            if (board.result.result == "1/2-1/2")
+                winner = 0;
+            else if (board.result.result == "1-0")
+                winner = e1;
+            else if (board.result.result == "0-1")
+                winner = e2;
+        }
 
         p1.stop();
         p2.stop();
