@@ -3,7 +3,6 @@ import fs from "fs";
 import pathModule from "path"
 
 import { SPRT } from "./analyze.mjs";
-import { getAllPositions } from "./fetch-pos.mjs";
 import { Game_Logger } from "./logger.mjs";
 import { TaskManager } from "./task-manager.mjs";
 import { Move } from "../viewer/scripts/game/move.mjs";
@@ -32,7 +31,7 @@ export class Tournament_Handler {
         }
 
         // initialize positions
-        this.positions = getAllPositions();
+        this.positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
 
         this.name = Object.assign([], this.#players.map((v) => v.name)).sort().join("__vs__");
         
@@ -48,7 +47,7 @@ export class Tournament_Handler {
         // if not intending to use previous results, this will overwrite them.
         if (!usePrevious || !fs.existsSync(this.resultsPath) || !fs.existsSync(this.positionsPath)){
             fs.writeFileSync(this.resultsPath, JSON.stringify(this.results));
-            fs.writeFileSync(this.positionsPath, JSON.stringify(getAllPositions()));
+            fs.writeFileSync(this.positionsPath, JSON.stringify(this.positions));
         }
 
         // read data from previous tournament (if existed)
@@ -104,7 +103,7 @@ export class Tournament_Handler {
                 this.activeGamesCount--;
                 // perform SPRT to see if must play more games
                 const results = this.results[this.#players[1].name][this.#players[0].name];
-                const hyp = SPRT(results.wins, results.draws, results.losses, 0, 20, 0.01, 0.01);
+                const hyp = SPRT(results.wins, results.draws, results.losses, 0, -5, 0.01, 0.01);
                 if (hyp){
                     console.log(`SPRT goal reached, allowing final ${this.activeGamesCount} game(s) to finish...`);
                     this.stop();
@@ -130,19 +129,16 @@ export class Tournament_Handler {
         return this.positions.splice(idx, 1)[0];
     }
 
-    recordResult(white, black, winner, pos){
+    recordResult(white, black, winner){
         if (winner == 0){
             this.results[white.name][black.name].draws++;
             this.results[black.name][white.name].draws++;
-            pos.draws++;
         }else if (white.path == winner.path){
             this.results[white.name][black.name].wins++;
             this.results[black.name][white.name].losses++;
-            pos.whiteWins++;
         }else if (black.path == winner.path){
             this.results[black.name][white.name].wins++;
             this.results[white.name][black.name].losses++;
-            pos.blackWins++;
         }else{
             console.warn("Could not interpret winner: ", winner);
         }
@@ -164,8 +160,8 @@ export class Tournament_Handler {
                 this.logger.logDouble(g1, g2);
 
                 // record results
-                this.recordResult(this.#players[0], this.#players[1], g1.winner, pos);
-                this.recordResult(this.#players[1], this.#players[0], g2.winner, pos);
+                this.recordResult(this.#players[0], this.#players[1], g1.winner);
+                this.recordResult(this.#players[1], this.#players[0], g2.winner);
                 this.displayResults();
 
                 this.save();

@@ -4,7 +4,6 @@ import fs from "fs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 import { Board, StartingFEN } from "./viewer/scripts/game/game.mjs";
 import { extractHeaders, splitPGNs } from "./modules/pgn-file-reader.mjs";
-import { getAllPositions } from "./modules/fetch-pos.mjs";
 
 
 // returns true if the position is quiet (no capture moves) AND if the material is equal AND if the
@@ -131,16 +130,16 @@ for (let pgn of pgns){
 }
 
 // determine FENs that were already in the set
-const positions = getAllPositions();
+const positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
 const alreadyHasFENs = new Set();
-for (const { fen } of positions)
+for (const fen of positions)
     alreadyHasFENs.add(fen);
 
 // add non-duplicate FENs into position set
 let newPositions = 0;
 for (const fen of FENs){
     if (!alreadyHasFENs.has(fen)){
-        positions.push({ fen, whiteWins: 0, draws: 0, blackWins: 0 });
+        positions.push(fen);
         newPositions++;
     }
 }
