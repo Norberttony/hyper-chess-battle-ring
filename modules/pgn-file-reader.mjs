@@ -15,22 +15,15 @@ export function PGNHeadersToString(headers){
 export function splitPGNs(pgnsString){
     const games = [];
 
-    let globalIdx = 0;
+    // the first capture group catches all of the PGN headers. The next capture group handles
+    // capturing comments, move numbers, and SANs. The very last capture group searches for the
+    // game termination marker (required for each PGN).
+    const pgnRegex = /(?:\[[^\]^\[]*\]\s*)*(?:{[^{^}]*}\s*|\d+\.+|[A-Za-z0-9\+\#]+|\s+)*(?:\*|1-0|0-1|1\/2-1\/2)/g;
 
-    while (true){
-        // to-do: does not handle cases where "1." might appear in the PGN headers...
-        const movesIdx = pgnsString.indexOf("1.", globalIdx);
-        const nextBrckt = pgnsString.indexOf("[", movesIdx);
+    for (const [ pgn ] of pgnsString.matchAll(pgnRegex))
+        games.push(pgn.trim());
 
-        if (nextBrckt == -1){
-            // end of file.
-            games.push(pgnsString.substring(globalIdx).trim());
-            return games;
-        }else{
-            games.push(pgnsString.substring(globalIdx, nextBrckt - 1).trim());
-            globalIdx = nextBrckt - 1;
-        }
-    }
+    return games;
 }
 
 // takes in a list of moves

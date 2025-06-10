@@ -42,9 +42,14 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
             const currFEN = board.getFEN();
             await activeProcess.prompt("isready", "readyok");
 
+            const goCmd = `go wtime ${wtime} winc ${winc} btime ${btime} binc ${binc}`;
+
             const start = new Date();
-            const uciMove = await activeProcess.prompt(`go wtime ${wtime} winc ${winc} btime ${btime} binc ${binc}`, "bestmove", 10000);
+            const uciMove = await activeProcess.prompt(goCmd, "bestmove", 10000);
             const end = new Date();
+
+            wtime += winc;
+            btime += binc;
 
             // subtract elapsed time.
             if (board.turn == Piece.white)
@@ -59,9 +64,6 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
                 board.setResult("1-0", "time out", Piece.white);
                 break;
             }
-
-            wtime += winc;
-            btime += binc;
 
             const lan = uciMove.split(" ")[1];
 
