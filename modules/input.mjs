@@ -14,6 +14,14 @@ export async function input(){
     });
 }
 
+export async function inputNumber(min, max){
+    let t = NaN;
+    while (isNaN(t) || t < min || t > max)
+        t = parseFloat(await input());
+
+    return t;
+}
+
 export async function options(choices){
     for (let i = 0; i < choices.length; i++)
         console.log(` ${i} - ${choices[i]}`);

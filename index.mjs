@@ -5,7 +5,7 @@ import pathModule from "path";
 import { Tournament_Handler } from "./modules/tournament-handler.mjs";
 import { Tournament_Files } from "./modules/tournament-files.mjs";
 import { extractEngines } from "./modules/engine.mjs";
-import { input, options } from "./modules/input.mjs";
+import { input, inputNumber, options } from "./modules/input.mjs";
 import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 
@@ -98,9 +98,7 @@ async function tournamentDashboard(files){
             }
             
             console.log("\nHow many threads should the tournament handler use?");
-            let t = NaN;
-            while (isNaN(t) || t <= 0)
-                t = parseInt(await input());
+            const t = await inputNumber(1, Infinity);
 
             handler.start(t);
         }else if (cmd[0] == "stop"){
@@ -116,36 +114,74 @@ async function tournamentDashboard(files){
         // commands for modifying the tournament
         const players = files.getPlayers();
         if (cmd[0] == "add"){
-            const engines = extractEngines(botsDir);
-            const engineNames = [];
-            for (const { name } of engines){
-                if (players.indexOf(name) == -1)
-                    engineNames.push(name);
-            }
 
-            engineNames.unshift("Exit");
+            const engines = files.getEngines();
 
-            const idx = await options(engineNames);
+            const idx = await options(engines);
 
             if (idx != 0)
-                files.addPlayer(engineNames[idx]);
+                files.addPlayer(engines[idx]);
+
         }else if (cmd[0] == "remove"){
-            const engineNames = [ "Exit", ...players ];
-            const idx = await options(engineNames);
+
+            const engines = [ "Exit", ...players ];
+            const idx = await options(engines);
             if (idx != 0)
-                files.removePlayer(engineNames[idx]);
+                files.removePlayer(engines[idx]);
+
+        }else if (cmd[0] == "timeControl"){
+
+            const { time, inc } = files.getTimeControl();
+            console.log(`\nThe time control currently is ${time}ms + ${inc}ms`);
+
+            console.log("Type in the time (in ms) both players should start with:");
+            const newTime = await inputNumber(0, Infinity);
+            
+            console.log("\nType in the increment (in ms) both players are given back per move");
+            const newInc = await inputNumber(0, Infinity);
+
+            if (newTime == 0 && newInc == 0)
+                console.error("\nCannot set both time and increment to 0.");
+            else
+                files.setTimeControl(newTime, newInc);
+
+        }else if (cmd[0] == "mode"){
+
+            const mode = files.getTournamentMode();
+            console.log(`\nCurrent mode is ${mode}`);
+
+            const modeConfig = files.getModeConfig();
+            if (mode == "SPRT"){
+                console.log(`H0: ${modeConfig.h0}`);
+                console.log(`H1: ${modeConfig.h1}`);
+                console.log(`alpha: ${modeConfig.alpha}`);
+                console.log(`beta: ${modeConfig.beta}`);
+
+                console.log("\nSet the value of H0:");
+                modeConfig.h0 = await inputNumber(-Infinity, Infinity);
+
+                console.log("\nSet the value of H1:");
+                modeConfig.h1 = await inputNumber(-Infinity, Infinity);
+
+                console.log("\nSet the value of alpha:");
+                modeConfig.alpha = await inputNumber(0, 1);
+
+                console.log("\nSet the value of beta:");
+                modeConfig.beta = await inputNumber(0, 1);
+
+                files.saveConfig();
+            }
         }
     }
 }
 
 async function createTournament(){
-    const tournaments = Tournament_Files.getAllTournaments();
-
     let name;
     while (!name){
         console.log("Enter a name for your tournament:");
         name = await input();
 
+        const tournaments = Tournament_Files.getAllTournaments();
         if (tournaments.indexOf(name) > -1){
             console.log("A tournament of that name already exists, try a different name.");
             name = undefined;
