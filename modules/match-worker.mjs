@@ -10,6 +10,6 @@ const e2 = new Engine(workerData.e2Name, workerData.e2Path);
 
 
 parentPort.on("message", async (fen) => {
-    const data = await startADouble(e1, e2, fen, { time: 1000, inc: 100 });
+    const data = await startADouble(e1, e2, fen, workerData.timeControl);
     parentPort.postMessage(JSON.stringify(data));
 });

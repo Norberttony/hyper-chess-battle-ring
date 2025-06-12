@@ -1,5 +1,7 @@
 
 import fs from "fs";
+import pathModule from "path";
+
 import { EngineProcess } from "./engine-process.mjs";
 
 
@@ -21,7 +23,7 @@ export function extractEngines(dir){
     fs.readdirSync(dir).forEach(file => {
         if (file.endsWith(".exe")){
             // valid!
-            const engine = new Engine(file.replace(".exe", ""), `${dir}${file}`);
+            const engine = new Engine(file.replace(".exe", ""), pathModule.join(dir, file));
             engines.push(engine);
         }
     });

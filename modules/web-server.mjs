@@ -1,5 +1,4 @@
 
-import fs from "fs";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -7,7 +6,7 @@ import pathModule from "path";
 
 import { Board } from "../viewer/scripts/game/game.mjs";
 import { fileURLToPath } from "url";
-import { getGameLogPath } from "./logger.mjs";
+import { Tournament_Files } from "./tournament-files.mjs";
 
 
 const __dirname = pathModule.dirname(fileURLToPath(import.meta.url));
@@ -27,32 +26,13 @@ export function startWebServer(){
         res.sendFile("index.html");
     });
 
-    app.get("/game/:id", (req, res) => {
-        const gamePath = pathModule.join(__dirname, "..", getGameLogPath(req.params.id));
-        res.sendFile(gamePath);
-    });
-
     app.get("/game/:tournament/:id", (req, res) => {
-        const gamePath = pathModule.join(__dirname, "..", `data/tournaments/${req.params.tournament}/games/${req.params.id}_game.pgn`);
-        res.sendFile(gamePath);
+        const files = new Tournament_Files(req.params.tournament);
+        res.send(files.getGame(req.params.id));
     });
 
     app.get("/tournaments", (req, res) => {
-        const dirPath = pathModule.join(__dirname, "..", "data/tournaments");
-        fs.readdir(dirPath, (err, files) => {
-            if (err)
-                throw new Error(err);
-
-            const tournamentNames = [];
-            for (const file of files){
-                // using a blocking I/O operation may not be a good idea
-                // but performance isn't so necessary here :)
-                if (fs.statSync(pathModule.join(dirPath, file)).isDirectory()){
-                    tournamentNames.push(file);
-                }
-            }
-            res.send(JSON.stringify(tournamentNames));
-        });
+        res.send(JSON.stringify(Tournament_Files.getAllTournaments()));
     });
 
     server.listen(8000);
@@ -67,7 +47,6 @@ export function userVsEngine(io, engine, stp){
     console.log("Setting up IO...");
 
     io.on("connection", (socket) => {
-
         console.log("New socket connected. Setting up engine...");
         
         const board = new Board();
@@ -105,7 +84,6 @@ export function userVsEngine(io, engine, stp){
         });
 
         console.log("Set up complete!");
-
     });
 
     console.log("IO set up! Be sure to refresh any connections");

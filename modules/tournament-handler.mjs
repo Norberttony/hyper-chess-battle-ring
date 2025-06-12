@@ -1,84 +1,47 @@
 
-import fs from "fs";
-import pathModule from "path"
-
 import { SPRT } from "./analyze.mjs";
-import { Game_Logger } from "./logger.mjs";
 import { TaskManager } from "./task-manager.mjs";
 import { Move } from "../viewer/scripts/game/move.mjs";
+import { convertGameDataToPGN } from "./game-data.mjs";
 
 
 export class Tournament_Handler {
     #players;
 
-    constructor(oldVersion, newVersion, usePrevious = true){
-        this.#players = [ oldVersion, newVersion ];
+    constructor(files){
+        this.files = files;
         this.playing = false;
         this.activeGamesCount = 0;
 
         // initializes results
-        this.results = {};
-        for (const p of this.#players){
-            this.results[p.name] = {};
-        }
-        for (const p1 of this.#players){
-            for (const p2 of this.#players){
-                if (p1 == p2)
-                    continue;
-                this.results[p1.name][p2.name] = { wins: 0, draws: 0, losses: 0 };
-                this.results[p2.name][p1.name] = { wins: 0, draws: 0, losses: 0 };
-            }
-        }
+        this.results = files.getResults();
 
         // initialize positions
-        this.positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
+        this.positions = files.readPositions();
 
-        this.name = Object.assign([], this.#players.map((v) => v.name)).sort().join("__vs__");
-        
-        this.path = pathModule.join("./data/tournaments", this.name);
-        this.resultsPath = pathModule.join(this.path, "results.json");
-        this.positionsPath = pathModule.join(this.path, "positions.json");
-
-        if (!fs.existsSync(this.path)){
-            // create a new tournament at this path.
-            fs.mkdirSync(this.path);
-        }
-
-        // if not intending to use previous results, this will overwrite them.
-        if (!usePrevious || !fs.existsSync(this.resultsPath) || !fs.existsSync(this.positionsPath)){
-            fs.writeFileSync(this.resultsPath, JSON.stringify(this.results));
-            fs.writeFileSync(this.positionsPath, JSON.stringify(this.positions));
-        }
-
-        // read data from previous tournament (if existed)
-        if (usePrevious){
-            this.positions = JSON.parse(fs.readFileSync(this.positionsPath).toString());
-            this.results = JSON.parse(fs.readFileSync(this.resultsPath).toString());
-        }
-
-        this.logger = new Game_Logger(this.name);
-        const res = this.results[this.#players[0].name][this.#players[1].name];
-        this.logger.gameId = res.wins + res.draws + res.losses;
+        this.inProgressRounds = [];
     }
 
     save(){
-        const resultsPath = this.resultsPath;
-        fs.writeFileSync(resultsPath, JSON.stringify(this.results));
-
-        const positionsPath = this.positionsPath;
-        fs.writeFileSync(positionsPath, JSON.stringify(this.positions));
+        this.files.savePositions(this.positions);
     }
 
     start(threadAmt){
         if (this.playing)
-            return console.warn(`Tournament ${this.name} has already started.`);
-        console.log(`Starting ${this.name} with ${threadAmt} threads`);
+            return console.warn(`Tournament ${this.files.name} has already started.`);
+        console.log(`Starting ${this.files.name} with ${threadAmt} threads`);
+
+        this.#players = this.files.getEngines();
+        
+        if (this.#players.length != 2)
+            throw new Error("Handler only supports 2-player tournaments");
 
         const workerData = {
             e1Name: this.#players[0].name,
             e1Path: this.#players[0].path,
             e2Name: this.#players[1].name,
-            e2Path: this.#players[1].path
+            e2Path: this.#players[1].path,
+            timeControl: this.files.getTimeControl()
         }
         this.matchManager = new TaskManager("./modules/match-worker.mjs", threadAmt, workerData);
         this.playing = true;
@@ -88,8 +51,9 @@ export class Tournament_Handler {
         }
     }
 
-    stop(){
+    async stop(){
         this.playing = false;
+        await Promise.allSettled(this.inProgressRounds);
     }
 
     // internal method for starting a parallel thread that will handle playing games.
@@ -98,12 +62,15 @@ export class Tournament_Handler {
             return console.warn("Cannot continue thread; out of positions");
 
         this.activeGamesCount++;
-        this.playRound()
+        const promise = this.playRound()
             .then(() => {
+                this.inProgressRounds.splice(this.inProgressRounds.indexOf(promise), 1);
                 this.activeGamesCount--;
+
                 // perform SPRT to see if must play more games
-                const results = this.results[this.#players[1].name][this.#players[0].name];
-                const hyp = SPRT(results.wins, results.draws, results.losses, 0, -5, 0.01, 0.01);
+                const results = this.results.getResultsAgainst(this.#players[0].name, this.#players[1].name);
+                const { h0, h1, alpha, beta } = this.files.getModeConfig();
+                const hyp = SPRT(results.wins, results.draws, results.losses, h0, h1, alpha, beta);
                 if (hyp){
                     console.log(`SPRT goal reached, allowing final ${this.activeGamesCount} game(s) to finish...`);
                     this.stop();
@@ -120,6 +87,8 @@ export class Tournament_Handler {
                     }
                 }
             });
+        
+        this.inProgressRounds.push(promise);
     }
 
     getUnplayedPosition(){
@@ -131,14 +100,11 @@ export class Tournament_Handler {
 
     recordResult(white, black, winner){
         if (winner == 0){
-            this.results[white.name][black.name].draws++;
-            this.results[black.name][white.name].draws++;
+            this.results.addDraw(white.name, black.name);
         }else if (white.path == winner.path){
-            this.results[white.name][black.name].wins++;
-            this.results[black.name][white.name].losses++;
+            this.results.addWin(white.name, black.name);
         }else if (black.path == winner.path){
-            this.results[black.name][white.name].wins++;
-            this.results[white.name][black.name].losses++;
+            this.results.addWin(black.name, white.name);
         }else{
             console.warn("Could not interpret winner: ", winner);
         }
@@ -149,19 +115,22 @@ export class Tournament_Handler {
 
         return this.matchManager.doTask(pos)
             .then((jsonData) => {
-                const [ g1, g2 ] = JSON.parse(jsonData);
+                const games = JSON.parse(jsonData);
 
-                // recreate moves
-                for (let m = 0; m < g1.moves.length; m++)
-                    g1.moves[m] = new Move(g1.moves[m].to, g1.moves[m].from, g1.moves[m].captures);
-                for (let m = 0; m < g2.moves.length; m++)
-                    g2.moves[m] = new Move(g2.moves[m].to, g2.moves[m].from, g2.moves[m].captures);
+                for (const gd of games){
+                    // recreate moves
+                    for (let m = 0; m < gd.moves.length; m++){
+                        const move = gd.moves[m];
+                        gd.moves[m] = new Move(move.to, move.from, move.captures);
+                    }
 
-                this.logger.logDouble(g1, g2);
+                    const pgn = convertGameDataToPGN(gd, this.files.gameId, this.files.name);
+                    this.files.saveGame(pgn, gd.whiteLog, gd.blackLog);
 
-                // record results
-                this.recordResult(this.#players[0], this.#players[1], g1.winner);
-                this.recordResult(this.#players[1], this.#players[0], g2.winner);
+                    // record results
+                    this.recordResult(gd.white, gd.black, gd.winner);
+                }
+
                 this.displayResults();
 
                 this.save();
@@ -171,6 +140,7 @@ export class Tournament_Handler {
     displayResults(){
         const e1n = this.#players[0].name;
         const e2n = this.#players[1].name;
-        console.log(`${e1n} | ${this.results[e1n][e2n].wins} - ${this.results[e1n][e2n].draws} - ${this.results[e1n][e2n].losses} | ${e2n}`);
+        const entry = this.results.getResultsAgainst(e1n, e2n);
+        console.log(`${e1n} | ${entry.wins} - ${entry.draws} - ${entry.losses} | ${e2n}`);
     }
 }

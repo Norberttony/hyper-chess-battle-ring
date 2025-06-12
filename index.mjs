@@ -3,8 +3,9 @@ import fs from "fs";
 import pathModule from "path";
 
 import { Tournament_Handler } from "./modules/tournament-handler.mjs";
+import { Tournament_Files } from "./modules/tournament-files.mjs";
 import { extractEngines } from "./modules/engine.mjs";
-import { input } from "./modules/input.mjs";
+import { input, options } from "./modules/input.mjs";
 import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 
@@ -39,7 +40,19 @@ const benchDir = "./bench/";
             
         }else if (cmd[0] == "tournament"){
 
-            await startTournament();
+            const tournaments = Tournament_Files.getAllTournaments();
+            tournaments.unshift("Create a new tournament");
+
+            console.log("\nSelect a tournament to view (or create a new one):");
+            const idx = await options(tournaments);
+
+            if (idx == 0){
+                const files = await createTournament();
+                if (files)
+                    await tournamentDashboard(files);
+            }else{
+                await tournamentDashboard(new Tournament_Files(tournaments[idx]));
+            }
 
         }else if (cmd[0] == "play"){
             
@@ -52,6 +65,95 @@ const benchDir = "./bench/";
     }
 
 })();
+
+
+function logTournament(files){
+    const { time, inc } = files.getTimeControl();
+    console.log(`\nTOURNAMENT: ${files.name}`);
+    console.log(`MODE: ${files.getTournamentMode()}`);
+    console.log(`TIME CONTROL: ${time}ms + ${inc}ms`);
+    console.log("PLAYERS:");
+
+    let i = 0;
+    for (const name of files.getPlayers())
+        console.log(`${++i}. ${name}`);
+    console.log("In SPRT mode the new version is listed first and the old version second.");
+    console.log("");
+}
+
+async function tournamentDashboard(files){
+    const handler = new Tournament_Handler(files);
+
+    while (true){
+        if (!handler.playing)
+            logTournament(files);
+
+        const cmd = (await input()).split(" ");
+
+        // commands for playing or stopping the tournament
+        if (cmd[0] == "play"){            
+            if (handler.playing){
+                console.log("Tournament is already playing");
+                continue;
+            }
+            
+            console.log("\nHow many threads should the tournament handler use?");
+            let t = NaN;
+            while (isNaN(t) || t <= 0)
+                t = parseInt(await input());
+
+            handler.start(t);
+        }else if (cmd[0] == "stop"){
+            if (!handler.playing){
+                console.log("Tournament is not playing");
+                continue;
+            }
+
+            console.log("\nPlease keep the program open to allow the final games to finish...");
+            await handler.stop();
+        }
+
+        // commands for modifying the tournament
+        const players = files.getPlayers();
+        if (cmd[0] == "add"){
+            const engines = extractEngines(botsDir);
+            const engineNames = [];
+            for (const { name } of engines){
+                if (players.indexOf(name) == -1)
+                    engineNames.push(name);
+            }
+
+            engineNames.unshift("Exit");
+
+            const idx = await options(engineNames);
+
+            if (idx != 0)
+                files.addPlayer(engineNames[idx]);
+        }else if (cmd[0] == "remove"){
+            const engineNames = [ "Exit", ...players ];
+            const idx = await options(engineNames);
+            if (idx != 0)
+                files.removePlayer(engineNames[idx]);
+        }
+    }
+}
+
+async function createTournament(){
+    const tournaments = Tournament_Files.getAllTournaments();
+
+    let name;
+    while (!name){
+        console.log("Enter a name for your tournament:");
+        name = await input();
+
+        if (tournaments.indexOf(name) > -1){
+            console.log("A tournament of that name already exists, try a different name.");
+            name = undefined;
+        }
+    }
+
+    return new Tournament_Files(name);
+}
 
 function displayBench(){
     console.log("\nBench:");
@@ -101,49 +203,3 @@ function addToBench(name){
             console.log(`Could not find ${name} in either the bench or bots`);
     }
 }
-
-async function startTournament(){
-    const activeEngines = extractEngines(botsDir);
-    console.log(`Starting a tournament between ${activeEngines[0].name} and ${activeEngines[1].name}...`);
-
-    console.log("\nWould you like to load previous tournament info? (y/n)");
-    let usePrevious = false;
-    const p = await input();
-    if (p == "y"){
-        usePrevious = true;
-    }
-
-    const tournament = new Tournament_Handler(activeEngines[0], activeEngines[1], usePrevious);
-
-    console.log("\nNumber of threads?");
-    let t = NaN;
-    while (isNaN(t))
-        t = parseInt(await input());
-    tournament.start(t);
-
-    // give user an option to stop the tournament
-    // the tournament automatically stops when a hypothesis is proven with reasonable confidence,
-    // but to return to the CLI, the user still has to type in "stop."
-    const s = await input();
-    if (s == "stop"){
-        tournament.stop();
-        console.log("Finishing up final doubles...");
-    }
-}
-
-// user plays against engine
-/*
-console.log("Now playing against", engines[0]);
-const engineProc = engines[0].createProcess(playerVsEngineHandler);
-
-engineProc.start();
-engineProc.write("");   // fen
-engineProc.write("w");  // side to play
-
-function socketMakeMove(move){
-    console.log("Received move", move);
-    engineProc.write(move);
-    moves.push(move);
-}
-
-*/

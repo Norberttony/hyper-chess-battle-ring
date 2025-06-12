@@ -97,3 +97,13 @@ export function extractMoves(pgn){
 
     return pgn;
 }
+
+// returns the current date in the form YYYY.MM.DD
+export function getPGNDateNow(){
+    const date = new Date();
+    const y = date.getFullYear().toString().padStart(4, "0");
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const d = (date.getDay() + 1).toString().padStart(2, "0");
+
+    return `${y}.${m}.${d}`;
+}

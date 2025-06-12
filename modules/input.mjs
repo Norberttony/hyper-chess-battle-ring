@@ -13,3 +13,30 @@ export async function input(){
         });
     });
 }
+
+export async function options(choices){
+    for (let i = 0; i < choices.length; i++)
+        console.log(` ${i} - ${choices[i]}`);
+    console.log("");
+
+    return new Promise(async (res, rej) => {
+        while (true){
+            const answer = await input();
+            const idx = choices.indexOf(answer);
+            if (idx > -1){
+                res(idx);
+                break;
+            }else if (!isNaN(answer)){
+                const v = parseInt(answer);
+                if (v < 0 || v >= choices.length){
+                    console.log(`The value ${v} is out of range.`);
+                }else{
+                    res(v);
+                    break;
+                }
+            }else{
+                console.log("Please type in the name of the option or its value.");
+            }
+        }
+    });
+}
