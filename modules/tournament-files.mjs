@@ -82,7 +82,7 @@ export class Tournament_Files {
         return new Promise((res, rej) => {
             fs.readFile(pathModule.join(this.gamesPath, `${id}_game.pgn`), (err, data) => {
                 if (err)
-                    rej(err);
+                    return rej(err);
                 res(data.toString());
             });
         });
@@ -92,6 +92,7 @@ export class Tournament_Files {
         const id = this.gameId++;
         fs.writeFileSync(pathModule.join(this.gamesPath, `${id}_game.pgn`), pgn);
         fs.appendFileSync(this.gamesFile, "\n" + pgn + "\n");
+        this.gameCount++;
 
         fs.writeFileSync(pathModule.join(this.debugPath, `${id}_white.txt`), whiteDebug);
         fs.writeFileSync(pathModule.join(this.debugPath, `${id}_black.txt`), blackDebug);

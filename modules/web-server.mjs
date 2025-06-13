@@ -28,7 +28,9 @@ export function startWebServer(){
 
     app.get("/game/:tournament/:id", (req, res) => {
         const files = new Tournament_Files(req.params.tournament);
-        res.send(files.getGame(req.params.id));
+        files.getGame(req.params.id)
+            .then(data => res.send(data))
+            .catch(err => res.sendStatus(404));
     });
 
     app.get("/tournaments", (req, res) => {
