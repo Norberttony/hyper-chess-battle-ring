@@ -22,7 +22,7 @@ export class Tournament_Results {
     getScore(p){
         let totalScore = 0;
         let totalMaxScore = 0;
-        for (const o of players){
+        for (const o of this.players){
             if (p == o)
                 continue;
 
@@ -38,6 +38,20 @@ export class Tournament_Results {
         const score = entry.wins + entry.draws * 0.5;
         const maxScore = entry.wins + entry.draws + entry.losses;
         return { score, maxScore };
+    }
+
+    getResults(p){
+        const results = { wins: 0, draws: 0, losses: 0 };
+        for (const o of this.players){
+            if (p == o)
+                continue;
+
+            const { wins, draws, losses } = this.getResultsAgainst(p, o);
+            results.wins += wins;
+            results.draws += draws;
+            results.losses += losses;
+        }
+        return results;
     }
 
     // gets results of how well p did against o

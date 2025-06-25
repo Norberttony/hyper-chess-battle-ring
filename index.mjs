@@ -74,9 +74,13 @@ function logTournament(files){
     console.log(`TIME CONTROL: ${time}ms + ${inc}ms`);
     console.log("PLAYERS:");
 
-    let i = 0;
-    for (const name of files.getPlayers())
-        console.log(`${++i}. ${name}`);
+    const players = files.getPlayers();
+    const results = files.getResults();
+    for (let i = 0; i < players.length; i++){
+        const count = results.getResults(players[i]);
+        const { totalScore, totalMaxScore } = results.getScore(players[i]);
+        console.log(`${i + 1}. ${players[i]} (${totalScore}/${totalMaxScore}): ${count.wins} wins | ${count.draws} draws | ${count.losses} losses`);
+    }
     console.log("In SPRT mode the new version is listed first and the old version second.");
     console.log("");
 }
@@ -109,13 +113,24 @@ async function tournamentDashboard(files){
 
             console.log("\nPlease keep the program open to allow the final games to finish...");
             await handler.stop();
+        }else if (cmd[0] == "quit"){
+            console.log("\nLeft tournament dashboard");
+            break;
         }
 
         // commands for modifying the tournament
         const players = files.getPlayers();
         if (cmd[0] == "add"){
 
-            const engines = files.getEngines();
+            const engines = fs.readdirSync(botsDir).filter(v => v.endsWith(".exe"));
+
+            for (let i = 0; i < engines.length; i++)
+                engines[i] = engines[i].substring(0, engines[i].length - 4);
+
+            if (engines.length == 0){
+                console.log("No engines found.");
+                continue;
+            }
 
             const idx = await options(engines);
 

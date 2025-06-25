@@ -13,9 +13,6 @@ export class Tournament_Handler {
         this.playing = false;
         this.activeGamesCount = 0;
 
-        // initializes results
-        this.results = files.getResults();
-
         // initialize positions
         this.positions = files.readPositions();
 
@@ -32,6 +29,9 @@ export class Tournament_Handler {
         console.log(`Starting ${this.files.name} with ${threadAmt} threads`);
 
         this.#players = this.files.getEngines();
+        
+        // initializes results
+        this.results = this.files.getResults();
         
         if (this.#players.length != 2)
             throw new Error("Handler only supports 2-player tournaments");
