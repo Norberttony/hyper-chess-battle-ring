@@ -26,6 +26,12 @@ export function startWebServer(){
         res.sendFile("index.html");
     });
 
+    // returns all of the live boards
+    app.get("/game/:tournament/live", (req, res) => {
+
+    });
+
+    // returns the game along with engine debug info
     app.get("/game/:tournament/:id", (req, res) => {
         const files = new Tournament_Files(req.params.tournament);
         files.getGame(req.params.id)

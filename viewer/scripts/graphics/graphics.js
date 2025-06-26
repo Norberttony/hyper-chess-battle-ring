@@ -13,7 +13,8 @@ module_loader.waitForAll()
             network: new NetworkWidget(gameState, WIDGET_LOCATIONS.RIGHT),
             extras: new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM),
             players: new PlayersWidget(gameState),
-            web_phil: new WebPhilWidget(gameState)
+            web_phil: new WebPhilWidget(gameState),
+            engine_debug: new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT)
         };
         widgets.web_phil.disable();
 

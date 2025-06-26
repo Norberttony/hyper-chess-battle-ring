@@ -80,10 +80,34 @@ export class Tournament_Files {
 
     async getGame(id){
         return new Promise((res, rej) => {
+            let gamePgn;
+            let whiteDebug;
+            let blackDebug;
+
+            function tryRes(){
+                if (gamePgn && whiteDebug && blackDebug)
+                    res({ gamePgn, whiteDebug, blackDebug });
+            }
+
             fs.readFile(pathModule.join(this.gamesPath, `${id}_game.pgn`), (err, data) => {
                 if (err)
                     return rej(err);
-                res(data.toString());
+                gamePgn = data.toString();
+                tryRes();
+            });
+
+            fs.readFile(pathModule.join(this.debugPath, `${id}_white.txt`), (err, data) => {
+                if (err)
+                    return rej(err);
+                whiteDebug = data.toString();
+                tryRes();
+            });
+
+            fs.readFile(pathModule.join(this.debugPath, `${id}_black.txt`), (err, data) => {
+                if (err)
+                    return rej(err);
+                blackDebug = data.toString();
+                tryRes();
             });
         });
     }

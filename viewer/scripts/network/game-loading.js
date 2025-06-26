@@ -41,7 +41,10 @@ function loadGame(){
     // request file
     fetch(path)
         .then(async (res) => {
-            gameState.loadPGN(await res.text());
+            const { gamePgn, whiteDebug, blackDebug } = await res.json();
+            gameState.loadPGN(gamePgn);
+            widgets.engine_debug.setWhiteDebug(whiteDebug);
+            widgets.engine_debug.setBlackDebug(blackDebug);
         })
         .catch((err) => {
             console.error(err);

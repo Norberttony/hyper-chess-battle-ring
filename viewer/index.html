@@ -29,6 +29,7 @@
         <link href = "styles/widgets/annotations.css"   rel = "stylesheet" type = "text/css"/>
         <link href = "styles/widgets/pgn-viewer.css"    rel = "stylesheet" type = "text/css"/>
         <link href = "styles/widgets/extras.css"        rel = "stylesheet" type = "text/css"/>
+        <link href = "styles/widgets/engine-debug.css"  rel = "stylesheet" type = "text/css"/>
 
         <!-- Style styles. yup. styles that style styles. stylish. -->
         <link href = "styles/board-styles.css"  rel = "stylesheet" type = "text/css"/>
@@ -51,6 +52,7 @@
         <script src = "scripts/graphics/widgets/players-widget.js"></script>
         <script src = "scripts/graphics/widgets/network-widget.js"></script>
         <script src = "scripts/graphics/widgets/web-phil-widget.js"></script>
+        <script src = "scripts/graphics/widgets/engine-debug-widget.js"></script>
 
         <!-- graphics scripts -->
         <script src = "scripts/graphics/board-graphics.js"></script>
@@ -71,7 +73,7 @@
                 <option value = "none">Active Tournament</option>
             </select>
             <button id = "game-loading_prev" onclick = "prevGame();">&lt;</button>
-            <input id = "game-loading_index" type = "number" value = 0>
+            <input id = "game-loading_index" type = "number" value = 1>
             <button id = "game-loading_next" onclick = "nextGame();">&gt;</button>
         </div>
         <div id = "main-board" class = "board-graphics board-graphics--board-blue board-graphics--pieces-cburnett"></div>

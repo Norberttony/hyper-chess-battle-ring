@@ -3,7 +3,7 @@
 
 class NetworkWidget extends BoardWidget {
     constructor(boardgfx, location = WIDGET_LOCATIONS.RIGHT){
-        super(boardgfx, "Network", location);
+        super(boardgfx, "Network");
 
         this.active = false;
     }

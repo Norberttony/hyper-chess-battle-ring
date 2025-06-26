@@ -1,0 +1,11 @@
+
+.board-graphics__engine-debug {
+    height: 100%;
+}
+
+.engine-debug__white,
+.engine-debug__black {
+    box-sizing: border-box;
+    width: 100%;
+    height: 50%;
+}
