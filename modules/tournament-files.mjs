@@ -112,6 +112,16 @@ export class Tournament_Files {
         });
     }
 
+    async getAllGames(){
+        return new Promise((res, rej) => {
+            fs.readFile(pathModule.join(this.gamesPath, "00_compiled_games.pgn"), (err, data) => {
+                if (err)
+                    return rej(err);
+                res(data.toString());
+            });
+        });
+    }
+
     saveGame(pgn, whiteDebug, blackDebug){
         const id = this.gameId++;
         fs.writeFileSync(pathModule.join(this.gamesPath, `${id}_game.pgn`), pgn);

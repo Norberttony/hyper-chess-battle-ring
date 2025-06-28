@@ -26,21 +26,33 @@ export function startWebServer(){
         res.sendFile("index.html");
     });
 
+    app.get("/tournaments", (req, res) => {
+        res.send(JSON.stringify(Tournament_Files.getAllTournaments()));
+    });
+
     // returns all of the live boards
-    app.get("/game/:tournament/live", (req, res) => {
+    app.get("/:tournament/live", (req, res) => {
 
     });
 
+    // returns all games of the tournament
+    app.get("/:tournament/games", (req, res) => {
+        const files = new Tournament_Files(req.params.tournament);
+        files.getAllGames(req.params.id)
+            .then(data => res.send(data))
+            .catch(err => res.sendStatus(404));
+    });
+
     // returns the game along with engine debug info
-    app.get("/game/:tournament/:id", (req, res) => {
+    app.get("/:tournament/:id", (req, res) => {
         const files = new Tournament_Files(req.params.tournament);
         files.getGame(req.params.id)
             .then(data => res.send(data))
             .catch(err => res.sendStatus(404));
     });
 
-    app.get("/tournaments", (req, res) => {
-        res.send(JSON.stringify(Tournament_Files.getAllTournaments()));
+    app.get("/:tournament", (req, res) => {
+        res.sendFile(pathModule.resolve("./viewer/pages/filter.html"));
     });
 
     server.listen(8000);
