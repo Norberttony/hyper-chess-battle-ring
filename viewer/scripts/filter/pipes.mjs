@@ -1,5 +1,5 @@
 
-import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { Piece } from "../game/piece.mjs";
 
 
 export class Pipe {

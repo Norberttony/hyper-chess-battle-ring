@@ -2,7 +2,7 @@
 import fs from "fs";
 import pathModule from "path"
 
-import { extractHeaders, splitPGNs } from "./pgn-file-reader.mjs";
+import { extractHeaders, splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Tournament_Results } from "./tournament-results.mjs";
 import { extractEngines } from "./engine.mjs";
 

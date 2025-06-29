@@ -1,5 +1,5 @@
 
-import { convertToPGN, getPGNDateNow } from "./pgn-file-reader.mjs";
+import { convertToPGN, getPGNDateNow } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
 
 

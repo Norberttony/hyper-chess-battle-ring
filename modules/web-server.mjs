@@ -18,12 +18,23 @@ export function startWebServer(){
 
     const io = new Server(server);
 
+    app.use(express.static(__dirname + "/../shared_modules"));
     app.use(express.static(__dirname + "/../viewer"));
 
     app.use(express.json());
 
+    app.get("*", (req, res) => {
+        console.log(req.url);
+        req.next();
+    });
+
     app.get("/", (req, res) => {
         res.sendFile("index.html");
+    });
+
+    // return any special modules that the client might need
+    app.get("/pgn-file-reader.mjs", (req, res) => {
+        res.sendFile(pathModule.resolve("./modules/pgn-file-reader.mjs"));
     });
 
     app.get("/tournaments", (req, res) => {

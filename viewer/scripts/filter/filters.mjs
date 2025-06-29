@@ -1,5 +1,5 @@
 
-import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { Piece } from "../game/piece.mjs";
 
 
 // searches the game for constellations that match whitePieces and blackPieces.

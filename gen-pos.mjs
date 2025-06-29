@@ -3,7 +3,7 @@ import fs from "fs";
 
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 import { Board, StartingFEN } from "./viewer/scripts/game/game.mjs";
-import { extractHeaders, splitPGNs } from "./modules/pgn-file-reader.mjs";
+import { extractHeaders, splitPGNs } from "./viewer/scripts/filter/pgn-file-reader.mjs";
 
 
 // returns true if the position is quiet (no capture moves) AND if the material is equal AND if the
