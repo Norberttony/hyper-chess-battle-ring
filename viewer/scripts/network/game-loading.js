@@ -31,12 +31,7 @@ function nextGame(){
 }
 
 function loadGame(){
-    let path;
-
-    if (tournamentOptionsSelect.value == "none")
-        path = `/game/${gameLoadingIndexInput.value}`;
-    else
-        path = `/game/${tournamentOptionsSelect.value}/${gameLoadingIndexInput.value}`;
+    let path = `/${tournamentOptionsSelect.value}/${gameLoadingIndexInput.value}`;
 
     // request file
     fetch(path)

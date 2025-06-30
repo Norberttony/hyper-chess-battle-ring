@@ -1,6 +1,10 @@
 
+let gameData = [];
+let filtersModule;
+
 Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("./pipes.mjs") ])
     .then(async ([ pgnHandler, filters, pipes ]) => {
+        filtersModule = filters;
         await module_loader.waitForAll();
 
         const path = window.location.pathname.substring(1).split("/");
@@ -9,14 +13,13 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
 
         const manager = new pipes.Pipe_Manager([
             new pipes.Game_Length_Pipe(),
-            new pipes.Capture_Count_Pipe(),
             new pipes.Constellations_Pipe(),
             new pipes.Result_Pipe()
         ]);
         const tournamentName = decodeURI(path[0]);
         const pgnDatabase = await (await fetch(`${window.location.pathname}/games`)).text();
 
-        const gameData = [];
+        gameData = [];
 
         for (const pgn of pgnHandler.splitPGNs(pgnDatabase)){
             const headers = pgnHandler.extractHeaders(pgn);
@@ -47,6 +50,12 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
 
             const data = manager.end(board);
             gameData.push(data);
+            break;
         }
         console.log(gameData[0]);
     });
+
+function applyFilters(){
+    const filtered = gameData.filter((v) => filtersModule.getLastGamePhase() == 0);
+    
+}

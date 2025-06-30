@@ -1,5 +1,6 @@
 
 import { Piece } from "../game/piece.mjs";
+import { getLastGamePhase } from "./filters.mjs";
 
 
 export class Pipe {
@@ -68,10 +69,18 @@ export class Capture_Count_Pipe extends Pipe {
 export class Constellations_Pipe extends Pipe {
     constructor(){
         super("constellations");
-        this.addAtStability = 8;
+        this.addAtStability = 6;
     }
 
     start(){
+        // half-move counters indicating the start of phases.
+        // keep in mind: if mass trades occur, a game CAN go immediately from the opening phase
+        // to the endgame phase WITHOUT the middlegame.
+        delete this.ctx.opening;
+        delete this.ctx.middlegame;
+        delete this.ctx.endgame;
+
+        this.halfmove = 0;
         this.stability = 0;
         this.ctx.constellations = [];
         this.ctx.constellationEnd;
@@ -80,16 +89,28 @@ export class Constellations_Pipe extends Pipe {
     all(board, move){
         if (!move)
             return;
+        this.halfmove++;
         if (move.captures.length > 0){
             this.stability = 0;
         }else if (++this.stability == this.addAtStability){
-            this.ctx.constellations.push(this.getConstellation(board));
+            const constellation = this.getConstellation(board);
+            this.ctx.constellations.push(constellation);
+
+            const phase = getLastGamePhase(constellation);
+            if (phase == 0)
+                this.ctx.opening = this.halfmove;
+            else if (phase == 1)
+                this.ctx.middlegame = this.halfmove;
+            else
+                this.ctx.endgame = this.halfmove;
         }
     }
 
     end(board){
         // always add a constellation of the final position
-        this.ctx.constellationEnd = this.getConstellation(board);
+        const constellation = this.getConstellation(board);
+        this.ctx.constellationEnd = constellation;
+        this.ctx.lastPhase = getLastGamePhase(constellation);
     }
 
     getConstellation(board){

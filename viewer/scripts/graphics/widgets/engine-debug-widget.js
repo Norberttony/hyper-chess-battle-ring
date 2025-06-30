@@ -34,15 +34,17 @@ class EngineDebugWidget extends BoardWidget {
                 const start = dbg.indexOf(" > go", analysisIdx) - 1;
                 const end = dbg.indexOf("> position moves", analysisIdx + 1);
 
-                target.focus();
+                // target.focus();
 
                 // scroll to where this text is located.
-                target.value = dbg.substring(0, start);
-                const scrollBy = target.scrollHeight == target.clientHeight ? 0 : target.scrollHeight;
-                target.value = dbg;
-                target.scrollTop = scrollBy;
+                requestAnimationFrame(() => {
+                    target.value = dbg.substring(0, start);
+                    const scrollBy = target.scrollHeight == target.clientHeight ? 0 : target.scrollHeight;
+                    target.value = dbg;
+                    target.scrollTop = scrollBy;
+                });
 
-                target.setSelectionRange(start, end);
+                // target.setSelectionRange(start, end);
             }
         });
     }
