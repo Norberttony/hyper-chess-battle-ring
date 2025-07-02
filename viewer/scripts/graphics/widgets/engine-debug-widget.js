@@ -6,8 +6,14 @@ class EngineDebugWidget extends BoardWidget {
         const container = document.createElement("div");
         container.classList.add("board-graphics__engine-debug");
         container.innerHTML = `
-            <textarea class = "engine-debug__white"></textarea>
-            <textarea class = "engine-debug__black"></textarea>
+            <div class = "engine-debug__container">
+                White debug
+                <textarea class = "engine-debug__white"></textarea>
+            </div>
+            <div class = "engine-debug__container">
+                Black debug
+                <textarea class = "engine-debug__black"></textarea>
+            </div>
         `;
         boardgfx.getWidgetElem(location).appendChild(container);
 
@@ -38,6 +44,9 @@ class EngineDebugWidget extends BoardWidget {
 
                 // scroll to where this text is located.
                 requestAnimationFrame(() => {
+                    // something changed
+                    if (dbg != target.value)
+                        return;
                     target.value = dbg.substring(0, start);
                     const scrollBy = target.scrollHeight == target.clientHeight ? 0 : target.scrollHeight;
                     target.value = dbg;
