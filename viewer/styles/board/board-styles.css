@@ -10,7 +10,7 @@
 }
 
 .board-graphics--board-blue .board-graphics__board {
-    background-image: url(../images/boards/board_blue.svg);
+    background-image: url(../../images/boards/board_blue.svg);
 }
 
 /*********** MAROON ************/
@@ -22,5 +22,5 @@
 }
 
 .board-graphics--board-maroon .board-graphics__board {
-    background-image: url(../images/boards/board_maroon.png);
+    background-image: url(../../images/boards/board_maroon.png);
 }

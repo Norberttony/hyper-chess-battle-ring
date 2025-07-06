@@ -49,13 +49,10 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
             }
 
             const data = manager.end(board);
+            data.gamePGN = pgn;
             gameData.push(data);
             break;
         }
         console.log(gameData[0]);
+        applyFilters();
     });
-
-function applyFilters(){
-    const filtered = gameData.filter((v) => filtersModule.getLastGamePhase() == 0);
-    
-}

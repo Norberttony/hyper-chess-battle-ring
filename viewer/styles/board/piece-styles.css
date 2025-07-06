@@ -3,7 +3,7 @@
 /* CBURNETT */
 .board-graphics--pieces-cburnett .board-graphics__piece,
 .board-graphics--pieces-cburnett .board-graphics__dragging {
-    background-image: url(../images/pieces/cburnett.png);
+    background-image: url(../../images/pieces/cburnett.png);
 }
 
 .board-graphics--pieces-cburnett .board-graphics__piece--type-k {
@@ -31,7 +31,7 @@
 /* MERIDA */
 .board-graphics--pieces-merida .board-graphics__piece,
 .board-graphics--pieces-merida .board-graphics__dragging {
-    background-image: url(../images/pieces/merida.png);
+    background-image: url(../../images/pieces/merida.png);
 }
 
 .board-graphics--pieces-merida .board-graphics__piece--type-r {

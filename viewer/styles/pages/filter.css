@@ -1,0 +1,9 @@
+
+.pages {
+    --game-width: 304px;
+    --game-height: 304px;
+}
+
+.pages .board-graphics__board {
+    grid-area: auto;
+}

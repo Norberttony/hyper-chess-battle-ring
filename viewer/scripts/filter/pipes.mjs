@@ -1,6 +1,6 @@
 
 import { Piece } from "../game/piece.mjs";
-import { getLastGamePhase } from "./filters.mjs";
+import { getGamePhase } from "./filters.mjs";
 
 
 export class Pipe {
@@ -94,9 +94,10 @@ export class Constellations_Pipe extends Pipe {
             this.stability = 0;
         }else if (++this.stability == this.addAtStability){
             const constellation = this.getConstellation(board);
+            console.log(constellation);
             this.ctx.constellations.push(constellation);
 
-            const phase = getLastGamePhase(constellation);
+            const phase = getGamePhase(constellation);
             if (phase == 0)
                 this.ctx.opening = this.halfmove;
             else if (phase == 1)
@@ -110,7 +111,7 @@ export class Constellations_Pipe extends Pipe {
         // always add a constellation of the final position
         const constellation = this.getConstellation(board);
         this.ctx.constellationEnd = constellation;
-        this.ctx.lastPhase = getLastGamePhase(constellation);
+        this.ctx.lastPhase = getGamePhase(constellation);
     }
 
     getConstellation(board){

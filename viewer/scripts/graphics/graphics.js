@@ -10,13 +10,10 @@ module_loader.waitForAll()
             animation: new AnimationWidget(gameState),
             audio: new AudioWidget(gameState),
             pgn: new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT),
-            network: new NetworkWidget(gameState, WIDGET_LOCATIONS.RIGHT),
             extras: new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM),
             players: new PlayersWidget(gameState),
-            web_phil: new WebPhilWidget(gameState),
             engine_debug: new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT)
         };
-        widgets.web_phil.disable();
 
         widgets.players.setNames("-", "-");
 

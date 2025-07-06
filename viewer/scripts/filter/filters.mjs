@@ -51,7 +51,7 @@ export function getSum(games, path){
 
 // returns the phase at the end of the game
 // 0 for opening, 1 for middlegame, 2 for endgame
-export function getLastGamePhase(constellation){
+export function getGamePhase(constellation){
     // max value is 63
     const pieceWeights = {
         [Piece.straddler]: 0.5,
@@ -64,10 +64,10 @@ export function getLastGamePhase(constellation){
     };
 
     let value = 0;
-    for (let i = Piece.retractor; i < Piece.immobilizer; i++)
+    for (let i = Piece.king; i <= Piece.immobilizer; i++)
         value += pieceWeights[i] * (constellation[0][i] + constellation[1][i]);
 
-    if (value >= 50){
+    if (value >= 55){
         return 0;
     }else if (value >= 30){
         return 1;
