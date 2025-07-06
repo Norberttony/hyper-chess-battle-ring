@@ -17,10 +17,10 @@ let bufferedAudio = {
 
 class AudioWidget extends BoardWidget {
     constructor(boardgfx){
-        super(boardgfx, "Audio");
+        super(boardgfx);
 
         boardgfx.skeleton.addEventListener("single-scroll", (event) => {
-            let { prevVariation, variation, userInput } = event.detail;
+            const { prevVariation, variation, userInput } = event.detail;
             
             // only play audio if move scrolling is going forward by exactly 1
             makeNoise(variation.move);

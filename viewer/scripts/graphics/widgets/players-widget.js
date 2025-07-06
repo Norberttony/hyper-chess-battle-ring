@@ -3,7 +3,7 @@
 
 class PlayersWidget extends BoardWidget {
     constructor(boardgfx){
-        super(boardgfx, "Players");
+        super(boardgfx);
 
         const topPlyr = document.createElement("div");
         topPlyr.classList.add("board-graphics__top-player");

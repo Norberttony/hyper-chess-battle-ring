@@ -1,7 +1,7 @@
 
 class AnnotatorWidget extends BoardWidget {
     constructor(boardgfx){
-        super(boardgfx, "Annotator");
+        super(boardgfx);
 
         // initialize by adding canvas
         const canvas = document.createElement("canvas");

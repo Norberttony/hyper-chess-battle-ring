@@ -3,7 +3,7 @@
 
 class AnimationWidget extends BoardWidget {
     constructor(boardgfx){
-        super(boardgfx, "Animator");
+        super(boardgfx);
 
         this.queuedAnimations = [];
 

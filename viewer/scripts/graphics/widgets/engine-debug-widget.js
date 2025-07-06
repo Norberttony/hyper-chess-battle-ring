@@ -1,7 +1,7 @@
 
 class EngineDebugWidget extends BoardWidget {
     constructor(boardgfx, location){
-        super(boardgfx, "engine-debug");
+        super(boardgfx);
 
         const container = document.createElement("div");
         container.classList.add("board-graphics__engine-debug");

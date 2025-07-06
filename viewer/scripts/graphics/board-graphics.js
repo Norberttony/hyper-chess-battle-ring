@@ -1,7 +1,7 @@
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
-// of widgets, that may listen to relevant state changes.
+// of widgets that listen to state changes.
 
 class BoardGraphics {
     constructor(allowDragging = true, displayRanksAndFiles = false, skeleton = null){
@@ -9,8 +9,6 @@ class BoardGraphics {
         skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
         const boardDiv = skeleton.getElementsByClassName("board-graphics__board")[0];
-        if (!boardDiv)
-            throw new Error("Skeleton requires a unique empty div of class name board-graphics__board");
         
         const piecesDiv = document.createElement("div");
         piecesDiv.classList.add("board-graphics__pieces");
@@ -50,15 +48,13 @@ class BoardGraphics {
         // currentVariation does not match with graphicalVariation, applyChanges should be called.
         this.graphicalVariation = this.currentVariation;
 
-        // determine if meant to create files and ranks.
+        // generate labels for the files and ranks
         if (displayRanksAndFiles)
             addFilesAndRanks(boardDiv);
 
         if (allowDragging){
             this.draggingElem = createBoardDraggingElem(skeleton);
-
             boardDiv.onpointerdown = this.piecePointerDown;
-
         }
     }
 
