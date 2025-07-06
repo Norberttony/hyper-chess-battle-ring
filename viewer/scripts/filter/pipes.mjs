@@ -94,7 +94,6 @@ export class Constellations_Pipe extends Pipe {
             this.stability = 0;
         }else if (++this.stability == this.addAtStability){
             const constellation = this.getConstellation(board);
-            console.log(constellation);
             this.ctx.constellations.push(constellation);
 
             const phase = getGamePhase(constellation);
@@ -102,6 +101,8 @@ export class Constellations_Pipe extends Pipe {
                 this.ctx.opening = this.halfmove;
             else if (phase == 1)
                 this.ctx.middlegame = this.halfmove;
+            else if (phase == 2)
+                this.ctx.lateMiddlegame = this.halfmove;
             else
                 this.ctx.endgame = this.halfmove;
         }

@@ -21,6 +21,7 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
 
         gameData = [];
 
+        let id = 1;
         for (const pgn of pgnHandler.splitPGNs(pgnDatabase)){
             const headers = pgnHandler.extractHeaders(pgn);
             const board = new Board();
@@ -50,9 +51,8 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
 
             const data = manager.end(board);
             data.gamePGN = pgn;
+            data.href = `/${tournamentName}/${id++}`;
             gameData.push(data);
-            break;
         }
-        console.log(gameData[0]);
         applyFilters();
     });

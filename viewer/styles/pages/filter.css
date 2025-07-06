@@ -2,6 +2,10 @@
 .pages {
     --game-width: 304px;
     --game-height: 304px;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .pages .board-graphics__board {
