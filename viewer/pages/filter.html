@@ -26,10 +26,42 @@
     </head>
     <body>
 
+        <div id = "filters" class = "filters">
+            <div>
+                Filter by result
+            </div>
+
+            <div class = "radio filters__result">
+                <button value = "1-0">1-0</button>
+                <button value = "1/2-1/2">1/2-1/2</button>
+                <button value = "0-1">0-1</button>
+            </div>
+
+            <div>
+                Filter by game phase
+            </div>
+
+            <div class = "radio filters__phase">
+                <button value = "opening">Opening</button>
+                <button value = "middlegame">Middlegame</button>
+                <button value = "lateMiddlegame">Late Middlegame</button>
+                <button value = "endgame">Endgame</button>
+            </div>
+
+            <div>
+                Filter by piece configuration
+            </div>
+
+            <div class = "filters__constellation board-graphics--pieces-cburnett"></div>
+        </div>
         <div id = "pages" class = "pages"></div>
         <div class = "page-control">
             <button onclick = "prevPage();">&lt; Previous</button>
-            <button onclick = "nextPage();">&gt; Next</button>
+            <div>
+                Page <span class = "page-control__curr-page">0</span> /
+                <span class = "page-control__max-page">0</span>
+            </div>
+            <button onclick = "nextPage();">Next &gt;</button>
         </div>
 
     </body>

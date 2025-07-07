@@ -1,4 +1,8 @@
 
+input {
+    box-sizing: border-box;
+}
+
 .pages {
     --game-width: 304px;
     --game-height: 304px;
@@ -10,4 +14,82 @@
 
 .pages .board-graphics__board {
     grid-area: auto;
+}
+
+.radio {
+    display: flex;
+}
+
+.radio button {
+    border-left: 2px solid gray;
+    font-size: x-large;
+}
+
+button.radio__selected {
+    background-color: darkorange;
+}
+
+.radio button:first-child {
+    border-radius: 10px 0px 0px 10px;
+    border: none;
+}
+
+.radio button:last-child {
+    border-radius: 0px 10px 10px 0px;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: max-content auto;
+    gap: 20px;
+
+    align-items: center;
+    text-align: right;
+
+    margin: 0px 20% 0px 10%;
+}
+
+.filters__const {
+    display: flex;
+    flex-direction: column;
+}
+
+.filters__const input {
+    text-align: center;
+}
+
+.filters__const input[type=number]::-webkit-outer-spin-button,
+.filters__const input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.filters__const input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.filters__const button:first-of-type {
+    background-position-y: 0%;
+}
+
+.filters__const button:last-of-type {
+    background-position-y: 100%;
+}
+
+.filters__constellation {
+    display: flex;
+}
+
+.filters__constellation .board-graphics__piece {
+    position: relative;
+    aspect-ratio: 1 / 1;
+}
+
+.page-control {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    align-items: center;
+
+    text-align: center;
+    margin: 15px 15%;
 }
