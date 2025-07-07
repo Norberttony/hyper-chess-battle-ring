@@ -132,6 +132,7 @@ async function tournamentDashboard(files){
                 continue;
             }
 
+            engines.unshift("Exit");
             const idx = await options(engines);
 
             if (idx != 0)
@@ -141,6 +142,7 @@ async function tournamentDashboard(files){
 
             const engines = [ "Exit", ...players ];
             const idx = await options(engines);
+
             if (idx != 0)
                 files.removePlayer(engines[idx]);
 

@@ -6,16 +6,23 @@ const FILTERS_VIEW = {
     games: [],
     // number of games per page
     per_page: 8,
-    // current page number
-    curr_page: 1
+    // current page number (starts from 0)
+    curr_page: 0
 };
 
-function applyFilters(){
-    const filtered = gameData.filter(
-        (v) => v.constellations.endgame !== undefined
-    );
 
-    console.log(`Filtered down to ${filtered.length} games`);
+function nextPage(){
+    updateCurrPage(FILTERS_VIEW.curr_page + 1);
+}
+
+function prevPage(){
+    updateCurrPage(FILTERS_VIEW.curr_page - 1);
+}
+
+function updateCurrPage(page){
+    FILTERS_VIEW.curr_page = page;
+
+    const filtered = FILTERS_VIEW.games;
 
     const pagesElem = document.getElementById("pages");
     pagesElem.innerHTML = "";
@@ -37,8 +44,23 @@ function applyFilters(){
 
         bg.applyChanges();
 
+        const resDiv = document.createElement("div");
+        resDiv.classList.add("board-graphics__result");
+        resDiv.innerText = gameData.result.result;
+        bg.skeleton.appendChild(resDiv);
+
         container.addEventListener("click", () => {
             window.location.href = gameData.href;
         });
     }
+}
+
+function applyFilters(){
+    FILTERS_VIEW.games = gameData.filter(
+        (v) => v.constellations.endgame !== undefined
+    );
+
+    console.log(`Filtered down to ${FILTERS_VIEW.games.length} games`);
+
+    updateCurrPage(0);
 }

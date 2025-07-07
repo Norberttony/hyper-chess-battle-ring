@@ -27,7 +27,7 @@ class EngineDebugWidget extends BoardWidget {
             if (variation.isMain()){
                 // find the analysis the engine made on this position
                 const target = boardgfx.state.turn == Piece.white ? this.whiteDebugElem : this.blackDebugElem;
-                const dbg = target.value;
+                const dbg = boardgfx.state.turn == Piece.white ? this.whiteDebug : this.blackDebug;
 
                 // find where engine started analyzing
                 let analysisIdx = dbg.indexOf("position fen");
@@ -40,29 +40,16 @@ class EngineDebugWidget extends BoardWidget {
                 const start = dbg.indexOf(" > go", analysisIdx) - 1;
                 const end = dbg.indexOf("> position moves", analysisIdx + 1);
 
-                // target.focus();
-
-                // scroll to where this text is located.
-                requestAnimationFrame(() => {
-                    // something changed
-                    if (dbg != target.value)
-                        return;
-                    target.value = dbg.substring(0, start);
-                    const scrollBy = target.scrollHeight == target.clientHeight ? 0 : target.scrollHeight;
-                    target.value = dbg;
-                    target.scrollTop = scrollBy;
-                });
-
-                // target.setSelectionRange(start, end);
+                target.value = dbg.substring(start, end);
             }
         });
     }
 
     setWhiteDebug(debug){
-        this.whiteDebugElem.value = debug;
+        this.whiteDebug = debug;
     }
 
     setBlackDebug(debug){
-        this.blackDebugElem.value = debug;
+        this.blackDebug = debug;
     }
 }

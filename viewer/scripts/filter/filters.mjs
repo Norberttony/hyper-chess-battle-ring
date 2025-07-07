@@ -71,7 +71,7 @@ export function getGamePhase(constellation){
         return 0;
     }else if (value >= 40){
         return 1;
-    }else if (value >= 18){
+    }else if (value >= 16){
         return 2;
     }else{
         return 3;

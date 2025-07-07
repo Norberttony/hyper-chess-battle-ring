@@ -76,14 +76,12 @@ export class Constellations_Pipe extends Pipe {
         // half-move counters indicating the start of phases.
         // keep in mind: if mass trades occur, a game CAN go immediately from the opening phase
         // to the endgame phase WITHOUT the middlegame.
-        delete this.ctx.opening;
-        delete this.ctx.middlegame;
-        delete this.ctx.endgame;
+        this.ctx = {
+            constellations: []
+        };
 
         this.halfmove = 0;
         this.stability = 0;
-        this.ctx.constellations = [];
-        this.ctx.constellationEnd;
     }
 
     all(board, move){
@@ -97,14 +95,9 @@ export class Constellations_Pipe extends Pipe {
             this.ctx.constellations.push(constellation);
 
             const phase = getGamePhase(constellation);
-            if (phase == 0)
-                this.ctx.opening = this.halfmove;
-            else if (phase == 1)
-                this.ctx.middlegame = this.halfmove;
-            else if (phase == 2)
-                this.ctx.lateMiddlegame = this.halfmove;
-            else
-                this.ctx.endgame = this.halfmove;
+            const phases = [ "opening", "middlegame", "lateMiddlegame", "endgame" ];
+            if (!this.ctx[phases[phase]])
+                this.ctx[phases[phase]] = this.halfmove - this.addAtStability;
         }
     }
 
