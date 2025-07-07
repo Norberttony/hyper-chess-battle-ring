@@ -34,7 +34,8 @@ const FILTERS_VIEW = {
     }
 }
 
-{
+(async () => {
+    await module_loader.waitForAll();
     // populate the constellations filter
     const container = document.getElementsByClassName("filters__constellation")[0];
     for (let i = Piece.king; i <= Piece.immobilizer; i++){
@@ -55,26 +56,40 @@ const FILTERS_VIEW = {
         for (let j = 0; j < 2; j++){
             const b = buttons[j];
             const inp = inputs[j];
+
+            function setInpVal(val){
+                inp.value = val;
+                inp.parentNode.setAttribute(j == 0 ? "value-white" : "value-black", inp.value);
+
+                if (!inp.value)
+                    b.classList.remove("radio__selected");
+                else
+                    b.classList.add("radio__selected");
+            }
+
             b.addEventListener("click", () => {
                 if (inp.value)
-                    inp.value++;
+                    setInpVal(parseInt(inp.value) + 1);
                 else
-                    inp.value = 0;
-                inp.parentNode.setAttribute(j == 0 ? "value-white" : "value-black", inp.value);
+                    setInpVal(0);
                 inp.select();
-                b.classList.add("radio__selected");
+            });
+
+            b.addEventListener("contextmenu", (event) => {
+                event.preventDefault();
+                if (inp.value == 0)
+                    setInpVal();
+                else
+                    setInpVal(parseInt(inp.value) - 1);
+                inp.select();
             });
 
             inp.addEventListener("change", () => {
-                inp.parentNode.setAttribute(j == 0 ? "value-white" : "value-black", inp.value);
-                if (inp.value)
-                    b.classList.add("radio__selected");
-                else
-                    b.classList.remove("radio__selected");
+                setInpVal(inp.value);
             });
         }
     }
-}
+})();
 
 
 function nextPage(){
