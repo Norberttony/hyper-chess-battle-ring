@@ -14,9 +14,31 @@ const tournamentOptionsSelect = document.getElementById("tournament-options");
                 option.innerText = name.replaceAll("__", " ");
                 tournamentOptionsSelect.appendChild(option);
             }
+
+            readSearchParams();
         });
 
     tournamentOptionsSelect.addEventListener("change", loadGame);
+}
+
+// use the search parameters to set up the game
+async function readSearchParams(){
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tournament");
+    const g = params.get("gameId");
+    if (t && g){
+        tournamentOptionsSelect.value = t;
+        gameLoadingIndexInput.value = g;
+        await loadGame();
+        const m = params.get("moveNum");
+        if (m){
+            gameState.jumpToVariation(gameState.variationRoot);
+            let mInt = parseInt(m);
+            while (--mInt >= 0)
+                gameState.nextVariation();
+            gameState.applyChanges();
+        }
+    }
 }
 
 
@@ -30,18 +52,13 @@ function nextGame(){
     loadGame();
 }
 
-function loadGame(){
+async function loadGame(){
     let path = `/${tournamentOptionsSelect.value}/${gameLoadingIndexInput.value}`;
 
     // request file
-    fetch(path)
-        .then(async (res) => {
-            const { gamePgn, whiteDebug, blackDebug } = await res.json();
-            gameState.loadPGN(gamePgn);
-            widgets.engine_debug.setWhiteDebug(whiteDebug);
-            widgets.engine_debug.setBlackDebug(blackDebug);
-        })
-        .catch((err) => {
-            console.error(err);
-        });
+    const res = await fetch(path);
+    const { gamePgn, whiteDebug, blackDebug } = await res.json();
+    gameState.loadPGN(gamePgn);
+    widgets.engine_debug.setWhiteDebug(whiteDebug);
+    widgets.engine_debug.setBlackDebug(blackDebug);
 }

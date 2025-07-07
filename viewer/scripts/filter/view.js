@@ -135,7 +135,10 @@ function updateCurrPage(page){
         bg.skeleton.appendChild(resDiv);
 
         container.addEventListener("click", () => {
-            window.location.href = gameData.href;
+            const a = document.createElement("a");
+            a.href = `${gameData.href}&moveNum=${gameData.moveTo}`;
+            a.target = "_blank";
+            a.click();
         });
     }
 }

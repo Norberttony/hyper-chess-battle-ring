@@ -51,7 +51,7 @@ Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("
 
             const data = manager.end(board);
             data.gamePGN = pgn;
-            data.href = `/${tournamentName}/${id++}`;
+            data.href = `/?tournament=${tournamentName}&gameId=${id++}`;
             gameData.push(data);
         }
         applyFilters();
