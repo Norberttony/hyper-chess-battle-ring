@@ -449,7 +449,7 @@ class BoardGraphics {
             }else{
                 const move = this.state.getMoveOfSAN(pgn);
                 if (move){
-                    this.makeMove(move);
+                    this.makeMove(move, pgn);
                     toUndo++;
                 }
             }

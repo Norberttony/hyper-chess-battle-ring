@@ -21,7 +21,7 @@ input {
 }
 
 .radio button {
-    border-left: 2px solid gray;
+    border-left: 1px solid darkslategray;
     font-size: x-large;
 }
 
@@ -64,10 +64,6 @@ button.radio__selected {
     margin: 0;
 }
 
-.filters__const input[type=number] {
-    -moz-appearance: textfield;
-}
-
 .filters__const button:first-of-type {
     background-position-y: 0%;
 }
@@ -83,6 +79,11 @@ button.radio__selected {
 .filters__constellation .board-graphics__piece {
     position: relative;
     aspect-ratio: 1 / 1;
+}
+
+.filter__stats {
+    text-align: center;
+    margin: 30px;
 }
 
 .page-control {

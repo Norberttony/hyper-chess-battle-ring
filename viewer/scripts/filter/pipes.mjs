@@ -77,7 +77,8 @@ export class Constellations_Pipe extends Pipe {
         // keep in mind: if mass trades occur, a game CAN go immediately from the opening phase
         // to the endgame phase WITHOUT the middlegame.
         this.ctx = {
-            constellations: []
+            constellations: [],
+            atMove: []
         };
 
         this.halfmove = 0;
@@ -93,6 +94,7 @@ export class Constellations_Pipe extends Pipe {
         }else if (++this.stability == this.addAtStability){
             const constellation = this.getConstellation(board);
             this.ctx.constellations.push(constellation);
+            this.ctx.atMove.push(this.halfmove);
 
             const phase = getGamePhase(constellation);
             const phases = [ "opening", "middlegame", "lateMiddlegame", "endgame" ];

@@ -56,7 +56,10 @@ const FILTERS_VIEW = {
             const b = buttons[j];
             const inp = inputs[j];
             b.addEventListener("click", () => {
-                inp.value = 1;
+                if (inp.value)
+                    inp.value++;
+                else
+                    inp.value = 0;
                 inp.parentNode.setAttribute(j == 0 ? "value-white" : "value-black", inp.value);
                 inp.select();
                 b.classList.add("radio__selected");
@@ -104,7 +107,7 @@ function updateCurrPage(page){
         bg.loadPGN(gameData.gamePGN);
 
         bg.jumpToVariation(bg.variationRoot);
-        let jumpToMoveNum = gameData.constellations.endgame;
+        let jumpToMoveNum = gameData.moveTo;
         while (jumpToMoveNum--){
             bg.nextVariation();
         }
@@ -123,8 +126,45 @@ function updateCurrPage(page){
 }
 
 function applyFilters(){
+    const res = document.getElementsByClassName("filters__result")[0].getAttribute("value");
+    const phase = document.getElementsByClassName("filters__phase")[0].getAttribute("value");
+    const constellation = [ [ 0 ], [ 0 ] ];
+    let hasConstellation = false;
+
+    for (let i = Piece.king; i <= Piece.immobilizer; i++){
+        const pChar = PieceASCII[i].toLowerCase();
+        const elem = document.getElementsByClassName(`filters__const--type-${pChar}`)[0];
+
+        const w = elem.getAttribute("value-white");
+        const b = elem.getAttribute("value-black");
+        constellation[0][i] = w || undefined;
+        constellation[1][i] = b || undefined;
+
+        if (w || b)
+            hasConstellation = true;
+    }
+
     FILTERS_VIEW.games = gameData.filter(
-        (v) => v.constellations.endgame !== undefined && v.result.result == "1/2-1/2"
+        (v) => {
+            v.moveTo = v["game-length"];
+
+            if (phase){
+                v.moveTo = v.constellations[phase];
+                if (v.moveTo === undefined)
+                    return false;
+            }
+
+            if (res && v.result.result != res)
+                return false;
+
+            if (hasConstellation){
+                v.moveTo = filtersModule.findConstellation(v, constellation);
+                if (v.moveTo == -1)
+                    return false;
+            }
+
+            return true;
+        }
     );
 
     const maxPageElem = document.getElementsByClassName("page-control__max-page")[0];
@@ -132,6 +172,9 @@ function applyFilters(){
         maxPageElem.innerText = Math.ceil(FILTERS_VIEW.games.length / FILTERS_VIEW.per_page);
 
     console.log(`Filtered down to ${FILTERS_VIEW.games.length} games`);
+
+    document.getElementsByClassName("stats__filtered-num")[0].innerText = FILTERS_VIEW.games.length;
+    document.getElementsByClassName("stats__filtered-max")[0].innerText = gameData.length;
 
     updateCurrPage(0);
 }

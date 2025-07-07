@@ -10,18 +10,50 @@ export function isBalance(game, whitePieces, blackPieces){
         return false;
 
     for (const constellation of game.constellations.constellations){
-        for (let i = Piece.retractor; i < Piece.immobilizer; i++){
+        let isValid = true;
+        for (let i = Piece.king; i <= Piece.immobilizer; i++){
             if (!whitePieces[i] || !blackPieces[i]){
-                if (constellation[0][i] != constellation[1][i])
-                    return false;
+                if (constellation[0][i] != constellation[1][i]){
+                    isValid = false;
+                    break;
+                }
             }else{
-                if (whitePieces[i] != constellation[0][i] || blackPieces[i] != constellation[1][i])
-                    return false;
+                if (whitePieces[i] != constellation[0][i] || blackPieces[i] != constellation[1][i]){
+                    isValid = false;
+                    break;
+                }
             }
         }
+        if (isValid)
+            return true;
     }
     
-    return true;
+    return false;
+}
+
+export function findConstellation(game, constellation){
+    if (!game.constellations || !game.constellations.constellations)
+        return -1;
+
+    const c2 = constellation;
+    let idx = 0;
+    for (const c of game.constellations.constellations){
+        let isValid = true;
+
+        for (let i = Piece.king; i <= Piece.immobilizer; i++){
+            if (c2[0][i] && c2[0][i] != c[0][i] || c2[1][i] && c2[1][i] != c[1][i]){
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid)
+            return game.constellations.atMove[idx];
+
+        idx++;
+    }
+
+    return -1;
 }
 
 export function countByResult(games){
