@@ -1,7 +1,7 @@
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
-// of widgets that listen to state changes.
+// of widgets, that may listen to relevant state changes.
 
 class BoardGraphics {
     constructor(allowDragging = true, displayRanksAndFiles = false, skeleton = null){
@@ -9,12 +9,15 @@ class BoardGraphics {
         skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
         const boardDiv = skeleton.getElementsByClassName("board-graphics__board")[0];
+        if (!boardDiv)
+            throw new Error("Skeleton requires a unique empty div of class name board-graphics__board");
         
         const piecesDiv = document.createElement("div");
         piecesDiv.classList.add("board-graphics__pieces");
         boardDiv.appendChild(piecesDiv);
 
         // set attributes
+        this.widgets = {};
         this.skeleton = skeleton;
         this.boardDiv = boardDiv;
         this.piecesDiv = piecesDiv;
@@ -27,7 +30,6 @@ class BoardGraphics {
         // threefold and draws require keeping track of repeated positions, and when the last
         // capture was performed.
         this.positions = {};
-        this.lastCapture = 0;
 
         // variations in the position are stored via a tree. The root is the very first empty
         // variation (sentinel node).
@@ -48,7 +50,7 @@ class BoardGraphics {
         // currentVariation does not match with graphicalVariation, applyChanges should be called.
         this.graphicalVariation = this.currentVariation;
 
-        // generate labels for the files and ranks
+        // determine if meant to create files and ranks.
         if (displayRanksAndFiles)
             addFilesAndRanks(boardDiv);
 
@@ -81,6 +83,16 @@ class BoardGraphics {
         w.classList.add(`board-graphics__${widgetName}`);
         this.skeleton.appendChild(w);
         return w;
+    }
+
+    attachWidget(widget){
+        const name = widget.constructor.name;
+        if (this.widgetNames.has(name)){
+            console.error("Attempted to attach ", name, " as a widget to ", this, " when an instance of this widget is already attached.");
+            throw new Error("Tried to attach a widget of the same name to a BoardGraphics instance.");
+        }
+        this.widgetNames.add(name);
+        this.widgets[name] = widget;
     }
 
     setNames(whiteName, blackName){
@@ -230,8 +242,6 @@ class BoardGraphics {
             // position reoccurs
             this.positions[this.state.getPosition()]++;
 
-            this.lastCapture = variation.fiftyMoveRuleCounter;
-
             this.currentVariation = variation;
             return true;
         }
@@ -243,8 +253,6 @@ class BoardGraphics {
         if (this.currentVariation.prev){
             // position "unoccurs"
             this.positions[this.state.getPosition()]--;
-
-            this.lastCapture = this.currentVariation.fiftyMoveRuleCounter;
 
             this.state.unmakeMove(this.currentVariation.move);
             this.currentVariation = this.currentVariation.prev;
@@ -345,12 +353,7 @@ class BoardGraphics {
             this.state.setResult("1/2-1/2", "three-fold repetition", 0);
 
         // handle the fifty move rule
-        this.lastCapture++;
-        if (move.captures.length > 0){
-            this.lastCapture = 0;
-        }
-        variation.fiftyMoveRuleCounter = this.lastCapture;
-        if (this.lastCapture >= 100)
+        if (this.state.halfmoves[0] >= 100)
             this.state.setResult("1/2-1/2", "fifty move rule", 0);
     }
 
@@ -408,13 +411,6 @@ class BoardGraphics {
         return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0];
     }
 
-    // allows this object to be garbage collected.
-    // do not use the object after running this method.
-    // only run this method if you intend to delete the BoardGraphics object entirely.
-    allowGC(){
-        delete this.piecePointerDown;
-    }
-    
     dispatchEvent(name, detail){
         this.skeleton.dispatchEvent(new CustomEvent(name, { detail }));
     }
@@ -469,20 +465,11 @@ function createSkeleton(skeleton){
 
     skeleton.classList.add("board-graphics");
 
-    // create the main board display
-    const boardDiv = document.createElement("div");
-    boardDiv.classList.add("board-graphics__board");
-    skeleton.appendChild(boardDiv);
-
-    // create a loading icon
-    const loadingDiv = document.createElement("div");
-    loadingDiv.classList.add("board-graphics__loading");
-    boardDiv.appendChild(loadingDiv);
-
-    const loadingImg = document.createElement("img");
-    loadingImg.classList.add("board-graphics__loading-img");
-    loadingImg.src = "./images/pieces/immobilizer.png";
-    loadingDiv.appendChild(loadingImg);
+    skeleton.innerHTML = `<div class = "board-graphics__board">
+    <div class = "board-graphics__loading">
+        <img class = "board-graphics__loading-img" src = "./images/pieces/immobilizer.png">
+    </div>
+</div>`;
 
     return skeleton;
 }

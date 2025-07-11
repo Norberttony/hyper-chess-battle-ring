@@ -1,27 +1,24 @@
 
-let widgets;
-
 module_loader.waitForAll()
     .then(() => {
         window.gameState = new BoardGraphics(true, true, document.getElementById("main-board"));
 
-        widgets = {
-            annotator: new AnnotatorWidget(gameState),
-            animation: new AnimationWidget(gameState),
-            audio: new AudioWidget(gameState),
-            pgn: new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT),
-            extras: new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM),
-            players: new PlayersWidget(gameState),
-            engine_debug: new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT)
-        };
+        new AnnotatorWidget(gameState);
+        new AnimationWidget(gameState);
+        new AudioWidget(gameState);
+        new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT);
+        new EngineWidget(gameState, WIDGET_LOCATIONS.RIGHT);
+        new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT);
+        new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM);
+        const players = new PlayersWidget(gameState);
 
-        widgets.players.setNames("-", "-");
+        players.setNames("-", "-");
 
         gameState.display();
     });
 
 function hideNames(){
-    widgets.players.disable();
+    gameState.widgets.PlayersWidget.disable();
 }
 
 // prevent focusing on buttons (so that arrow key presses and other things still register on the

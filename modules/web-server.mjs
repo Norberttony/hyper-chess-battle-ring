@@ -28,7 +28,7 @@ export function startWebServer(){
     });
 
     app.get("/", (req, res) => {
-        res.sendFile("index.html");
+        res.sendFile(pathModule.resolve("./viewer/pages/game-analysis.html"));
     });
 
     app.get("/tournaments", (req, res) => {

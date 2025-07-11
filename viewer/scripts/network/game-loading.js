@@ -59,6 +59,6 @@ async function loadGame(){
     const res = await fetch(path);
     const { gamePgn, whiteDebug, blackDebug } = await res.json();
     gameState.loadPGN(gamePgn);
-    widgets.engine_debug.setWhiteDebug(whiteDebug);
-    widgets.engine_debug.setBlackDebug(blackDebug);
+    gameState.widgets.EngineDebugWidget.setWhiteDebug(whiteDebug);
+    gameState.widgets.EngineDebugWidget.setBlackDebug(blackDebug);
 }

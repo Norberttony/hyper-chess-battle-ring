@@ -34,7 +34,6 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
 
         const repeats = {};
         repeats[board.getPosition()] = 1;
-        let lastCapture = 0;
 
         while (!board.isGameOver()){
             const activeProcess = board.turn == Piece.white ? p1 : p2;
@@ -79,10 +78,7 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
             board.makeMove(move);
             moveObjects.push(move);
 
-            lastCapture++;
-            if (move.captures.length > 0){
-                lastCapture = 0;
-            }else if (lastCapture >= 100){
+            if (board.halfmoves[0] >= 100){
                 board.setResult("1/2-1/2", "fifty move rule", 0);
                 break;
             }
