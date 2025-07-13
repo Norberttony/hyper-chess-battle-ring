@@ -38,6 +38,18 @@
             </div>
 
             <div>
+                Filter by termination
+            </div>
+
+            <div class = "radio filters__termination">
+                <button value = "checkmate">Checkmate</button>
+                <button value = "fifty move rule">Draw by fifty move rule</button>
+                <button value = "threefold repetition">Draw by threefold</button>
+                <button value = "timeout">Timeout</button>
+                <button value = "stalemate">Stalemate</button>
+            </div>
+
+            <div>
                 Filter by game phase
             </div>
 
@@ -61,6 +73,20 @@
                 <span class = "stats__filtered-num">0</span>
                 games filtered out of
                 <span class = "stats__filtered-max">0</span>
+            </div>
+            <div>
+                <div>
+                    White's constellation won <span class = "stats__w-const-wins"></span> times
+                    (<span class = "stats__w-const-perc"></span>%)
+                </div>
+                <div>
+                    Black's constellation won <span class = "stats__b-const-wins"></span> times
+                    (<span class = "stats__b-const-perc"></span>%)
+                </div>
+                <div>
+                    And they drew <span class = "stats__const-draws"></span> times
+                    (<span class = "stats__const-draws-perc"></span>%)
+                </div>
             </div>
         </div>
         <div id = "pages" class = "pages"></div>

@@ -31,6 +31,17 @@ export function isBalance(game, whitePieces, blackPieces){
     return false;
 }
 
+// expects s1 and s2 to each be only one side of the constellation
+export function areConstellationSidesEqual(s1, s2){
+    for (let i = Piece.king; i <= Piece.immobilizer; i++){
+        if (s1[i] == undefined || s2[i] == undefined || s1[i] == "=" || s2[i] == "=")
+            continue;
+        if (s1[i] != s2[i])
+            return false;
+    }
+    return true;
+}
+
 export function findConstellation(game, constellation){
     if (!game.constellations || !game.constellations.constellations)
         return -1;
@@ -41,14 +52,46 @@ export function findConstellation(game, constellation){
         let isValid = true;
 
         for (let i = Piece.king; i <= Piece.immobilizer; i++){
-            if (c2[0][i] && c2[0][i] != c[0][i] || c2[1][i] && c2[1][i] != c[1][i]){
+            // check if both sides have an equal number of pieces
+            if (c2[0][i] == "=" || c2[1][i] == "="){
+                if (c[0][i] != c[1][i]){
+                    isValid = false;
+                    break;
+                }else{
+                    continue;
+                }
+            }
+            // check piece equality to constellation
+            if (c2[0][i] !== undefined && c2[0][i] != c[0][i] || c2[1][i] !== undefined && c2[1][i] != c[1][i]){
                 isValid = false;
                 break;
             }
         }
 
+        // repeat this but consider the sides reversed...
+        // this ensures that the color does not matter when looking for constellations
+        if (!isValid){
+            isValid = true;
+
+            for (let i = Piece.king; i <= Piece.immobilizer; i++){
+                // check if both sides have an equal number of pieces
+                if (c2[0][i] == "=" || c2[1][i] == "="){
+                    if (c[0][i] != c[1][i]){
+                        isValid = false;
+                        break;
+                    }else{
+                        continue;
+                    }
+                }
+                if (c2[1][i] !== undefined && c2[1][i] != c[0][i] || c2[0][i] !== undefined && c2[0][i] != c[1][i]){
+                    isValid = false;
+                    break;
+                }
+            }
+        }
+
         if (isValid)
-            return game.constellations.atMove[idx];
+            return { ply: game.constellations.atMove[idx], constellation: c };
 
         idx++;
     }

@@ -25,6 +25,9 @@ input {
     font-size: x-large;
 }
 
+.filters__const[value-white] .filters__const-white,
+.filters__const[value-equals] .filters__const-equals,
+.filters__const[value-black] .filters__const-black,
 button.radio__selected {
     background-color: darkorange;
 }
