@@ -4,7 +4,6 @@
     --piece-height: calc(var(--game-height) / 8);
 
     display: grid;
-    position: relative;
 
     margin: auto;
 }

@@ -1,4 +1,6 @@
 
+// v1.0.1
+
 class EngineWidget extends BoardWidget {
     constructor(boardgfx, location){
         super(boardgfx);
@@ -41,6 +43,8 @@ class EngineWidget extends BoardWidget {
     }
 
     enable(){
+        if (this.boardgfx.widgetNames.has("NetworkWidget") && this.boardgfx.widgets.NetworkWidget.active)
+            return;
         this.container.style.display = "";
     }
 
@@ -50,6 +54,9 @@ class EngineWidget extends BoardWidget {
     }
 
     start(){
+        if (this.boardgfx.widgetNames.has("NetworkWidget") && this.boardgfx.widgets.NetworkWidget.active)
+            return;
+
         this.activeElem.checked = true;
 
         this.setName();
@@ -69,7 +76,7 @@ class EngineWidget extends BoardWidget {
                 if (words[scoreIdx + 1] == "cp"){
                     this.evalElem.innerText = `${sign}${(score / 100).toFixed(1)}`;
                 }else if (words[scoreIdx + 1] == "mate"){
-                    this.evalElem.innerText = `#${sign}${Math.floor((score + 1) / 2)}`;
+                    this.evalElem.innerText = `#${sign}${(score < 0 ? -1 : 1) * Math.floor((Math.abs(score) + 1) / 2)}`;
                 }else{
                     console.error(`Did not recognize score type ${words[scoreIdx + 1]} from engine messsage ${data}`);
                 }
