@@ -57,7 +57,7 @@ const FILTERS_VIEW = {
 
         function setInpVal(inp, val){
             inp.value = val;
-            if (val != "" && !isNaN(val))
+            if (val !== "" && !isNaN(val))
                 filt.setAttribute(inputs[0] == inp ? "value-white" : "value-black", inp.value);
             else
                 filt.removeAttribute(inputs[0] == inp ? "value-white" : "value-black");
@@ -160,6 +160,8 @@ function updateCurrPage(page){
 }
 
 function applyFilters(){
+    const filtersModule = module_loader.modules["filters"];
+
     // fetch user input values
     const res = document.getElementsByClassName("filters__result")[0].getAttribute("value");
     const phase = document.getElementsByClassName("filters__phase")[0].getAttribute("value");
@@ -251,9 +253,9 @@ function applyFilters(){
     document.getElementsByClassName("stats__const-draws")[0].innerText = draws;
 
     const total = wWins + bWins + draws;
-    document.getElementsByClassName("stats__w-const-perc")[0].innerText = (100 * wWins / total).toPrecision(3);
-    document.getElementsByClassName("stats__b-const-perc")[0].innerText = (100 * bWins / total).toPrecision(3);
-    document.getElementsByClassName("stats__const-draws-perc")[0].innerText = (100 * draws / total).toPrecision(3);
+    document.getElementsByClassName("stats__w-const-perc")[0].innerText = (100 * wWins / total).toFixed(1);
+    document.getElementsByClassName("stats__b-const-perc")[0].innerText = (100 * bWins / total).toFixed(1);
+    document.getElementsByClassName("stats__const-draws-perc")[0].innerText = (100 * draws / total).toFixed(1);
 
     updateCurrPage(0);
 }

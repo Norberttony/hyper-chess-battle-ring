@@ -1,58 +1,80 @@
 
 let gameData = [];
-let filtersModule;
 
-Promise.all([ import("./pgn-file-reader.mjs"), import("./filters.mjs"), import("./pipes.mjs") ])
-    .then(async ([ pgnHandler, filters, pipes ]) => {
-        filtersModule = filters;
-        await module_loader.waitForAll();
+module_loader.load("../filter/pgn-file-reader.mjs");
+module_loader.load("../filter/filters.mjs");
+module_loader.load("../filter/pipes.mjs");
 
-        const path = window.location.pathname.substring(1).split("/");
-        if (path.length != 1)
-            return;
+// initialize tournamentOptionsSelect with options.
+{
+    const tournamentOptionsSelect = document.getElementById("tournament-options");
 
-        const manager = new pipes.Pipe_Manager([
-            new pipes.Game_Length_Pipe(),
-            new pipes.Constellations_Pipe(),
-            new pipes.Result_Pipe()
-        ]);
-        const tournamentName = decodeURI(path[0]);
-        const pgnDatabase = await (await fetch(`${window.location.pathname}/games`)).text();
-
-        gameData = [];
-
-        let id = 1;
-        for (const pgn of pgnHandler.splitPGNs(pgnDatabase)){
-            const headers = pgnHandler.extractHeaders(pgn);
-            const board = new Board();
-            if (headers.FEN)
-                board.loadFEN(headers.FEN);
-
-            manager.start(board);
-            manager.all(board);
-
-            const san = pgnHandler.extractMoves(pgn);
-            for (const moveSAN of san.split(" ")){
-                const m = board.getMoveOfSAN(moveSAN);
-                if (m){
-                    board.makeMove(m);
-                    manager.all(board, m);
-                }
+    fetch("tournaments")
+        .then(async (res) => {
+            const tournamentNames = await res.json();
+            for (const name of tournamentNames){
+                const option = document.createElement("option");
+                option.value = name;
+                option.innerText = name.replaceAll("__", " ");
+                tournamentOptionsSelect.appendChild(option);
             }
+            tournamentOptionsSelect.addEventListener("change", () => {
+                prepareTournamentGames(tournamentOptionsSelect.value);
+            });
+            prepareTournamentGames(tournamentOptionsSelect.getElementsByTagName("option")[0].value);
+        });
+}
 
-            if (!board.isGameOver() && headers.Result){
-                let winner = 0;
-                if (headers.Result == "1-0")
-                    winner = Piece.white;
-                else if (headers.Result == "0-1")
-                    winner = Piece.black;
-                board.setResult(headers.Result, headers.Termination, winner);
+async function prepareTournamentGames(tournamentName){
+    await module_loader.waitForAll();
+
+    // prepare modules
+    const pgnHandler = module_loader.modules["pgn-file-reader"];
+    const filters = module_loader.modules["filters"];
+    const pipes = module_loader.modules["pipes"];
+
+    const manager = new pipes.Pipe_Manager([
+        new pipes.Game_Length_Pipe(),
+        new pipes.Constellations_Pipe(),
+        new pipes.Result_Pipe()
+    ]);
+    const pgnDatabase = await (await fetch(`${tournamentName}/games`)).text();
+
+    gameData = [];
+
+    let id = 1;
+    for (const pgn of pgnHandler.splitPGNs(pgnDatabase)){
+        const headers = pgnHandler.extractHeaders(pgn);
+        const board = new Board();
+        if (headers.FEN)
+            board.loadFEN(headers.FEN);
+
+        manager.start(board);
+        manager.all(board);
+
+        const san = pgnHandler.extractMoves(pgn);
+        for (const moveSAN of san.split(" ")){
+            const m = board.getMoveOfSAN(moveSAN);
+            if (m){
+                board.makeMove(m);
+                manager.all(board, m);
             }
-
-            const data = manager.end(board);
-            data.gamePGN = pgn;
-            data.href = `/?tournament=${tournamentName}&gameId=${id++}`;
-            gameData.push(data);
         }
-        applyFilters();
-    });
+
+        if (!board.isGameOver() && headers.Result){
+            let winner = 0;
+            if (headers.Result == "1-0")
+                winner = Piece.white;
+            else if (headers.Result == "0-1")
+                winner = Piece.black;
+            board.setResult(headers.Result, headers.Termination, winner);
+        }
+
+        const data = manager.end(board);
+        data.gamePGN = pgn;
+        data.href = `/analyze?tournament=${tournamentName}&gameId=${id++}`;
+        gameData.push(data);
+    }
+
+    applyFilters();
+}

@@ -28,6 +28,10 @@ export function startWebServer(){
     });
 
     app.get("/", (req, res) => {
+        res.sendFile(pathModule.resolve("./viewer/pages/filter.html"));
+    });
+
+    app.get("/analyze", (req, res) => {
         res.sendFile(pathModule.resolve("./viewer/pages/game-analysis.html"));
     });
 
@@ -54,10 +58,6 @@ export function startWebServer(){
         files.getGame(req.params.id)
             .then(data => res.send(data))
             .catch(err => res.sendStatus(404));
-    });
-
-    app.get("/:tournament", (req, res) => {
-        res.sendFile(pathModule.resolve("./viewer/pages/filter.html"));
     });
 
     server.listen(8000);
