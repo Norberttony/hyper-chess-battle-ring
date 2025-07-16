@@ -18,7 +18,7 @@ export function splitPGNs(pgnsString){
     // the first capture group catches all of the PGN headers. The next capture group handles
     // capturing comments, move numbers, and SANs. The very last capture group searches for the
     // game termination marker (required for each PGN).
-    const pgnRegex = /(?:\[[^\]^\[]*\]\s*)*(?:{[^{^}]*}\s*|\d+\.+|[A-Za-z0-9\+\#]+|\s+)*(?:\*|1-0|0-1|1\/2-1\/2)/g;
+    const pgnRegex = /(?:\[[^\]^\[]*\]\s*)*(?:{[^{^}]*}\s*|\d+\.+|\([^{^}]*\s+\)|[A-Za-z0-9\+\#]+|\s+)*(?:\*|1-0|0-1|1\/2-1\/2)/g;
 
     for (const [ pgn ] of pgnsString.matchAll(pgnRegex))
         games.push(pgn.trim());

@@ -104,8 +104,8 @@ for (let pgn of pgns){
     // remove full move counters
     pgn = pgn.replace(/[0-9]+[\.]+/g, "");
 
-    // add a space before and after parentheses
-    pgn = pgn.replace(/\(/g, " ( ").replace(/\)/g, " ) ");
+    // remove variations
+    pgn = pgn.replace(/\(.+?\)\s*/g, "");
 
     // make sure there is one space between each move
     pgn = pgn.replace(/\s+/g, " ");
@@ -131,9 +131,7 @@ for (let pgn of pgns){
 
 // determine FENs that were already in the set
 const positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
-const alreadyHasFENs = new Set();
-for (const fen of positions)
-    alreadyHasFENs.add(fen);
+const alreadyHasFENs = new Set(positions);
 
 // add non-duplicate FENs into position set
 let newPositions = 0;
@@ -144,6 +142,6 @@ for (const fen of FENs){
     }
 }
 
-fs.writeFileSync("./data/positions.json", JSON.stringify(positions));
+fs.writeFileSync("./data/positions.json", JSON.stringify(Array.from(alreadyHasFENs)));
 
 console.log(`Found ${newPositions} new positions`);

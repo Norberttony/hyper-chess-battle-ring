@@ -50,11 +50,6 @@ export class Tournament_Files {
         if (!fs.existsSync(this.configFile))
             fs.writeFileSync(this.configFile, JSON.stringify(defaultConfig));
 
-        if (!fs.existsSync(this.positionsFile)){
-            const positions = fs.readFileSync("./data/positions.json").toString();
-            fs.writeFileSync(this.positionsFile, positions);
-        }
-
         this.config = JSON.parse(fs.readFileSync(this.configFile).toString());
 
         const gameFiles = fs.readdirSync(this.gamesPath);
@@ -67,6 +62,11 @@ export class Tournament_Files {
 
         // -1 because of the compiled games file.
         this.gameCount = gameFiles.length - 1;
+
+        if (!fs.existsSync(this.positionsFile) && this.gameCount == 0){
+            const positions = fs.readFileSync("./data/positions.json").toString();
+            fs.writeFileSync(this.positionsFile, positions);
+        }
     }
 
     static getAllTournaments(){
@@ -233,7 +233,26 @@ export class Tournament_Files {
     }
 
     readPositions(){
-        return JSON.parse(fs.readFileSync(this.positionsFile).toString());
+        try {
+            const positionsStr = fs.readFileSync(this.positionsFile).toString();
+            return JSON.parse(positionsStr);
+        }
+        catch(err){
+            // uh oh, maybe an error occurred just when the file was being written, clearing the
+            // file instead! we have to regenerate it now...
+            const positionsStr = fs.readFileSync("./data/positions.json").toString();
+            let positions = new Set(JSON.parse(positionsStr));
+
+            // remove already-used positions
+            const gamesDB = fs.readFileSync(this.gamesFile).toString();
+            for (const pgn of splitPGNs(gamesDB))
+                positions.delete(extractHeaders(pgn).FEN || StartingFEN);
+
+            // save positions
+            positions = Array.from(positions);
+            this.savePositions(positions);
+            return positions;
+        }
     }
 
     savePositions(positions){
