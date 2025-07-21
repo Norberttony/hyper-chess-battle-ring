@@ -152,3 +152,16 @@ export function getGamePhase(constellation){
         return 3;
     }
 }
+
+export function getConstellation(board){
+    // count frequency of each piece for each side independently.
+    let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+    for (const p of board.squares){
+        if (p){
+            const col = Piece.getColor(p) == Piece.white ? 0 : 1;
+            const typ = Piece.getType(p);
+            pieceCounts[col][typ]++;
+        }
+    }
+    return pieceCounts;
+}

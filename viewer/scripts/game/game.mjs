@@ -1,3 +1,6 @@
+
+// v1.1.0
+
 // contains all of the game logic
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
@@ -27,6 +30,8 @@ export class Board {
     constructor(){
         // contains the type and color of every piece on all 64 squares (Piece[Color] | Piece[Type])
         this.squares = new Uint8Array(64);
+
+        this.pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
 
         this.result;
 
@@ -96,6 +101,28 @@ export class Board {
                 this.setResult("1/2-1/2", "stalemate", 0);
             }
             this.nextTurn();
+        }else{
+            // determine if it is a draw by insufficient material
+            let sufficient = false;
+            for (let i = Piece.king; i <= Piece.immobilizer; i++){
+                if (i == Piece.king || i == Piece.straddler)
+                    continue;
+                if (this.pieceCounts[0][i] != 0 || this.pieceCounts[1][i] != 0){
+                    sufficient = true;
+                    break;
+                }
+            }
+
+            if (!sufficient){
+                // KvK, KPvK, KPPvK, KPPvKP are all immediate draws.
+                let most = Math.max(this.pieceCounts[0][Piece.straddler], this.pieceCounts[1][Piece.straddler]);
+                let least = Math.min(this.pieceCounts[0][Piece.straddler], this.pieceCounts[1][Piece.straddler]);
+                if (most <= 1 || most == 2 && least <= 1){
+                    // certain draw.
+                    this.setResult("1/2-1/2", "insufficient material", 0);
+                }
+            }
+            
         }
 
         return this.result;
@@ -728,7 +755,8 @@ export class Board {
         }
 
         // go through all of the captures
-        for (const {sq, captured} of move.captures){
+        for (const { sq, captured } of move.captures){
+            this.pieceCounts[Piece.ofColor(captured, Piece.white) ? 0 : 1][Piece.getType(captured)]--;
             this.squares[sq] = 0;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // remove coordinator from list
@@ -776,7 +804,8 @@ export class Board {
         // unmove the piece and uncapture whatever it captured.
         this.squares[move.from] = this.squares[move.to];
         this.squares[move.to] = 0;
-        for (const {sq, captured} of move.captures){
+        for (const { sq, captured } of move.captures){
+            this.pieceCounts[Piece.ofColor(captured, Piece.white) ? 0 : 1][Piece.getType(captured)]++;
             this.squares[sq] = captured;
             if (Piece.ofType(captured, Piece.coordinator)){
                 // add coordinator back to list
@@ -917,6 +946,7 @@ export class Board {
         this.chameleons[3] = 255;
         this.kings[0] = 255;
         this.kings[1] = 255;
+        this.pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
 
         // 0 = board state
         // 1 = turn
@@ -938,6 +968,8 @@ export class Board {
                 let sq = f + r * 8;
                 this.squares[sq] = piece;
                 f++;
+
+                this.pieceCounts[Piece.ofColor(piece, Piece.white) ? 0 : 1][Piece.getType(piece)]++;
 
                 // if the piece is a king, record it
                 if (Piece.ofType(piece, Piece.king)){

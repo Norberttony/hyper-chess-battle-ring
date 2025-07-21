@@ -36,7 +36,8 @@ async function prepareTournamentGames(tournamentName){
     const manager = new pipes.Pipe_Manager([
         new pipes.Game_Length_Pipe(),
         new pipes.Constellations_Pipe(),
-        new pipes.Result_Pipe()
+        new pipes.Result_Pipe(),
+        new pipes.Heatmap_Pipe()
     ]);
     const pgnDatabase = await (await fetch(`${tournamentName}/games`)).text();
 

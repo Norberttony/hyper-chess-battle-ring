@@ -1,6 +1,6 @@
 
 import { Piece } from "../game/piece.mjs";
-import { getGamePhase } from "./filters.mjs";
+import { getGamePhase, getConstellation } from "./filters.mjs";
 
 
 export class Pipe {
@@ -49,6 +49,7 @@ export class Game_Length_Pipe extends Pipe {
 
     start = () => this.ctx = 0;
     all   = () => this.ctx++;
+    end   = () => this.ctx--;
 }
 
 export class Capture_Count_Pipe extends Pipe {
@@ -92,7 +93,7 @@ export class Constellations_Pipe extends Pipe {
         if (move.captures.length > 0){
             this.stability = 0;
         }else if (++this.stability == this.addAtStability){
-            const constellation = this.getConstellation(board);
+            const constellation = getConstellation(board);
             this.ctx.constellations.push(constellation);
             this.ctx.atMove.push(this.halfmove);
 
@@ -105,22 +106,33 @@ export class Constellations_Pipe extends Pipe {
 
     end(board){
         // always add a constellation of the final position
-        const constellation = this.getConstellation(board);
+        const constellation = getConstellation(board);
         this.ctx.constellationEnd = constellation;
         this.ctx.lastPhase = getGamePhase(constellation);
     }
+}
 
-    getConstellation(board){
-        // count frequency of each piece for each side independently.
-        let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
-        for (const p of board.squares){
-            if (p){
-                const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-                const typ = Piece.getType(p);
-                pieceCounts[col][typ]++;
+export class Heatmap_Pipe extends Pipe {
+    constructor(){
+        super("heatmap");
+    }
+
+    start(){
+        this.ctx = {};
+        this.ctx.heatmap = [];
+        for (let s = 0; s < 64; s++)
+            this.ctx.heatmap.push([ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ]);
+    }
+
+    all(board, move){
+        const phase = getGamePhase(getConstellation(board));
+        if (phase < 2 && phase > 0){
+            for (let s = 0; s < 64; s++){
+                const v = board.squares[s];
+                if (v > 0)
+                    this.ctx.heatmap[s][Piece.ofColor(v, Piece.white) ? 0 : 1][Piece.getType(v)]++;
             }
         }
-        return pieceCounts;
     }
 }
 
