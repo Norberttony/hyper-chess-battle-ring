@@ -7,18 +7,13 @@ class EngineDebugWidget extends BoardWidget {
         container.classList.add("board-graphics__engine-debug");
         container.innerHTML = `
             <div class = "engine-debug__container">
-                White debug
-                <textarea class = "engine-debug__white"></textarea>
-            </div>
-            <div class = "engine-debug__container">
-                Black debug
-                <textarea class = "engine-debug__black"></textarea>
+                Engine debug
+                <textarea class = "engine-debug__txt"></textarea>
             </div>
         `;
         boardgfx.getWidgetElem(location).appendChild(container);
 
-        this.whiteDebugElem = container.getElementsByClassName("engine-debug__white")[0];
-        this.blackDebugElem = container.getElementsByClassName("engine-debug__black")[0];
+        this.debugElem = container.getElementsByClassName("engine-debug__txt")[0];
 
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
             const { variation } = event.detail;
@@ -26,7 +21,6 @@ class EngineDebugWidget extends BoardWidget {
             // ensure user is not testing out different moves
             if (variation.isMain()){
                 // find the analysis the engine made on this position
-                const target = boardgfx.state.turn == Piece.white ? this.whiteDebugElem : this.blackDebugElem;
                 const dbg = boardgfx.state.turn == Piece.white ? this.whiteDebug : this.blackDebug;
 
                 // find where engine started analyzing
@@ -40,7 +34,12 @@ class EngineDebugWidget extends BoardWidget {
                 const start = dbg.indexOf(" > go", analysisIdx) - 1;
                 const end = dbg.indexOf("> position moves", analysisIdx + 1);
 
-                target.value = dbg.substring(start, end);
+                this.debugElem.value = dbg.substring(start, end);
+
+                // scroll to bottom
+                this.debugElem.scrollTo(0, this.debugElem.scrollHeight);
+            }else{
+                this.debugElem.value = "";
             }
         });
     }

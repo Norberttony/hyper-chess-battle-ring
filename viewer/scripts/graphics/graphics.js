@@ -10,6 +10,7 @@ module_loader.waitForAll()
         new EngineWidget(gameState, WIDGET_LOCATIONS.RIGHT);
         new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT);
         new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM);
+        new TimeWidget(gameState);
         const players = new PlayersWidget(gameState);
 
         players.setNames("-", "-");

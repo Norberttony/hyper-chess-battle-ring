@@ -64,6 +64,11 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
                 break;
             }
 
+            if (board.turn == Piece.white)
+                wtime += winc;
+            else
+                btime += binc;
+
             const lan = uciMove.split(" ")[1];
 
             p1.write(`position moves ${lan}`);

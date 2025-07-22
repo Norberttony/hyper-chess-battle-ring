@@ -17,6 +17,15 @@
     grid-area: right;
 }
 
+.board-graphics__right-black {
+    grid-area: right-black;
+}
+
+.board-graphics__right-white {
+    grid-area: right-white;
+    align-content: end;
+}
+
 .board-graphics__bottom {
     grid-area: bottom;
 }
@@ -58,11 +67,11 @@
     flex-direction: column;
 }
 
-.engine-debug__white,
-.engine-debug__black {
+.engine-debug__txt {
     box-sizing: border-box;
     width: 100%;
-    flex: 1;
+    height: 100%;
+    resize: vertical;
 }
 
 /* ENGINE WIDGET */

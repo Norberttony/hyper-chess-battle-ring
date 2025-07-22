@@ -6,15 +6,16 @@
 @media (min-width: 1110px){
     #main-board {
         grid-template-areas:
-            'left top_bar   right'
-            'left board     right'
-            ' .   bottom_bar  .  '
-            ' .   bottom      .  ';
+            'left   top_bar      .'
+            'left   board       right-black'
+            'left   board       right'
+            'left   board       right-white'
+            'left   bottom_bar   .'
+            ' .     bottom       .  ';
         grid-template-columns: 1fr 1fr 0.8fr;
     }
 
     .board-graphics__right {
-        height: var(--game-height);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -25,9 +26,11 @@
     #main-board {
         --zoom: 100;
         grid-template-areas:
+            ' . right-black . '
             ' . top_bar     . '
             ' . board       . '
             ' . bottom_bar  . '
+            ' . right-white . '
             ' . left        . '
             ' . right       . '
             ' . bottom      . ';
