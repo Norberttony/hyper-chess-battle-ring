@@ -20,7 +20,7 @@ export class Tournament_Handler {
     }
 
     save(){
-        this.files.savePositions(this.positions);
+        this.files.files.positions.writeSync(JSON.stringify(this.positions));
     }
 
     start(threadAmt){
@@ -41,8 +41,8 @@ export class Tournament_Handler {
             e1Path: this.#players[0].path,
             e2Name: this.#players[1].name,
             e2Path: this.#players[1].path,
-            timeControl: this.files.getTimeControl()
-        }
+            timeControl: JSON.parse(JSON.stringify(this.files.config.getTC()))
+        };
         this.matchManager = new TaskManager("./modules/match-worker.mjs", threadAmt, workerData);
         this.playing = true;
 
@@ -69,7 +69,7 @@ export class Tournament_Handler {
 
                 // perform SPRT to see if must play more games
                 const results = this.results.getResultsAgainst(this.#players[0].name, this.#players[1].name);
-                const { h0, h1, alpha, beta } = this.files.getModeConfig();
+                const { h0, h1, alpha, beta } = this.files.config.getModeConfig();
                 const hyp = SPRT(results.wins, results.draws, results.losses, h0, h1, alpha, beta);
                 if (hyp){
                     console.log(`SPRT goal reached, allowing final ${this.activeGamesCount} game(s) to finish...`);

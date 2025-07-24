@@ -44,7 +44,7 @@ const globals = {};
             
         }else if (cmd[0] == "tournament"){
 
-            const tournaments = Tournament_Files.getAllTournaments();
+            const tournaments = Tournament_Files.getTournamentNames();
             tournaments.unshift("Create a new tournament");
 
             console.log("\nSelect a tournament to view (or create a new one):");
@@ -107,7 +107,7 @@ async function tournamentDashboard(files){
         }
 
         // commands for modifying the tournament
-        const players = files.getPlayers();
+        const players = files.config.getPlayers();
         if (cmd[0] == "add"){
 
             const engines = fs.readdirSync(botsDir).filter(v => v.endsWith(".exe"));
@@ -124,7 +124,7 @@ async function tournamentDashboard(files){
             const idx = await options(engines);
 
             if (idx != 0)
-                files.addPlayer(engines[idx]);
+                files.config.addPlayer(engines[idx]);
 
         }else if (cmd[0] == "remove"){
 
@@ -132,11 +132,11 @@ async function tournamentDashboard(files){
             const idx = await options(engines);
 
             if (idx != 0)
-                files.removePlayer(engines[idx]);
+                files.config.removePlayer(engines[idx]);
 
         }else if (cmd[0] == "timeControl"){
 
-            const { time, inc } = files.getTimeControl();
+            const { time, inc } = files.config.getTC();
             console.log(`\nThe time control currently is ${time}ms + ${inc}ms`);
 
             console.log("Type in the time (in ms) both players should start with:");
@@ -148,14 +148,14 @@ async function tournamentDashboard(files){
             if (newTime == 0 && newInc == 0)
                 console.error("\nCannot set both time and increment to 0.");
             else
-                files.setTimeControl(newTime, newInc);
+                files.config.setTC(newTime, newInc);
 
         }else if (cmd[0] == "mode"){
 
-            const mode = files.getTournamentMode();
+            const mode = files.config.getMode();
             console.log(`\nCurrent mode is ${mode}`);
 
-            const modeConfig = files.getModeConfig();
+            const modeConfig = files.config.getModeConfig();
             if (mode == "SPRT"){
                 console.log(`H0: ${modeConfig.h0}`);
                 console.log(`H1: ${modeConfig.h1}`);
@@ -186,7 +186,7 @@ async function createTournament(){
         console.log("Enter a name for your tournament:");
         name = await input();
 
-        const tournaments = Tournament_Files.getAllTournaments();
+        const tournaments = Tournament_Files.getTournamentNames();
         if (tournaments.indexOf(name) > -1){
             console.log("A tournament of that name already exists, try a different name.");
             name = undefined;

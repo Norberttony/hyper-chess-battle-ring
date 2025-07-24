@@ -1,5 +1,5 @@
 
-import { splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
+import { splitPGNs, extractHeaders } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 
 
 // Tournament_Results handles maintaining an easy way of retrieving player scores
@@ -97,11 +97,11 @@ export class Tournament_Results {
             }
 
             if (r == "1-0")
-                results.addWin(w, b);
+                this.addWin(w, b);
             else if (r == "1/2-1/2")
-                results.addDraw(w, b);
+                this.addDraw(w, b);
             else if (r == "0-1")
-                results.addLoss(w, b);
+                this.addLoss(w, b);
             else
                 ignored++;
         }

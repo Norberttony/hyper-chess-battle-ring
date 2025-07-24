@@ -1,83 +1,53 @@
 
 import fs from "node:fs";
 import pathModule from "node:path";
-import { styleText } from "node:util";
 
 import { extractHeaders, splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Tournament_Results } from "./tournament-results.mjs";
 import { extractEngines } from "./engine.mjs";
+import { File_Obj, Dir_Obj, FS_Obj } from "./fs-obj.mjs";
+import { logWarn } from "./logger.mjs";
+import { Tournament_Config } from "./tournament-config.mjs";
 
 
-const tournamentPath = "./data/tournaments";
 const botsPath = "./bots";
-const defaultConfig = {
-    timeControl: { time: 12000, inc: 100 }, // in ms
-    tournamentMode: "SPRT",
-    players: [],
-
-    // SPRT-specific config
-    modeConfig: {
-        h0: 0,
-        h1: 10,
-        alpha: 0.05,
-        beta: 0.05
-    }
-};
-
-export const validTournamentModes = [ "SPRT" ];
 
 export class Tournament_Files {
     constructor(name){
         this.name = name;
-        this.rootPath = pathModule.join(tournamentPath, name);
-        this.gamesPath = pathModule.join(this.rootPath, "games");
-        this.debugPath = pathModule.join(this.rootPath, "debug");
-        this.gamesFile = pathModule.join(this.gamesPath, "00_compiled_games.pgn");
-        this.configFile = pathModule.join(this.rootPath, "config.json");
-        this.positionsFile = pathModule.join(this.rootPath, "positions.json");
 
-        if (!fs.existsSync(this.rootPath))
-            fs.mkdirSync(this.rootPath);
+        const tPath = pathModule.resolve(".", "data", "tournaments", name);
+        this.files = {
+            "allPositions": new File_Obj([ ".", "data", "positions.json" ]),
+            "gamesDir":     new  Dir_Obj([ tPath, "games" ]),
+            "debugDir":     new  Dir_Obj([ tPath, "debug" ]),
+            "games":        new File_Obj([ tPath, "games", "00_compiled_games.pgn" ]),
+            "positions":    new File_Obj([ tPath, "positions.json" ]),
+            "config":       new File_Obj([ tPath, "config.json" ])
+        };
 
-        if (!fs.existsSync(this.gamesPath))
-            fs.mkdirSync(this.gamesPath);
+        console.log(this.files.games.path);
 
-        if (!fs.existsSync(this.debugPath))
-            fs.mkdirSync(this.debugPath);
+        // if there is no positions.json BUT we haven't played any games (so we haven't used
+        // positions.json) we just copy it over.
+        this.files.games.init();
+        this.gameCount = splitPGNs(this.files.games.readSync()).length;
+        this.gameId = this.gameCount;
+        if (this.gameCount == 0)
+            this.files.positions.init(this.files.allPositions.readSync());
 
-        if (!fs.existsSync(this.gamesFile))
-            fs.writeFileSync(this.gamesFile, "");
+        // set up tournament configuration
+        this.config = new Tournament_Config(this.files.config);
 
-        if (!fs.existsSync(this.configFile))
-            fs.writeFileSync(this.configFile, JSON.stringify(defaultConfig));
-
-        this.config = JSON.parse(fs.readFileSync(this.configFile).toString());
-
-        const gameFiles = fs.readdirSync(this.gamesPath);
-        this.gameId = 1;
-        for (const name of fs.readdirSync(this.gamesPath)){
-            const id = parseInt(name) + 1;
-            if (id > this.gameId)
-                this.gameId = id;
-        }
-
-        // -1 because of the compiled games file.
-        this.gameCount = gameFiles.length - 1;
-
-        if (!fs.existsSync(this.positionsFile) && this.gameCount == 0){
-            const positions = fs.readFileSync("./data/positions.json").toString();
-            fs.writeFileSync(this.positionsFile, positions);
-        }
+        // initialize all of the files
+        for (const o of Object.values(this.files))
+            o.init();
     }
 
     // returns the name of every tournament
-    static getAllTournaments(){
-        const tournaments = [];
-        for (const name of fs.readdirSync(tournamentPath)){
-            if (fs.statSync(pathModule.join(tournamentPath, name)).isDirectory())
-                tournaments.push(name);
-        }
-        return tournaments;
+    static getTournamentNames(){
+        const tDir = new Dir_Obj([ ".", "data", "tournaments" ]);
+        return tDir.contents().filter(v => v.type == "dir").map(v => v.getName());
     }
 
     // returns a promise fetches the game matching id and resolves with an object of the form
@@ -85,112 +55,30 @@ export class Tournament_Files {
     // and blackDebug correspond to the engine's logs during the game.
     async getGame(id){
         return new Promise((res, rej) => {
-            let gamePgn;
-            let whiteDebug;
-            let blackDebug;
+            const gamePgnF = this.files.gamesDir.join(`${id}_game.pgn`, "file");
+            const whiteDebugF = this.files.debugDir.join(`${id}_white.txt`, "file");
+            const blackDebugF = this.files.debugDir.join(`${id}_black.txt`, "file");
 
-            function tryRes(){
-                if (gamePgn && whiteDebug && blackDebug)
-                    res({ gamePgn, whiteDebug, blackDebug });
-            }
-
-            fs.readFile(pathModule.join(this.gamesPath, `${id}_game.pgn`), (err, data) => {
-                if (err)
-                    return rej(err);
-                gamePgn = data.toString();
-                tryRes();
-            });
-
-            fs.readFile(pathModule.join(this.debugPath, `${id}_white.txt`), (err, data) => {
-                if (err)
-                    return rej(err);
-                whiteDebug = data.toString();
-                tryRes();
-            });
-
-            fs.readFile(pathModule.join(this.debugPath, `${id}_black.txt`), (err, data) => {
-                if (err)
-                    return rej(err);
-                blackDebug = data.toString();
-                tryRes();
-            });
-        });
-    }
-
-    // returns a promise that resolves with a string of a PGN database representing all the games
-    // that were completed in this tournament.
-    async getAllGames(){
-        return new Promise((res, rej) => {
-            fs.readFile(pathModule.join(this.gamesPath, "00_compiled_games.pgn"), (err, data) => {
-                if (err)
-                    return rej(err);
-                res(data.toString());
-            });
+            Promise.all([ gamePgnF.read(), whiteDebugF.read(), blackDebugF.read() ])
+                .then(([ gamePgn, whiteDebug, blackDebug ]) =>
+                    res({ gamePgn, whiteDebug, blackDebug }))
+                .catch(err => rej(err));
         });
     }
 
     // saves the given game into the tournament files
     saveGame(pgn, whiteDebug, blackDebug){
         const id = this.gameId++;
-        fs.writeFileSync(pathModule.join(this.gamesPath, `${id}_game.pgn`), pgn);
-        fs.appendFileSync(this.gamesFile, "\n" + pgn + "\n");
+        this.files.gamesDir.joinFile(`${id}_game.pgn`).writeSync(pgn);
+        this.files.games.appendSync(`\n${pgn}\n`);
         this.gameCount++;
 
-        fs.writeFileSync(pathModule.join(this.debugPath, `${id}_white.txt`), whiteDebug);
-        fs.writeFileSync(pathModule.join(this.debugPath, `${id}_black.txt`), blackDebug);
-    }
-
-    // saves the tournament's current config into the files
-    saveConfig(){
-        fs.writeFileSync(this.configFile, JSON.stringify(this.config));
-    }
-
-    // returns the currently set time control
-    getTimeControl(){
-        return this.config.timeControl;
-    }
-
-    // sets the time control, where a player is initially given time ms and receives inc ms of
-    // increment after every one of their moves.
-    setTimeControl(time, inc){
-        this.config.timeControl = { time, inc };
-        this.saveConfig();
-    }
-
-    // returns the tournament's mode, currently can only be SPRT
-    getTournamentMode(){
-        return this.config.tournamentMode;
-    }
-
-    // sets the tournament's mode (SPRT)
-    setTournamentMode(mode){
-        if (validTournamentModes.indexOf(mode) == -1)
-            throw new Error(`Unrecognized tournament mode ${mode}`);
-        this.config.tournamentMode = mode;
-        this.saveConfig();
-    }
-
-    getPlayers(){
-        return this.config.players;
-    }
-
-    addPlayer(name){
-        if (this.config.players.indexOf(name) == -1){
-            this.config.players.push(name);
-            this.saveConfig();
-        }
-    }
-
-    removePlayer(name){
-        const idx = this.config.players.indexOf(name);
-        if (idx > -1){
-            this.config.players.splice(idx, 1);
-            this.saveConfig();
-        }
+        this.files.debugDir.joinFile(`${id}_white.txt`).write(whiteDebug);
+        this.files.debugDir.joinFile(`${id}_black.txt`).write(blackDebug);
     }
 
     getEngines(){
-        const players = this.getPlayers();
+        const players = this.config.getPlayers();
         const allEngines = extractEngines(botsPath);
         
         // maintain same order, for players and engines
@@ -214,17 +102,14 @@ export class Tournament_Files {
     // returns a Tournament_Results object representing each of the players' scores against each
     // other in this tournament.
     getResults(){
-        const results = new Tournament_Results(this.getPlayers());
-        const pgn = fs.readFileSync(this.gamesFile).toString();
+        const results = new Tournament_Results(this.config.getPlayers());
+        const pgn = this.files.games.readSync();
         const { ignored, gameCount } = results.readPGN(pgn);
         this.gameCount = gameCount;
         
         if (ignored > 0)
-            console.warn(
-                styleText(
-                    "yellow",
-                    `Fetched results but ignored ${ignored} incorrectly formatted PGNs\nPlease check the file ${this.gamesFile}`
-                )
+            logWarn(
+                `Fetched results but ignored ${ignored} incorrectly formatted PGNs\nPlease check the file ${this.gamesFile}`
             );
 
         return results;
@@ -234,43 +119,33 @@ export class Tournament_Files {
     // engine-playing.
     readPositions(){
         try {
-            const positionsStr = fs.readFileSync(this.positionsFile).toString();
-            return JSON.parse(positionsStr);
+            return this.files.positions.readJSON();
         }
         catch(err){
             // uh oh, maybe an error occurred just when the file was being written, clearing the
             // file instead! we have to regenerate it now...
-            const positionsStr = fs.readFileSync(pathModule.join(".", "data", "positions.json")).toString();
-            let positions = new Set(JSON.parse(positionsStr));
+            let positions = new Set(this.files.allPositions.readJSON());
 
             // remove already-used positions
-            const gamesDB = fs.readFileSync(this.gamesFile).toString();
+            const gamesDB = this.files.games.readSync();
             for (const pgn of splitPGNs(gamesDB))
                 positions.delete(extractHeaders(pgn).FEN || StartingFEN);
 
             // save positions
             positions = Array.from(positions);
-            this.savePositions(positions);
+            this.files.positions.saveJSON(positions);
             return positions;
         }
     }
 
-    savePositions(positions){
-        fs.writeFileSync(this.positionsFile, JSON.stringify(positions));
-    }
-
-    getModeConfig(){
-        return this.config.modeConfig;
-    }
-
     logToTerminal(){
-        const { time, inc } = this.getTimeControl();
+        const { time, inc } = this.config.getTC();
         console.log(`\nTOURNAMENT: ${this.name}`);
-        console.log(`MODE: ${this.getTournamentMode()}`);
+        console.log(`MODE: ${this.config.getMode()}`);
         console.log(`TIME CONTROL: ${time}ms + ${inc}ms`);
         console.log("PLAYERS:");
     
-        const players = this.getPlayers();
+        const players = this.config.getPlayers();
         const results = this.getResults();
         for (let i = 0; i < players.length; i++){
             const count = results.getResults(players[i]);

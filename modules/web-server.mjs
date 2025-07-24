@@ -59,7 +59,7 @@ export function startWebServer(){
     });
 
     app.get("/tournaments", (req, res) => {
-        res.send(JSON.stringify(Tournament_Files.getAllTournaments()));
+        res.send(JSON.stringify(Tournament_Files.getTournamentNames()));
     });
 
     // returns all of the live boards
@@ -70,7 +70,7 @@ export function startWebServer(){
     // returns all games of the tournament
     app.get("/:tournament/games", (req, res) => {
         const files = new Tournament_Files(req.params.tournament);
-        files.getAllGames(req.params.id)
+        files.files.games.read()
             .then(data => res.send(data))
             .catch(err => res.sendStatus(404));
     });
