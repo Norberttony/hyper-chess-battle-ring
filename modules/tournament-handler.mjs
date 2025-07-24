@@ -91,7 +91,7 @@ export class Tournament_Handler {
         this.inProgressRounds.push(promise);
     }
 
-    getUnplayedPosition(){
+    #getUnplayedPosition(){
         if (this.positions.length == 0)
             throw new Error("Out of positions!");
         const idx = Math.floor(Math.random() * this.positions.length);
@@ -111,7 +111,7 @@ export class Tournament_Handler {
     }
 
     async playRound(){
-        const pos = this.getUnplayedPosition();
+        const pos = this.#getUnplayedPosition();
 
         return this.matchManager.doTask(pos)
             .then((games) => {

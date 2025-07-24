@@ -10,8 +10,8 @@ import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
 import { Piece } from "./viewer/scripts/game/piece.mjs";
 
 
-const botsDir = "./bots/";
-const benchDir = "./bench/";
+const botsDir = pathModule.join(".", "bots");
+const benchDir = pathModule.join(".", "bench");
 
 const globals = {};
 
@@ -72,30 +72,12 @@ const globals = {};
 })();
 
 
-function logTournament(files){
-    const { time, inc } = files.getTimeControl();
-    console.log(`\nTOURNAMENT: ${files.name}`);
-    console.log(`MODE: ${files.getTournamentMode()}`);
-    console.log(`TIME CONTROL: ${time}ms + ${inc}ms`);
-    console.log("PLAYERS:");
-
-    const players = files.getPlayers();
-    const results = files.getResults();
-    for (let i = 0; i < players.length; i++){
-        const count = results.getResults(players[i]);
-        const { totalScore, totalMaxScore } = results.getScore(players[i]);
-        console.log(`${i + 1}. ${players[i]} (${totalScore}/${totalMaxScore}): ${count.wins} wins | ${count.draws} draws | ${count.losses} losses`);
-    }
-    console.log("In SPRT mode the new version is listed first and the old version second.");
-    console.log("");
-}
-
 async function tournamentDashboard(files){
     const handler = new Tournament_Handler(files);
 
     while (true){
         if (!handler.playing)
-            logTournament(files);
+            files.logToTerminal();
 
         const cmd = (await input()).split(" ");
 

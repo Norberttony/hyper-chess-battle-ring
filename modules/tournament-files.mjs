@@ -1,6 +1,7 @@
 
-import fs from "fs";
-import pathModule from "path"
+import fs from "node:fs";
+import pathModule from "node:path";
+import { styleText } from "node:util";
 
 import { extractHeaders, splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Tournament_Results } from "./tournament-results.mjs";
@@ -69,6 +70,7 @@ export class Tournament_Files {
         }
     }
 
+    // returns the name of every tournament
     static getAllTournaments(){
         const tournaments = [];
         for (const name of fs.readdirSync(tournamentPath)){
@@ -78,6 +80,9 @@ export class Tournament_Files {
         return tournaments;
     }
 
+    // returns a promise fetches the game matching id and resolves with an object of the form
+    // { gamePgn, whiteDebug, blackDebug } where gamePgn is the PGN as a string, and whiteDebug
+    // and blackDebug correspond to the engine's logs during the game.
     async getGame(id){
         return new Promise((res, rej) => {
             let gamePgn;
@@ -112,6 +117,8 @@ export class Tournament_Files {
         });
     }
 
+    // returns a promise that resolves with a string of a PGN database representing all the games
+    // that were completed in this tournament.
     async getAllGames(){
         return new Promise((res, rej) => {
             fs.readFile(pathModule.join(this.gamesPath, "00_compiled_games.pgn"), (err, data) => {
@@ -122,6 +129,7 @@ export class Tournament_Files {
         });
     }
 
+    // saves the given game into the tournament files
     saveGame(pgn, whiteDebug, blackDebug){
         const id = this.gameId++;
         fs.writeFileSync(pathModule.join(this.gamesPath, `${id}_game.pgn`), pgn);
@@ -132,23 +140,29 @@ export class Tournament_Files {
         fs.writeFileSync(pathModule.join(this.debugPath, `${id}_black.txt`), blackDebug);
     }
 
+    // saves the tournament's current config into the files
     saveConfig(){
         fs.writeFileSync(this.configFile, JSON.stringify(this.config));
     }
 
+    // returns the currently set time control
     getTimeControl(){
         return this.config.timeControl;
     }
 
+    // sets the time control, where a player is initially given time ms and receives inc ms of
+    // increment after every one of their moves.
     setTimeControl(time, inc){
         this.config.timeControl = { time, inc };
         this.saveConfig();
     }
 
+    // returns the tournament's mode, currently can only be SPRT
     getTournamentMode(){
         return this.config.tournamentMode;
     }
 
+    // sets the tournament's mode (SPRT)
     setTournamentMode(mode){
         if (validTournamentModes.indexOf(mode) == -1)
             throw new Error(`Unrecognized tournament mode ${mode}`);
@@ -197,41 +211,27 @@ export class Tournament_Files {
         return engines;
     }
 
+    // returns a Tournament_Results object representing each of the players' scores against each
+    // other in this tournament.
     getResults(){
         const results = new Tournament_Results(this.getPlayers());
-
-        let ignored = 0;
-        const pgns = splitPGNs(fs.readFileSync(this.gamesFile).toString());
-        for (const pgn of pgns){
-            const headers = extractHeaders(pgn);
-
-            const w = headers.White;
-            const b = headers.Black;
-            const r = headers.Result;
-
-            if (!w || !b || !r){
-                ignored++;
-                continue;
-            }
-
-            if (r == "1-0")
-                results.addWin(w, b);
-            else if (r == "1/2-1/2")
-                results.addDraw(w, b);
-            else if (r == "0-1")
-                results.addLoss(w, b);
-            else
-                ignored++;
-        }
-
+        const pgn = fs.readFileSync(this.gamesFile).toString();
+        const { ignored, gameCount } = results.readPGN(pgn);
+        this.gameCount = gameCount;
+        
         if (ignored > 0)
-            console.log(`Fetched results but ignored ${ignored} incorrectly formatted PGNs`);
-
-        this.gameCount = pgns.length - ignored;
+            console.warn(
+                styleText(
+                    "yellow",
+                    `Fetched results but ignored ${ignored} incorrectly formatted PGNs\nPlease check the file ${this.gamesFile}`
+                )
+            );
 
         return results;
     }
 
+    // fetches the positions file and returns all of the current suite of positions usable for
+    // engine-playing.
     readPositions(){
         try {
             const positionsStr = fs.readFileSync(this.positionsFile).toString();
@@ -240,7 +240,7 @@ export class Tournament_Files {
         catch(err){
             // uh oh, maybe an error occurred just when the file was being written, clearing the
             // file instead! we have to regenerate it now...
-            const positionsStr = fs.readFileSync("./data/positions.json").toString();
+            const positionsStr = fs.readFileSync(pathModule.join(".", "data", "positions.json")).toString();
             let positions = new Set(JSON.parse(positionsStr));
 
             // remove already-used positions
@@ -261,5 +261,23 @@ export class Tournament_Files {
 
     getModeConfig(){
         return this.config.modeConfig;
+    }
+
+    logToTerminal(){
+        const { time, inc } = this.getTimeControl();
+        console.log(`\nTOURNAMENT: ${this.name}`);
+        console.log(`MODE: ${this.getTournamentMode()}`);
+        console.log(`TIME CONTROL: ${time}ms + ${inc}ms`);
+        console.log("PLAYERS:");
+    
+        const players = this.getPlayers();
+        const results = this.getResults();
+        for (let i = 0; i < players.length; i++){
+            const count = results.getResults(players[i]);
+            const { totalScore, totalMaxScore } = results.getScore(players[i]);
+            console.log(`${i + 1}. ${players[i]} (${totalScore}/${totalMaxScore}): ${count.wins} wins | ${count.draws} draws | ${count.losses} losses`);
+        }
+        console.log("In SPRT mode the new version is listed first and the old version second.");
+        console.log("");
     }
 }

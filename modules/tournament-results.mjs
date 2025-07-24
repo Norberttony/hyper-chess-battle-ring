@@ -1,4 +1,10 @@
 
+import { splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
+
+
+// Tournament_Results handles maintaining an easy way of retrieving player scores
+
+
 export class Tournament_Results {
     constructor(players){
         this.results = {};
@@ -72,5 +78,34 @@ export class Tournament_Results {
     addLoss(p, o){
         this.results[p][o].losses++;
         this.results[o][p].wins++;
+    }
+
+    // takes in a pgnStr and extracts all of the results
+    readPGN(pgnStr){
+        let ignored = 0;
+        const pgns = splitPGNs(pgnStr);
+        for (const pgn of pgns){
+            const headers = extractHeaders(pgn);
+
+            const w = headers.White;
+            const b = headers.Black;
+            const r = headers.Result;
+
+            if (!w || !b || !r){
+                ignored++;
+                continue;
+            }
+
+            if (r == "1-0")
+                results.addWin(w, b);
+            else if (r == "1/2-1/2")
+                results.addDraw(w, b);
+            else if (r == "0-1")
+                results.addLoss(w, b);
+            else
+                ignored++;
+        }
+
+        return { ignored, gameCount: pgns.length - ignored };
     }
 }

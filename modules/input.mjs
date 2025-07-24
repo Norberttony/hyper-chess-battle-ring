@@ -1,11 +1,15 @@
 
 import readline from "readline";
 
+// Handles retrieving input from the user.
+
+
 const rli = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
+// Reads in a single line of input from the user.
 export async function input(){
     return new Promise((res, rej) => {
         rli.question("", (v) => {
@@ -14,6 +18,8 @@ export async function input(){
     });
 }
 
+// Waits until the user inputs a number between min and max inclusive, in which case it returns
+// that number.
 export async function inputNumber(min, max){
     let t = NaN;
     while (isNaN(t) || t < min || t > max)
@@ -22,6 +28,8 @@ export async function inputNumber(min, max){
     return t;
 }
 
+// Presents a list of numbered choices to the user and waits until the user chooses one of the
+// options (by typing in a number representing that choice). Returns the number the user chose.
 export async function options(choices){
     for (let i = 0; i < choices.length; i++)
         console.log(` ${i} - ${choices[i]}`);

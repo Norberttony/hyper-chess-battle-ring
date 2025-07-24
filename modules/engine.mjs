@@ -5,6 +5,7 @@ import pathModule from "path";
 import { EngineProcess } from "./engine-process.mjs";
 
 
+// Represents an engine with a name, and a path to the engine's executable file.
 export class Engine {
     constructor(name, path){
         this.name = name;
@@ -17,6 +18,7 @@ export class Engine {
 }
 
 // extracts engines from a directory.
+// returns an array of Engine objects
 export function extractEngines(dir){
     const engines = [];
 

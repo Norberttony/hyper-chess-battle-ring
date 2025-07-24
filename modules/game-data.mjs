@@ -1,10 +1,14 @@
 
-import { convertToPGN, getPGNDateNow } from "../viewer/scripts/filter/pgn-file-reader.mjs";
+import { convertToPGN } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
 
 
+// This class operates as a struct, and can freely be passed around as JSON strings or between
+// workers/threads (since it has no methods that could get lost). Contains data regarding a
+// complete game.
 export class Game_Data {
-    constructor(fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
+    constructor(date, fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
+        this.date = date;
         this.fen = fen;
         this.moves = moves;
         this.white = white;
@@ -24,13 +28,14 @@ export class Game_Data {
 }
 
 
+// takes in a given GameData object, and the id and event, and returns a string in PGN format.
 export function convertGameDataToPGN(gameData, id, event){
     const { time, inc } = gameData.timeControl;
 
-    const { white, black, result, moves } = gameData;
+    const { white, black, result, moves, date } = gameData;
 
     const headers = {
-        "Date": getPGNDateNow(),
+        "Date": date,
         "Round": id,
         "Event": event,
         "Site": "Hyper Chess Battle Ring",

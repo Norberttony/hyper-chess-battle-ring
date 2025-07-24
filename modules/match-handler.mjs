@@ -1,4 +1,5 @@
 
+import { getPGNDateNow } from "../viewer/scripts/filter/pgn-file-reader.mjs";
 import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
 import { Piece } from "../viewer/scripts/game/piece.mjs";
 import { Game_Data } from "./game-data.mjs";
@@ -10,6 +11,7 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listene
     const board = new Board();
     board.loadFEN(fen);
 
+    const startingDate = getPGNDateNow();
     listener({ cmd: "newgame", fen, white: e1.name, black: e2.name });
 
     // total time and increment in ms
@@ -123,7 +125,18 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listene
 
         listener({ cmd: "endgame", result: board.result });
 
-        return new Game_Data(fen, moveObjects, e1, e2, board.result, winner, p1.log, p2.log, timeControl);
+        return new Game_Data(
+            startingDate,
+            fen,
+            moveObjects,
+            e1,
+            e2,
+            board.result,
+            winner,
+            p1.log,
+            p2.log,
+            timeControl
+        );
     }
 }
 
