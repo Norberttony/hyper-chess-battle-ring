@@ -17,6 +17,29 @@ export function startWebServer(){
     const server = http.createServer(app);
 
     const io = new Server(server);
+    const sockets = [];
+    let cmds = [];
+
+    function setActiveTournament(t){
+        // for now, just broadcast one game
+        t.matchManager.workers[0].on("message", (event) => {
+            io.emit("liveUpdate", event);
+            cmds.push(event);
+
+            if (event.cmd == "endgame")
+                cmds = [];
+        });
+    }
+
+    io.on("connection", (socket) => {
+        sockets.push(socket);
+
+        // get socket up to date with game
+        for (const c of cmds)
+            socket.emit("liveUpdate", c);
+
+        socket.on("disconnect", () => sockets.splice(sockets.indexOf(socket), 1));
+    });
 
     app.use(express.static(__dirname + "/../viewer"));
 
@@ -40,8 +63,8 @@ export function startWebServer(){
     });
 
     // returns all of the live boards
-    app.get("/:tournament/live", (req, res) => {
-
+    app.get("/live", (req, res) => {
+        res.sendFile(pathModule.resolve("./viewer/pages/live.html"));
     });
 
     // returns all games of the tournament
@@ -63,7 +86,7 @@ export function startWebServer(){
     server.listen(8000);
     console.log("Listening to port 8000");
     
-    return { server, io };
+    return { server, io, setActiveTournament };
 }
 
 // user plays against engine given io, engine, and engine's side to play

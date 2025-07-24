@@ -1,4 +1,6 @@
 
+// v1.0.1
+
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
 // of widgets, that may listen to relevant state changes.
@@ -307,6 +309,20 @@ class BoardGraphics {
         this.jumpToVariation(this.mainVariation);
         
         const move = this.state.getMoveOfSAN(san);
+        if (move)
+            this.makeMove(move);
+
+        if (doSwitch)
+            this.jumpToVariation(previous);
+    }
+
+    addMoveToEndLAN(lan){
+        const previous = this.currentVariation;
+        const doSwitch = this.currentVariation != this.mainVariation;
+
+        this.jumpToVariation(this.mainVariation);
+        
+        const move = this.state.getMoveOfLAN(lan);
         if (move)
             this.makeMove(move);
 

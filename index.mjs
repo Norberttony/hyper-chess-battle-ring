@@ -13,10 +13,14 @@ import { Piece } from "./viewer/scripts/game/piece.mjs";
 const botsDir = "./bots/";
 const benchDir = "./bench/";
 
+const globals = {};
+
 
 (async () => {
 
-    const { io, server } = startWebServer();
+    const { io, server, setActiveTournament } = startWebServer();
+
+    globals.setActiveTournament = setActiveTournament;
 
     while (true){
         console.log("Type in a command:");
@@ -53,6 +57,7 @@ const benchDir = "./bench/";
             }else{
                 await tournamentDashboard(new Tournament_Files(tournaments[idx]));
             }
+            setActiveTournament(undefined);
 
         }else if (cmd[0] == "play"){
             
@@ -105,6 +110,7 @@ async function tournamentDashboard(files){
             const t = await inputNumber(1, Infinity);
 
             handler.start(t);
+            globals.setActiveTournament(handler);
         }else if (cmd[0] == "stop"){
             if (!handler.playing){
                 console.log("Tournament is not playing");

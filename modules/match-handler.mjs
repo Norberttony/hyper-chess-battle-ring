@@ -6,9 +6,11 @@ import { Game_Data } from "./game-data.mjs";
 
 // starts a game between two engines.
 // If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
-export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time: 1000, inc: 100 }){
+export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listener = () => 0){
     const board = new Board();
     board.loadFEN(fen);
+
+    listener({ cmd: "newgame", fen, white: e1.name, black: e2.name });
 
     // total time and increment in ms
     let wtime = timeControl.time;
@@ -71,6 +73,8 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
 
             const lan = uciMove.split(" ")[1];
 
+            listener({ cmd: "move", lan });
+
             p1.write(`position moves ${lan}`);
             p2.write(`position moves ${lan}`);
 
@@ -117,17 +121,19 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl = { time
         p1.stop();
         p2.stop();
 
+        listener({ cmd: "endgame", result: board.result });
+
         return new Game_Data(fen, moveObjects, e1, e2, board.result, winner, p1.log, p2.log, timeControl);
     }
 }
 
-export async function startADouble(e1, e2, fen = StartingFEN, timeControl = { time: 1000, inc: 100 }){
-    const g1 = await startAGame(e1, e2, fen, timeControl);
+export async function startADouble(e1, e2, fen = StartingFEN, timeControl, listener = () => 0){
+    const g1 = await startAGame(e1, e2, fen, timeControl, listener);
 
     if (g1.winner == -2)
         throw new Error("Game error");
 
-    const g2 = await startAGame(e2, e1, fen, timeControl);
+    const g2 = await startAGame(e2, e1, fen, timeControl, listener);
     
     if (g2.winner == -2)
         throw new Error("Game error");

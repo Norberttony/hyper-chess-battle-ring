@@ -46,10 +46,12 @@ export class TaskManager {
     #promptWorker(worker, data, res, rej){
         const t = this;
         function message(e){
-            worker.off("message", message);
-            worker.off("messageerror", error);
-            t.#freeWorker(worker);
-            res(e);
+            if (e && e.cmd == "finish"){
+                worker.off("message", message);
+                worker.off("messageerror", error);
+                t.#freeWorker(worker);
+                res(e.data);
+            }
         }
 
         function error(e){

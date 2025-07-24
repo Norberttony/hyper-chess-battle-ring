@@ -3,6 +3,25 @@ const gameLoadingIndexInput = document.getElementById("game-loading_index");
 const tournamentOptionsSelect = document.getElementById("tournament-options");
 
 
+module_loader.waitForAll()
+    .then(() => {
+        window.gameState = new BoardGraphics(true, true, document.getElementById("main-board"));
+
+        new AnnotatorWidget(gameState);
+        new AnimationWidget(gameState);
+        new AudioWidget(gameState);
+        new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT);
+        new EngineWidget(gameState, WIDGET_LOCATIONS.RIGHT);
+        new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT);
+        new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM);
+        new TimeWidget(gameState);
+        const players = new PlayersWidget(gameState);
+
+        players.setNames("-", "-");
+
+        gameState.display();
+    });
+
 // initialize tournamentOptionsSelect with options.
 {
     fetch("tournaments")

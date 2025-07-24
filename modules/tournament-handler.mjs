@@ -114,9 +114,7 @@ export class Tournament_Handler {
         const pos = this.getUnplayedPosition();
 
         return this.matchManager.doTask(pos)
-            .then((jsonData) => {
-                const games = JSON.parse(jsonData);
-
+            .then((games) => {
                 for (const gd of games){
                     // recreate moves
                     for (let m = 0; m < gd.moves.length; m++){
