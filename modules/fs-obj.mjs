@@ -55,7 +55,7 @@ export class File_Obj extends FS_Obj {
                 if (err)
                     rej(err);
                 else
-                    res(data);
+                    res(data.toString());
             });
         });
     }
@@ -70,11 +70,9 @@ export class File_Obj extends FS_Obj {
 
     write(data){
         return new Promise((res, rej) => {
-            fs.writeFile(this.path, data, (err, data) => {
+            fs.writeFile(this.path, data, (err) => {
                 if (err)
                     rej(err);
-                else
-                    res(data);
             });
         });
     }

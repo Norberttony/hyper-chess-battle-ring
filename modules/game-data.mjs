@@ -1,6 +1,6 @@
 
-import { convertToPGN } from "../viewer/scripts/filter/pgn-file-reader.mjs";
-import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
+import { convertToPGN } from "hyper-chess-board/pgn";
+import { Board, StartingFEN } from "hyper-chess-board";
 
 
 // This class operates as a struct, and can freely be passed around as JSON strings or between

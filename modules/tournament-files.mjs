@@ -1,16 +1,15 @@
 
-import fs from "node:fs";
 import pathModule from "node:path";
 
-import { extractHeaders, splitPGNs } from "../viewer/scripts/filter/pgn-file-reader.mjs";
+import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 import { Tournament_Results } from "./tournament-results.mjs";
 import { extractEngines } from "./engine.mjs";
-import { File_Obj, Dir_Obj, FS_Obj } from "./fs-obj.mjs";
+import { File_Obj, Dir_Obj } from "./fs-obj.mjs";
 import { logWarn } from "./logger.mjs";
 import { Tournament_Config } from "./tournament-config.mjs";
 
 
-const botsPath = "./bots";
+const botsPath = pathModule.resolve(".", "bots");
 
 export class Tournament_Files {
     constructor(name){
@@ -25,8 +24,6 @@ export class Tournament_Files {
             "positions":    new File_Obj([ tPath, "positions.json" ]),
             "config":       new File_Obj([ tPath, "config.json" ])
         };
-
-        console.log(this.files.games.path);
 
         // if there is no positions.json BUT we haven't played any games (so we haven't used
         // positions.json) we just copy it over.

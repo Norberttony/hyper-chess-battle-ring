@@ -1,7 +1,6 @@
 
-import { getPGNDateNow } from "../viewer/scripts/filter/pgn-file-reader.mjs";
-import { Board, StartingFEN } from "../viewer/scripts/game/game.mjs";
-import { Piece } from "../viewer/scripts/game/piece.mjs";
+import { getPGNDateNow } from "hyper-chess-board/pgn";
+import { Board, StartingFEN, Piece } from "hyper-chess-board";
 import { Game_Data } from "./game-data.mjs";
 
 

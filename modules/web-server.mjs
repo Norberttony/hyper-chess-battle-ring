@@ -4,7 +4,7 @@ import http from "http";
 import { Server } from "socket.io";
 import pathModule from "path";
 
-import { Board } from "../viewer/scripts/game/game.mjs";
+import { Board } from "hyper-chess-board";
 import { fileURLToPath } from "url";
 import { Tournament_Files } from "./tournament-files.mjs";
 
@@ -42,13 +42,11 @@ export function startWebServer(){
     });
 
     app.use(express.static(__dirname + "/../viewer"));
-
     app.use(express.json());
-
-    app.get("*", (req, res) => {
-        console.log(req.url);
-        req.next();
-    });
+    
+    // allow the client side to use some of the server modules.
+    const boardModules = pathModule.join(__dirname, "..", "node_modules", "hyper-chess-board");
+    app.use("/board-modules", express.static(boardModules));
 
     app.get("/", (req, res) => {
         res.sendFile(pathModule.resolve("./viewer/pages/filter.html"));

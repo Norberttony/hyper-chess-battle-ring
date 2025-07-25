@@ -1,5 +1,8 @@
 
-class EngineDebugWidget extends BoardWidget {
+import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.mjs";
+
+
+export class EngineDebugWidget extends BoardWidget {
     constructor(boardgfx, location){
         super(boardgfx);
 

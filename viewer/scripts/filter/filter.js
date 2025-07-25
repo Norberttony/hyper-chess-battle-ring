@@ -1,9 +1,8 @@
 
 let gameData = [];
 
-module_loader.load("../filter/pgn-file-reader.mjs");
-module_loader.load("../filter/filters.mjs");
-module_loader.load("../filter/pipes.mjs");
+module_loader.load("/scripts/filter/filters.mjs");
+module_loader.load("/scripts/filter/pipes.mjs");
 
 // initialize tournamentOptionsSelect with options.
 {

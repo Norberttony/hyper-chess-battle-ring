@@ -7,7 +7,7 @@ import { Tournament_Files } from "./modules/tournament-files.mjs";
 import { extractEngines } from "./modules/engine.mjs";
 import { input, inputNumber, options } from "./modules/input.mjs";
 import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
-import { Piece } from "./viewer/scripts/game/piece.mjs";
+import { Piece } from "hyper-chess-board";
 
 
 const botsDir = pathModule.join(".", "bots");

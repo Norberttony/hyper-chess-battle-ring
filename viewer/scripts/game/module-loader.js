@@ -8,8 +8,7 @@ class Module_Loader {
     }
 
     // returns a promise
-    load(url){
-        const name = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+    load(url, name = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."))){
         const promise = import(url)
             .then(module => {
                 this.modules[name] = module;

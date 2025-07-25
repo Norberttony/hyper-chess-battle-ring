@@ -1,5 +1,5 @@
 
-import { splitPGNs, extractHeaders } from "../viewer/scripts/filter/pgn-file-reader.mjs";
+import { splitPGNs, extractHeaders } from "hyper-chess-board/pgn";
 
 
 // Tournament_Results handles maintaining an easy way of retrieving player scores

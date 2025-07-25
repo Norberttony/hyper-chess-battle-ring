@@ -1,5 +1,5 @@
 
-import { Piece } from "../game/piece.mjs";
+import { Piece } from "/board-modules/index.mjs";
 import { getGamePhase, getConstellation } from "./filters.mjs";
 
 

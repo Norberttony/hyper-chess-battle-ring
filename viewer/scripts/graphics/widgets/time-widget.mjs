@@ -1,5 +1,8 @@
 
-class TimeWidget extends BoardWidget {
+import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.mjs";
+
+
+export class TimeWidget extends BoardWidget {
     constructor(boardgfx){
         super(boardgfx);
 
@@ -24,15 +27,19 @@ class TimeWidget extends BoardWidget {
     }
 
     displayTime(variation){
+        this.wTimeSpentElem.innerText = "-:--";
+        this.bTimeSpentElem.innerText = "-:--";
+        this.wTimeLeftElem.innerText = "-:--";
+        this.bTimeLeftElem.innerText = "-:--";
         if (variation.isMain()){
+            if (!this.timeData[variation.level])
+                return;
+
             const { wtime, btime } = this.timeData[variation.level];
             this.wTimeLeftElem.innerText = timeToStr(wtime);
             this.bTimeLeftElem.innerText = timeToStr(btime);
 
             if (variation.level - 1 >= 0){
-                this.wTimeSpentElem.innerText = "-:--";
-                this.bTimeSpentElem.innerText = "-:--";
-
                 const prev = this.timeData[variation.level - 1];
                 // determine amount of time spent on the move
                 if (this.boardgfx.state.turn == Piece.black)

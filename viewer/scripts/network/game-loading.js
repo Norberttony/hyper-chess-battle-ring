@@ -72,11 +72,13 @@ function nextGame(){
 }
 
 async function loadGame(){
-    let path = `/${tournamentOptionsSelect.value}/${gameLoadingIndexInput.value}`;
+    await module_loader.waitForAll();
+    const path = `/${tournamentOptionsSelect.value}/${gameLoadingIndexInput.value}`;
 
     // request file
     const res = await fetch(path);
-    const { gamePgn, whiteDebug, blackDebug } = await res.json();
+    const json = await res.json();
+    const { gamePgn, whiteDebug, blackDebug } = json;
     gameState.widgets.EngineDebugWidget.setWhiteDebug(whiteDebug);
     gameState.widgets.EngineDebugWidget.setBlackDebug(blackDebug);
     gameState.widgets.TimeWidget.loadTimeDataFromDebug(whiteDebug, blackDebug);
