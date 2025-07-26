@@ -102,7 +102,7 @@ export class Dir_Obj extends FS_Obj {
     init(){
         if (this.exists())
             return;
-        fs.mkdirSync(this.path, data);
+        fs.mkdirSync(this.path, { recursive: true });
     }
 
     joinPath(relPath){

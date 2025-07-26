@@ -1,7 +1,8 @@
 
 const socket = io();
 
-socket.on("liveUpdate", (data) => {
+socket.on("liveUpdate", async (data) => {
+    await module_loader.waitForAll();
     if (data.cmd == "newgame"){
         gameState.loadFEN(data.fen);
         gameState.setNames(data.white, data.black);
