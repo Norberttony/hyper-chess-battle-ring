@@ -22,14 +22,16 @@ export class Tournament_Files {
             "debugDir":     new  Dir_Obj([ tPath, "debug" ]),
             "games":        new File_Obj([ tPath, "games", "00_compiled_games.pgn" ]),
             "positions":    new File_Obj([ tPath, "positions.json" ]),
-            "config":       new File_Obj([ tPath, "config.json" ])
+            "config":       new File_Obj([ tPath, "config.json" ]),
+            "schedule":     new File_Obj([ tPath, "schedule.json" ])
         };
 
         // if there is no positions.json BUT we haven't played any games (so we haven't used
         // positions.json) we just copy it over.
         this.files.games.init();
+        this.files.schedule.init("[]");
         this.gameCount = splitPGNs(this.files.games.readSync()).length;
-        this.gameId = this.gameCount;
+        this.gameId = this.gameCount + 1;
         if (this.gameCount == 0)
             this.files.positions.init(this.files.allPositions.readSync());
 
@@ -39,6 +41,13 @@ export class Tournament_Files {
         // initialize all of the files
         for (const o of Object.values(this.files))
             o.init();
+
+        // schedule contains an array of games that must be played before tournament results are
+        // called. Games in this array may be in progress.
+        this.schedule = this.files.schedule.readJSON();
+
+        // unpicked schedule only contains the games on the schedule that are not in progress.
+        this.unpickedSchedule = [ ...this.schedule ];
     }
 
     // returns the name of every tournament
@@ -63,13 +72,37 @@ export class Tournament_Files {
         });
     }
 
+    addToSchedule(game){
+        // assign a game id to this game
+        game.id = this.gameId++;
+        this.schedule.push(game);
+        this.unpickedSchedule.push(game);
+        this.files.schedule.saveJSON(this.schedule);
+    }
+
+    pickGame(){
+        return this.unpickedSchedule.splice(0, 1)[0];
+    }
+
     // saves the given game into the tournament files
-    saveGame(pgn, whiteDebug, blackDebug){
-        const id = this.gameId++;
+    saveGame(scheduled, pgn, whiteDebug, blackDebug){
+        // remove from schedule
+        const idx = this.schedule.indexOf(scheduled);
+        if (idx > -1)
+            this.schedule.splice(idx, 1);
+        else{
+            console.error("Cannot recognize scheduled game", scheduled);
+            throw new Error("");
+        }
+        this.files.schedule.saveJSON(this.schedule);
+
+        // save PGN
+        const id = scheduled.id;
         this.files.gamesDir.joinFile(`${id}_game.pgn`).writeSync(pgn);
         this.files.games.appendSync(`\n${pgn}\n`);
         this.gameCount++;
 
+        // save debug files
         this.files.debugDir.joinFile(`${id}_white.txt`).write(whiteDebug);
         this.files.debugDir.joinFile(`${id}_black.txt`).write(blackDebug);
     }

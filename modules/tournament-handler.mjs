@@ -71,7 +71,7 @@ export class Tournament_Handler {
                 const results = this.results.getResultsAgainst(this.#players[0].name, this.#players[1].name);
                 const { h0, h1, alpha, beta } = this.files.config.getModeConfig();
                 const hyp = SPRT(results.wins, results.draws, results.losses, h0, h1, alpha, beta);
-                if (hyp){
+                if (hyp && this.files.unpickedSchedule.length == 0){
                     console.log(`SPRT goal reached, allowing final ${this.activeGamesCount} game(s) to finish...`);
                     this.stop();
                     return;
@@ -91,6 +91,7 @@ export class Tournament_Handler {
         this.inProgressRounds.push(promise);
     }
 
+    // picks out a position and removes it from the pool
     #getUnplayedPosition(){
         if (this.positions.length == 0)
             throw new Error("Out of positions!");
@@ -110,24 +111,36 @@ export class Tournament_Handler {
         }
     }
 
+    // schedules a double
+    // chooses an unused position, and then schedules two games (one with colors reversed).
+    scheduleGame(){
+        const fen = this.#getUnplayedPosition();
+        const [ w, b ] = this.#players;
+        this.files.addToSchedule({ fen, white: w, black: b });
+        this.files.addToSchedule({ fen, white: b, black: w });
+    }
+
     async playRound(){
-        const pos = this.#getUnplayedPosition();
+        // schedules a game if there aren't any waiting in the schedule.
+        let game = this.files.pickGame();
+        if (!game){
+            this.scheduleGame();
+            game = this.files.pickGame();
+        }
 
-        return this.matchManager.doTask(pos)
-            .then((games) => {
-                for (const gd of games){
-                    // recreate moves
-                    for (let m = 0; m < gd.moves.length; m++){
-                        const move = gd.moves[m];
-                        gd.moves[m] = new Move(move.to, move.from, move.captures);
-                    }
-
-                    const pgn = convertGameDataToPGN(gd, this.files.gameId, this.files.name);
-                    this.files.saveGame(pgn, gd.whiteLog, gd.blackLog);
-
-                    // record results
-                    this.recordResult(gd.white, gd.black, gd.winner);
+        return this.matchManager.doTask(game)
+            .then((gd) => {
+                // recreate moves
+                for (let m = 0; m < gd.moves.length; m++){
+                    const move = gd.moves[m];
+                    gd.moves[m] = new Move(move.to, move.from, move.captures);
                 }
+
+                const pgn = convertGameDataToPGN(gd, game.id, this.files.name);
+                this.files.saveGame(game, pgn, gd.whiteLog, gd.blackLog);
+
+                // record results
+                this.recordResult(gd.white, gd.black, gd.winner);
 
                 this.displayResults();
 

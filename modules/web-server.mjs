@@ -19,16 +19,26 @@ export function startWebServer(){
     const io = new Server(server);
     const sockets = [];
     let cmds = [];
+    let activeTourney;
+
+    function matchListener(event){
+        io.emit("liveUpdate", event);
+        cmds.push(event);
+
+        if (event.cmd == "endgame")
+            cmds = [];
+    }
 
     function setActiveTournament(t){
-        // for now, just broadcast one game
-        t.matchManager.workers[0].on("message", (event) => {
-            io.emit("liveUpdate", event);
-            cmds.push(event);
-
-            if (event.cmd == "endgame")
-                cmds = [];
-        });
+        if (!t && activeTourney){
+            activeTourney.matchManager.workers[0].off("message", matchListener);
+            activeTourney = undefined;
+        }
+        if (t){
+            // for now, just broadcast one game
+            t.matchManager.workers[0].on("message", matchListener);
+            activeTourney = t;
+        }
     }
 
     io.on("connection", (socket) => {

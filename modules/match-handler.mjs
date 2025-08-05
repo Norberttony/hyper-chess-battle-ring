@@ -138,17 +138,3 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listene
         );
     }
 }
-
-export async function startADouble(e1, e2, fen = StartingFEN, timeControl, listener = () => 0){
-    const g1 = await startAGame(e1, e2, fen, timeControl, listener);
-
-    if (g1.winner == -2)
-        throw new Error("Game error");
-
-    const g2 = await startAGame(e2, e1, fen, timeControl, listener);
-    
-    if (g2.winner == -2)
-        throw new Error("Game error");
-
-    return [ g1, g2 ];
-}
