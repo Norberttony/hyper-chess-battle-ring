@@ -26,6 +26,12 @@ export class Tournament_Files {
             "schedule":     new File_Obj([ tPath, "schedule.json" ])
         };
 
+        // initialize dirs first
+        for (const o of Object.values(this.files)){
+            if (o.type == "dir")
+                o.init();
+        }
+
         // if there is no positions.json BUT we haven't played any games (so we haven't used
         // positions.json) we just copy it over.
         this.files.games.init();
@@ -39,8 +45,10 @@ export class Tournament_Files {
         this.config = new Tournament_Config(this.files.config);
 
         // initialize all of the files
-        for (const o of Object.values(this.files))
-            o.init();
+        for (const o of Object.values(this.files)){
+            if (o.type == "file")
+                o.init();
+        }
 
         // schedule contains an array of games that must be played before tournament results are
         // called. Games in this array may be in progress.

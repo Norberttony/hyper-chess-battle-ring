@@ -40,12 +40,14 @@ export class Tournament_Config {
             },
             set: (target, prop, val) => {
                 // don't allow adding new properties
-                if (!target[prop])
-                    return logWarn(`${prop} is not a valid property`);
-                if (prop == "tournamentMode" && validTournamentModes.indexOf(val) == -1)
-                    return logWarn(`${val} is not a valid tournament mode`);
-                if (typeof val != typeof target[prop])
-                    return logWarn(`${val} is not of the same form as ${target[prop]} when setting ${prop}`);
+                if (target != this.#config.players){
+                    if (!target[prop])
+                        return logWarn(`${prop} is not a valid property`);
+                    if (prop == "tournamentMode" && validTournamentModes.indexOf(val) == -1)
+                        return logWarn(`${val} is not a valid tournament mode`);
+                    if (typeof val != typeof target[prop])
+                        return logWarn(`${val} is not of the same form as ${target[prop]} when setting ${prop}`);
+                }
                 target[prop] = val;
                 this.save();
                 return true;
