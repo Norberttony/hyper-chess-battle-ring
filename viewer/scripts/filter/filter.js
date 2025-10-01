@@ -42,7 +42,6 @@ async function prepareTournamentGames(tournamentName){
 
     gameData = [];
 
-    let id = 1;
     for (const pgn of pgnHandler.splitPGNs(pgnDatabase)){
         const headers = pgnHandler.extractHeaders(pgn);
         const board = new Board();
@@ -71,10 +70,14 @@ async function prepareTournamentGames(tournamentName){
         }
 
         const data = manager.end(board);
+        data.round = headers.Round;
         data.gamePGN = pgn;
-        data.href = `/analyze?tournament=${tournamentName}&gameId=${id++}`;
+        data.href = `/analyze?tournament=${tournamentName}&gameId=${data.round}`;
         gameData.push(data);
     }
+
+    // in the case the the compiled games pgn database is not in sorted order (by round number)...
+    gameData.sort((a, b) => a.round - b.round);
 
     applyFilters();
 }
