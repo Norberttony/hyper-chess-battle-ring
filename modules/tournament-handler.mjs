@@ -1,5 +1,5 @@
 
-import { SPRT } from "./analyze.mjs";
+import { SPRT } from "./sprt.mjs";
 import { TaskManager } from "./task-manager.mjs";
 import { Move } from "hyper-chess-board";
 import { convertGameDataToPGN } from "./game-data.mjs";

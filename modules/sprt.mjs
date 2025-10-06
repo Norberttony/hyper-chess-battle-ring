@@ -2,11 +2,11 @@
 // Courtesy of
 // https://www.chessprogramming.org/Match_Statistics#SPRT
 
-export function log_likelihood(x){
+function log_likelihood(x){
     return 1 / (1 + 10 ** (-x / 400));
 }
 
-export function log_likelihood_ratio(wins, draws, losses, h_0, h_1){
+function log_likelihood_ratio(wins, draws, losses, h_0, h_1){
     if (wins == 0 || draws == 0 || losses == 0)
         return 0;
 
