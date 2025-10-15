@@ -1,9 +1,18 @@
 
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 
-import { Piece } from "./viewer/scripts/game/piece.mjs";
-import { Board, StartingFEN } from "./viewer/scripts/game/game.mjs";
-import { extractHeaders, splitPGNs } from "./viewer/scripts/filter/pgn-file-reader.mjs";
+import { Piece, Board, StartingFEN } from "hyper-chess-board";
+import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
+
+
+{
+    const fileNames = fs.readdirSync(".");
+    for (const n of fileNames){
+        if (path.extname(n) == ".pgn")
+            scanFile(path.join(".", n));
+    }
+}
 
 
 // returns true if the position is quiet (no capture moves) AND if the material is equal AND if the
@@ -84,64 +93,68 @@ function isPositionQuietAndEqual(board){
 }
 
 
-const pgns = splitPGNs(fs.readFileSync("./compiled.pgn").toString());
-const game = new Board();
+function scanFile(path){
+    console.log(`Scanning file "${path}"`);
+    const pgns = splitPGNs(fs.readFileSync(path).toString());
+    const game = new Board();
 
-let FENs = [];
+    let FENs = [];
 
-for (let pgn of pgns){
-    const headers = extractHeaders(pgn);
-    const FEN = headers.FEN || StartingFEN;
+    for (let pgn of pgns){
+        const headers = extractHeaders(pgn);
+        const FEN = headers.FEN || StartingFEN;
 
-    game.loadFEN(FEN);
+        game.loadFEN(FEN);
 
-    // remove headers
-    pgn = pgn.replace(/\[.+?\]\s*/g, "");
+        // remove headers
+        pgn = pgn.replace(/\[.+?\]\s*/g, "");
 
-    // remove any comments
-    pgn = pgn.replace(/\{.+?\}\s*/g, "");
+        // remove any comments
+        pgn = pgn.replace(/\{.+?\}\s*/g, "");
 
-    // remove full move counters
-    pgn = pgn.replace(/[0-9]+[\.]+/g, "");
+        // remove full move counters
+        pgn = pgn.replace(/[0-9]+[\.]+/g, "");
 
-    // remove variations
-    pgn = pgn.replace(/\(.+?\)\s*/g, "");
+        // remove variations
+        pgn = pgn.replace(/\(.+?\)\s*/g, "");
 
-    // make sure there is one space between each move
-    pgn = pgn.replace(/\s+/g, " ");
-    pgn = pgn.trim();
+        // make sure there is one space between each move
+        pgn = pgn.replace(/\s+/g, " ");
+        pgn = pgn.trim();
 
-    // load the pgn
-    const moves = pgn.split(" ");
-    let lastAdded = -99999;
-    for (let i = 0; i < moves.length; i++){
-        const m1 = game.getMoveOfSAN(moves[i])
-        if (m1){
-            game.makeMove(m1);
-        }
+        // load the pgn
+        const moves = pgn.split(" ");
+        let lastAdded = -99999;
+        for (let i = 0; i < moves.length; i++){
+            const m1 = game.getMoveOfSAN(moves[i])
+            if (m1){
+                game.makeMove(m1);
+            }
 
-        // ensure the position is different enough from other similar positions
-        // and also that this isn't too close to the opening phase of the game
-        if (i >= 8 && i - lastAdded >= 4 && isPositionQuietAndEqual(game)){
-            FENs.push(game.getFEN());
-            lastAdded = i;
+            // ensure the position is different enough from other similar positions
+            // and also that this isn't too close to the opening phase of the game
+            if (i >= 8 && i - lastAdded >= 4 && isPositionQuietAndEqual(game)){
+                FENs.push(game.getFEN());
+                lastAdded = i;
+            }
         }
     }
-}
 
-// determine FENs that were already in the set
-const positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
-const alreadyHasFENs = new Set(positions);
+    // determine FENs that were already in the set
+    const positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
+    const alreadyHasFENs = new Set(positions);
 
-// add non-duplicate FENs into position set
-let newPositions = 0;
-for (const fen of FENs){
-    if (!alreadyHasFENs.has(fen)){
-        positions.push(fen);
-        newPositions++;
+    // add non-duplicate FENs into position set
+    let newPositions = 0;
+    for (const fen of FENs){
+        if (!alreadyHasFENs.has(fen)){
+            alreadyHasFENs.add(fen);
+            positions.push(fen);
+            newPositions++;
+        }
     }
+
+    fs.writeFileSync("./data/positions.json", JSON.stringify(Array.from(alreadyHasFENs)));
+
+    console.log(`Found ${newPositions} new positions, there are now ${alreadyHasFENs.size} in total`);
 }
-
-fs.writeFileSync("./data/positions.json", JSON.stringify(Array.from(alreadyHasFENs)));
-
-console.log(`Found ${newPositions} new positions`);
