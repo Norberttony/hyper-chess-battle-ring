@@ -116,8 +116,7 @@ export class Tournament_Handler {
     scheduleGame(){
         const fen = this.#getUnplayedPosition();
         const [ w, b ] = this.#players;
-        this.files.addToSchedule({ fen, white: w, black: b });
-        this.files.addToSchedule({ fen, white: b, black: w });
+        this.files.addDoubleToSchedule(fen, w, b);
     }
 
     async playRound(){
@@ -136,11 +135,11 @@ export class Tournament_Handler {
                     gd.moves[m] = new Move(move.to, move.from, move.captures);
                 }
 
-                const pgn = convertGameDataToPGN(gd, game.id, this.files.name);
+                const pgn = convertGameDataToPGN(gd, this.files.name);
                 this.files.saveGame(game, pgn, gd.whiteLog, gd.blackLog);
 
                 // record results
-                this.recordResult(gd.white, gd.black, gd.winner);
+                this.results.addGame(gd);
 
                 this.displayResults();
 

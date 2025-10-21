@@ -7,8 +7,9 @@ import { Board, StartingFEN } from "hyper-chess-board";
 // workers/threads (since it has no methods that could get lost). Contains data regarding a
 // complete game.
 export class Game_Data {
-    constructor(date, fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
+    constructor(date, round, fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
         this.date = date;
+        this.round = round;
         this.fen = fen;
         this.moves = moves;
         this.white = white;
@@ -29,14 +30,14 @@ export class Game_Data {
 
 
 // takes in a given GameData object, and the id and event, and returns a string in PGN format.
-export function convertGameDataToPGN(gameData, id, event){
+export function convertGameDataToPGN(gameData, event){
     const { time, inc } = gameData.timeControl;
 
-    const { white, black, result, moves, date } = gameData;
+    const { white, black, result, moves, date, round } = gameData;
 
     const headers = {
         "Date": date,
-        "Round": id,
+        "Round": round,
         "Event": event,
         "Site": "Hyper Chess Battle Ring",
         "White": white.name,

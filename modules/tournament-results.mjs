@@ -60,6 +60,10 @@ export class Tournament_Results {
         return results;
     }
 
+    addGame(game){
+        
+    }
+
     // gets results of how well p did against o
     getResultsAgainst(p, o){
         return this.results[p][o];
