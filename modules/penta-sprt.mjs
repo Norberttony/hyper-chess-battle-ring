@@ -2,7 +2,7 @@
 // Code courtesy of
 // https://github.com/raklaptudirm/arbiter/tree/master/pkg/eve/stats
 
-export function pentaSPRT(lls, lds, dds, wds, wws, elo0, elo1){
+export function pentaSPRT(lls, lds, dds, wds, wws, elo0, elo1, alpha, beta){
     // total number of game pairs
     const N = lls + lds + dds + wds + wws + 2.5;
 
@@ -30,10 +30,20 @@ export function pentaSPRT(lls, lds, dds, wds, wws, elo0, elo1){
     if (r0 == 0 || r1 == 0)
         return 0;
 
-    // returns the log-likelihood ratio
+    // the log-likelihood ratio
     // the referenced code mentions that this is a very close approximation and mentions this paper:
     // http://hardy.uhasselt.be/Fishtest/support_MLE_multinomial.pdf
-	return 0.5 * N * Math.log(r0 / r1);
+	const ratio = 0.5 * N * Math.log(r0 / r1);
+    console.log(ratio);
+
+    const l_a = Math.log(beta / (1 - alpha));
+    const l_b = Math.log((1 - beta) / alpha);
+    if (ratio > l_b)
+        return "H1";
+    else if (ratio < l_a)
+        return "H0";
+    else
+        return undefined;
 }
 
 function getVariance(ww, wd, dd, ld, ll, mu){

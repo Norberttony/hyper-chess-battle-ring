@@ -37,7 +37,7 @@ export class Tournament_Files {
         // positions.json) we just copy it over.
         this.files.games.init();
         this.files.schedule.init("[]");
-        this.files.data.init("{gameCount:0}");
+        this.files.data.init(`{"gameCount":0}`);
         this.data = this.files.data.readJSON();
         this.gameCount = this.data.gameCount;
         if (this.gameCount == 0)
@@ -172,7 +172,7 @@ export class Tournament_Files {
         
         if (ignored > 0)
             logWarn(
-                `Fetched results but ignored ${ignored} incorrectly formatted PGNs\nPlease check the file ${this.gamesFile}`
+                `Fetched results but ignored ${ignored} PGNs that either do not have a result or are formatted incorrectly`
             );
 
         return results;
@@ -211,11 +211,15 @@ export class Tournament_Files {
         const players = this.config.getPlayers();
         const results = this.getResults();
         for (let i = 0; i < players.length; i++){
-            const count = results.getResults(players[i]);
+            const count = results.getWDLResults(players[i]);
             const { totalScore, totalMaxScore } = results.getScore(players[i]);
             console.log(`${i + 1}. ${players[i]} (${totalScore}/${totalMaxScore}): ${count.wins} wins | ${count.draws} draws | ${count.losses} losses`);
         }
         console.log("In SPRT mode the new version is listed first and the old version second.");
+        if (this.config.getMode() == "SPRT"){
+            const entry = results.getResults(players[0]);
+            console.log(`(WW, WD, DD, LD, LL): (${entry.ww}, ${entry.wd}, ${entry.dd}, ${entry.ld}, ${entry.ll})`);
+        }
         console.log("");
     }
 }
