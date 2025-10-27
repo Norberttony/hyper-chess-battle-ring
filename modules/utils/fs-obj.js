@@ -2,7 +2,7 @@
 import pathModule from "node:path";
 import fs from "node:fs";
 
-import { logError } from "./logger.mjs";
+import { logError } from "./logger.js";
 
 
 export class FS_Obj {

@@ -2,11 +2,9 @@
 import fs from "fs";
 import pathModule from "path";
 
-import { Tournament_Handler } from "./modules/tournament-handler.mjs";
-import { Tournament_Files } from "./modules/tournament-files.mjs";
-import { extractEngines } from "./modules/engine.mjs";
-import { input, inputNumber, options } from "./modules/input.mjs";
-import { startWebServer, userVsEngine } from "./modules/web-server.mjs";
+import { extractEngines } from "./modules/engine.js";
+import { input, inputNumber, options } from "./modules/utils/input.js";
+import { startWebServer, userVsEngine } from "./modules/web/web-server.js";
 import { Piece } from "hyper-chess-board";
 
 

@@ -5,9 +5,8 @@ import { spawn } from "child_process";
 // Creates an engine process (wrapper class around a live executable) that is capable of feeding
 // input into the executable and returning output from the engine .exe file.
 export class EngineProcess {
-    constructor(engine, onReadLine = () => 0){
-        this.engine = engine;
-        this.proc = spawn(this.engine.path);
+    constructor(path, onReadLine = () => 0){
+        this.proc = spawn(path);
 
         this.onReadLine = onReadLine;
 
@@ -95,4 +94,19 @@ export class EngineProcess {
             throw new Error("EngineProcess: cannot .write(cmd) when the engine process is not running");
         }
     }
+}
+
+// given a dir (path to a folder), returns all of the immediate children files that are .exe
+// returns a list of objects: { name, path }
+export function getEngines(dir){
+    const engines = [];
+    fs.readdirSync(dir).forEach(fileName => {
+        if (fileName.endsWith(".exe")){
+            engines.push({
+                name: fileName.substring(0, fileName.length - 4),
+                path: pathModule.join(dir, fileName)
+            });
+        }
+    });
+    return engines;
 }

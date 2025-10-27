@@ -1,24 +1,16 @@
 
-import { Engine } from "./engine.mjs";
-import { startAGame } from "./match-handler.mjs";
-
 import { parentPort, workerData } from "worker_threads";
 
 
-const e1 = new Engine(workerData.e1Name, workerData.e1Path);
-const e2 = new Engine(workerData.e2Name, workerData.e2Path);
-
-
+// game is an object { e1: { name, path }, e2: { name, path }, fen }
 parentPort.on("message", async (game) => {
     // determine who plays white and who plays black
     const w = game.white.name == e1.name ? e1 : e2;
     const b = w == e1 ? e2 : e1;
 
     // play the game
-    console.log(`Starting game ${game.round}`);
-    const data = await startAGame(w, b, game.round, game.fen, workerData.timeControl, matchListener);
+    const data = await startAGame(w, b, game.fen, workerData.timeControl, matchListener);
     finishTask(data);
-    console.log(`Finished game ${game.round}`);
 });
 
 

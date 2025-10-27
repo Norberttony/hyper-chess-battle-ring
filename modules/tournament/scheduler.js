@@ -1,9 +1,7 @@
 
-import { SPRT } from "./analyze.mjs";
 import { Arbiter } from "./arbiter.js";
 
-// Scheduler has a list of games prepared for its arbiters to play out.
-// Should easily support any kind of format.
+// Directly deals with managing threads, recording results, 
 
 export class Scheduler {
     constructor(threads){
