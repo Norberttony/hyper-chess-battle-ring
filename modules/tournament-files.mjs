@@ -17,13 +17,14 @@ export class Tournament_Files {
 
         const tPath = pathModule.resolve(".", "data", "tournaments", name);
         this.files = {
-            "allPositions": new File_Obj([ ".", "data", "positions.json" ]),
-            "gamesDir":     new  Dir_Obj([ tPath, "games" ]),
-            "debugDir":     new  Dir_Obj([ tPath, "debug" ]),
-            "games":        new File_Obj([ tPath, "games", "00_compiled_games.pgn" ]),
-            "positions":    new File_Obj([ tPath, "positions.json" ]),
-            "config":       new File_Obj([ tPath, "config.json" ]),
-            "schedule":     new File_Obj([ tPath, "schedule.json" ])
+            allPositions:   new File_Obj([ ".", "data", "positions.json" ]),
+            gamesDir:       new  Dir_Obj([ tPath, "games" ]),
+            debugDir:       new  Dir_Obj([ tPath, "debug" ]),
+            games:          new File_Obj([ tPath, "games", "00_compiled_games.pgn" ]),
+            positions:      new File_Obj([ tPath, "positions.json" ]),
+            config:         new File_Obj([ tPath, "config.json" ]),
+            data:           new File_Obj([ tPath, "data.json" ]),
+            schedule:       new File_Obj([ tPath, "schedule.json" ])
         };
 
         // initialize dirs first
@@ -36,8 +37,9 @@ export class Tournament_Files {
         // positions.json) we just copy it over.
         this.files.games.init();
         this.files.schedule.init("[]");
-        this.gameCount = splitPGNs(this.files.games.readSync()).length;
-        this.gameId = this.gameCount + 1;
+        this.files.data.init(`{"gameCount":0}`);
+        this.data = this.files.data.readJSON();
+        this.gameCount = this.data.gameCount;
         if (this.gameCount == 0)
             this.files.positions.init(this.files.allPositions.readSync());
 
@@ -56,6 +58,23 @@ export class Tournament_Files {
 
         // unpicked schedule only contains the games on the schedule that are not in progress.
         this.unpickedSchedule = [ ...this.schedule ];
+
+        // determine the next round id
+        // we don't want to overwrite scheduled games...
+        // nor do we want to overwrite saved games.
+        this.nextRoundId = 1;
+        if (this.schedule.length > 0){
+            for (const { round } of this.schedule){
+                const match = round.split(".")[0];
+                this.nextRoundId = Math.max(this.nextRoundId, parseInt(match) + 1);
+            }
+        }else{
+            for (const name of this.files.gamesDir.contentNames()){
+                const round = name.split("_")[0];
+                const match = round.split(".")[0];
+                this.nextRoundId = Math.max(this.nextRoundId, parseInt(match) + 1);
+            }
+        }
     }
 
     // returns the name of every tournament
@@ -80,9 +99,14 @@ export class Tournament_Files {
         });
     }
 
-    addToSchedule(game){
-        // assign a game id to this game
-        game.id = this.gameId++;
+    addDoubleToSchedule(fen, w, b){
+        const round = this.nextRoundId++;
+        this.addToSchedule({ fen, white: w, black: b }, `${round}.1`);
+        this.addToSchedule({ fen, white: b, black: w }, `${round}.2`);
+    }
+
+    addToSchedule(game, round){
+        game.round = round;
         this.schedule.push(game);
         this.unpickedSchedule.push(game);
         this.files.schedule.saveJSON(this.schedule);
@@ -105,10 +129,11 @@ export class Tournament_Files {
         this.files.schedule.saveJSON(this.schedule);
 
         // save PGN
-        const id = scheduled.id;
+        const id = scheduled.round;
         this.files.gamesDir.joinFile(`${id}_game.pgn`).writeSync(pgn);
         this.files.games.appendSync(`\n${pgn}\n`);
-        this.gameCount++;
+        this.data.gameCount++;
+        this.files.data.saveJSON(this.data);
 
         // save debug files
         this.files.debugDir.joinFile(`${id}_white.txt`).write(whiteDebug);
@@ -147,7 +172,7 @@ export class Tournament_Files {
         
         if (ignored > 0)
             logWarn(
-                `Fetched results but ignored ${ignored} incorrectly formatted PGNs\nPlease check the file ${this.gamesFile}`
+                `Fetched results but ignored ${ignored} PGNs that either do not have a result or are formatted incorrectly`
             );
 
         return results;
@@ -186,11 +211,15 @@ export class Tournament_Files {
         const players = this.config.getPlayers();
         const results = this.getResults();
         for (let i = 0; i < players.length; i++){
-            const count = results.getResults(players[i]);
+            const count = results.getWDLResults(players[i]);
             const { totalScore, totalMaxScore } = results.getScore(players[i]);
             console.log(`${i + 1}. ${players[i]} (${totalScore}/${totalMaxScore}): ${count.wins} wins | ${count.draws} draws | ${count.losses} losses`);
         }
         console.log("In SPRT mode the new version is listed first and the old version second.");
+        if (this.config.getMode() == "SPRT"){
+            const entry = results.getResults(players[0]);
+            console.log(`(WW, WD, DD, LD, LL): (${entry.ww}, ${entry.wd}, ${entry.dd}, ${entry.ld}, ${entry.ll})`);
+        }
         console.log("");
     }
 }

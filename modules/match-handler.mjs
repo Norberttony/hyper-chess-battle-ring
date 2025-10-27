@@ -6,7 +6,7 @@ import { Game_Data } from "./game-data.mjs";
 
 // starts a game between two engines.
 // If the game ends in a draw, returns 0. Otherwise, returns the winner (e1 or e2).
-export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listener = () => 0){
+export async function startAGame(e1, e2, round, fen = StartingFEN, timeControl, listener = () => 0){
     const board = new Board();
     board.loadFEN(fen);
 
@@ -126,6 +126,7 @@ export async function startAGame(e1, e2, fen = StartingFEN, timeControl, listene
 
         return new Game_Data(
             startingDate,
+            round,
             fen,
             moveObjects,
             e1,

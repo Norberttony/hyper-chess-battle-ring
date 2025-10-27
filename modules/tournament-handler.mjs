@@ -1,5 +1,5 @@
 
-import { SPRT } from "./analyze.mjs";
+import { pentaSPRT } from "./penta-sprt.mjs";
 import { TaskManager } from "./task-manager.mjs";
 import { Move } from "hyper-chess-board";
 import { convertGameDataToPGN } from "./game-data.mjs";
@@ -32,7 +32,7 @@ export class Tournament_Handler {
         
         // initializes results
         this.results = this.files.getResults();
-        
+
         if (this.#players.length != 2)
             throw new Error("Handler only supports 2-player tournaments");
 
@@ -70,7 +70,7 @@ export class Tournament_Handler {
                 // perform SPRT to see if must play more games
                 const results = this.results.getResultsAgainst(this.#players[0].name, this.#players[1].name);
                 const { h0, h1, alpha, beta } = this.files.config.getModeConfig();
-                const hyp = SPRT(results.wins, results.draws, results.losses, h0, h1, alpha, beta);
+                const hyp = pentaSPRT(results.ll, results.ld, results.dd, results.wd, results.ww, h0, h1, alpha, beta);
                 if (hyp && this.files.unpickedSchedule.length == 0){
                     console.log(`SPRT goal reached, allowing final ${this.activeGamesCount} game(s) to finish...`);
                     this.stop();
@@ -99,16 +99,8 @@ export class Tournament_Handler {
         return this.positions.splice(idx, 1)[0];
     }
 
-    recordResult(white, black, winner){
-        if (winner == 0){
-            this.results.addDraw(white.name, black.name);
-        }else if (white.path == winner.path){
-            this.results.addWin(white.name, black.name);
-        }else if (black.path == winner.path){
-            this.results.addWin(black.name, white.name);
-        }else{
-            console.warn("Could not interpret winner: ", winner);
-        }
+    recordResult(white, black, winner, round){
+        this.results.addResult(white.name, black.name, round, winner.name);
     }
 
     // schedules a double
@@ -116,8 +108,7 @@ export class Tournament_Handler {
     scheduleGame(){
         const fen = this.#getUnplayedPosition();
         const [ w, b ] = this.#players;
-        this.files.addToSchedule({ fen, white: w, black: b });
-        this.files.addToSchedule({ fen, white: b, black: w });
+        this.files.addDoubleToSchedule(fen, w, b);
     }
 
     async playRound(){
@@ -136,11 +127,11 @@ export class Tournament_Handler {
                     gd.moves[m] = new Move(move.to, move.from, move.captures);
                 }
 
-                const pgn = convertGameDataToPGN(gd, game.id, this.files.name);
+                const pgn = convertGameDataToPGN(gd, this.files.name);
                 this.files.saveGame(game, pgn, gd.whiteLog, gd.blackLog);
 
                 // record results
-                this.recordResult(gd.white, gd.black, gd.winner);
+                this.results.addGame(pgn);
 
                 this.displayResults();
 
@@ -151,7 +142,8 @@ export class Tournament_Handler {
     displayResults(){
         const e1n = this.#players[0].name;
         const e2n = this.#players[1].name;
+        const wdlentry = this.results.getWDLResultsAgainst(e1n, e2n);
         const entry = this.results.getResultsAgainst(e1n, e2n);
-        console.log(`${e1n} | ${entry.wins} - ${entry.draws} - ${entry.losses} | ${e2n}`);
+        console.log(`${e1n} | ${wdlentry.wins} - ${wdlentry.draws} - ${wdlentry.losses} | ${e2n}  (${entry.ll}, ${entry.ld}, ${entry.dd}, ${entry.wd}, ${entry.ww})`);
     }
 }

@@ -15,8 +15,10 @@ parentPort.on("message", async (game) => {
     const b = w == e1 ? e2 : e1;
 
     // play the game
-    const data = await startAGame(w, b, game.fen, workerData.timeControl, matchListener);
+    console.log(`Starting game ${game.round}`);
+    const data = await startAGame(w, b, game.round, game.fen, workerData.timeControl, matchListener);
     finishTask(data);
+    console.log(`Finished game ${game.round}`);
 });
 
 

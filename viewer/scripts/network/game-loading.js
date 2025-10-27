@@ -62,12 +62,24 @@ async function readSearchParams(){
 
 
 function prevGame(){
-    gameLoadingIndexInput.value = parseInt(gameLoadingIndexInput.value) - 1;
+    const round = gameLoadingIndexInput.value.split(".").map(v => parseInt(v));
+    round[1]--;
+    if (round[1] <= 0){
+        round[0]--;
+        round[1] = 2;
+    }
+    gameLoadingIndexInput.value = round.join(".");
     loadGame();
 }
 
 function nextGame(){
-    gameLoadingIndexInput.value = parseInt(gameLoadingIndexInput.value) + 1;
+    const round = gameLoadingIndexInput.value.split(".").map(v => parseInt(v));
+    round[1]++;
+    if (round[1] > 2){
+        round[0]++;
+        round[1] = 1;
+    }
+    gameLoadingIndexInput.value = round.join(".");
     loadGame();
 }
 

@@ -125,4 +125,8 @@ export class Dir_Obj extends FS_Obj {
         }
         return contents;
     }
+
+    contentNames(){
+        return fs.readdirSync(this.path);
+    }
 }
