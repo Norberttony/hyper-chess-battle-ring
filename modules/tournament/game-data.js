@@ -7,18 +7,16 @@ import { Board, StartingFEN } from "hyper-chess-board";
 // workers/threads (since it has no methods that could get lost). Contains data regarding a
 // complete game.
 export class GameData {
-    constructor(date, round, fen, lans, white, black, result, winner, whiteLog, blackLog, timeControl){
+    constructor(date, round, fen, moveObjects, white, black, result, winner, timeControl){
         this.date = date;
         this.round = round;
         this.fen = fen;
-        this.lans = lans;
+        this.moves = moveObjects;
         this.white = white;
         this.black = black;
         this.result = result;
         this.winner = winner;
         this.loser = 0;
-        this.whiteLog = whiteLog;
-        this.blackLog = blackLog;
         this.timeControl = timeControl;
 
         if (this.winner == this.white)

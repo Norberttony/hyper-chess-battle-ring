@@ -1,6 +1,7 @@
 
-import { spawn } from "child_process";
-
+import fs from "node:fs";
+import pathModule from "node:path";
+import { spawn } from "node:child_process";
 
 // Creates an engine process (wrapper class around a live executable) that is capable of feeding
 // input into the executable and returning output from the engine .exe file.
@@ -54,7 +55,7 @@ export class EngineProcess {
     //
     // sends "cmd" to the engine and immediately waits for a response that begins with the given
     // prefix
-    prompt(cmd, prefix, timeoutMs = 10000){
+    prompt(cmd, prefix, timeoutMs = 5000){
         if (this.promptPrefix)
             throw new Error("EngineProcess: cannot prompt; currently responding to an earlier prompt");
         return new Promise((res, rej) => {

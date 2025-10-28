@@ -1,26 +1,25 @@
 
-import { parentPort } from "node:worker_threads";
+import fs from "node:fs";
+import { parentPort, workerData } from "node:worker_threads";
 
 import { Board, Piece } from "hyper-chess-board";
 import { getPGNDateNow } from "hyper-chess-board/pgn";
 import { EngineProcess } from "./engine-process.js";
-import { GameData } from "./game-data.js";
+import { GameData, convertGameDataToPGN } from "./game-data.js";
 
-
-parentPort.on("message", ({ white, black, fen, round, timeControl }) => {
+parentPort.on("message", ({ white, black, fen, round, timeControl, path, wdbgPath, bdbgPath }) => {
     const setup = {
         w: new EngineProcess(white.path),
         b: new EngineProcess(black.path),
-        white: white.name,
-        black: black.name,
-        fen, round, timeControl
+        white, black, fen, round, timeControl, path, wdbgPath, bdbgPath
     };
 
     playGame(setup)
         .then(data => {
-            parentPort.postMessage({ type: "finish", data });
+            parentPort.postMessage({ type: "result", data });
         })
         .catch(err => {
+            console.error(err);
             parentPort.postMessage({ type: "error", err });
         })
         .finally(() => {
@@ -29,7 +28,7 @@ parentPort.on("message", ({ white, black, fen, round, timeControl }) => {
         });
 });
 
-async function playGame({ w, white, b, black, fen, timeControl }){
+async function playGame({ w, white, b, black, fen, round, timeControl, path, wdbgPath, bdbgPath }){
     const startDate = getPGNDateNow();
 
     // set up the board
@@ -40,7 +39,7 @@ async function playGame({ w, white, b, black, fen, timeControl }){
     let wtime = timeControl.time;
     let btime = timeControl.time;
     const winc = timeControl.inc;
-    const binc = timeControl.binc;
+    const binc = timeControl.inc;
 
     // set up the engines
     await w.prompt("uciready", "uciok");
@@ -51,20 +50,19 @@ async function playGame({ w, white, b, black, fen, timeControl }){
 
     let posCmd = `position fen ${fen}`;
     let isFirstMove = true;
-    const lans = [];
+    const moveObjects = [];
 
     while (!board.isGameOver()){
-        const currFEN = board.getFEN();
         const currTime = board.turn == Piece.white ? wtime : btime;
         const active = board.turn == Piece.white ? w : b;
 
-        await active.prompt(posCmd);
+        active.write(posCmd);
 
-        const goCmd = `go wtime ${wtime} btime ${btime} winc ${winc} binc ${binc}`;
+        const goCmd = `go wtime ${Math.round(wtime)} btime ${Math.round(btime)} winc ${winc} binc ${binc}`;
 
-        const start = new Date();
+        const start = performance.now();
         const bestMoveCmd = await active.prompt(goCmd, "bestmove", currTime + 100);
-        const end = new Date();
+        const end = performance.now();
 
         // progress time...
         if (board.turn == Piece.white)
@@ -87,9 +85,9 @@ async function playGame({ w, white, b, black, fen, timeControl }){
 
         // get the move and play it on the board
         const lan = bestMoveCmd.split(" ")[1];
-        parentPort.postMessage({ type: "move", lan });
         const move = board.getMoveOfLAN(lan);
         if (!move){
+            const currFEN = board.getFEN();
             const winner = board.turn == Piece.white ? Piece.black : Piece.white;
             board.setResult(winner == Piece.black ? "0-1" : "1-0", "illegal move", winner);
             throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}`);
@@ -101,7 +99,8 @@ async function playGame({ w, white, b, black, fen, timeControl }){
             isFirstMove = false;
         }
         posCmd += `${lan} `;
-        lans.push(lan);
+        moveObjects.push(move);
+        parentPort.postMessage({ type: "move", lan, wtime, btime });
     }
 
     let winner = -2;
@@ -109,20 +108,40 @@ async function playGame({ w, white, b, black, fen, timeControl }){
         winner = white;
     else if (board.result.result == "0-1")
         winner = black;
-    else
+    else if (board.result.result == "1/2-1/2")
         winner = 0;
 
-    return new GameData(
+    const data = new GameData(
         startDate,
         round,
         fen,
-        lans,
-        white.name,
-        black.name,
+        moveObjects,
+        white,
+        black,
         board.result,
         winner,
-        w.log,
-        b.log,
         timeControl
     );
+
+    // saves the game to the path
+    if (path){
+        const pgn = convertGameDataToPGN(data, workerData.event);
+        saveFile(path, pgn, round);
+    }
+
+    if (wdbgPath)
+        saveFile(wdbgPath, w.log, round);
+    if (bdbgPath)
+        saveFile(bdbgPath, b.log, round);
+
+    return data;
+}
+
+function saveFile(path, data, round){
+    fs.writeFile(path, data, (err) => {
+        if (err){
+            console.error(`ERROR when writing file "${path}" for game ${round}:`, err);
+            console.log(data);
+        }
+    });
 }
