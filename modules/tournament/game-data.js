@@ -6,12 +6,12 @@ import { Board, StartingFEN } from "hyper-chess-board";
 // This class operates as a struct, and can freely be passed around as JSON strings or between
 // workers/threads (since it has no methods that could get lost). Contains data regarding a
 // complete game.
-export class Game_Data {
-    constructor(date, round, fen, moves, white, black, result, winner, whiteLog, blackLog, timeControl){
+export class GameData {
+    constructor(date, round, fen, lans, white, black, result, winner, whiteLog, blackLog, timeControl){
         this.date = date;
         this.round = round;
         this.fen = fen;
-        this.moves = moves;
+        this.lans = lans;
         this.white = white;
         this.black = black;
         this.result = result;
