@@ -11,5 +11,5 @@ console.log(engines);
     const t = new Tournament("1TEST");
     const s = new Scheduler(t);
 
-    s.start(1);
+    s.start(20);
 })();

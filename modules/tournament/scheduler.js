@@ -32,7 +32,7 @@ export class Scheduler {
             throw new Error(`Detected missing engine(s): ${missing.join(", ")}`);
         
         while (this.arbiters.length < threadsAmt){
-            const arbiter = new Arbiter(this);
+            const arbiter = new Arbiter(this.tournament.name);
             this.arbiters.push(arbiter);
             this.scheduleGame(arbiter);
         }
@@ -73,6 +73,9 @@ export class Scheduler {
     }
 
     async scheduleGame(arbiter){
+        if (this.conclusion)
+            return;
+
         const data = this.getNextGame();
         if (!data)
             return;
@@ -84,13 +87,15 @@ export class Scheduler {
         const wdbgPath = this.tournament.getDebugPath(round, true);
         const bdbgPath = this.tournament.getDebugPath(round, false);
 
-        const res = await arbiter.playGame(white, black, fen, round, tc, path, wdbgPath, bdbgPath);
-        this.tournament.record(white.name, black.name, fen, res);
-        this.checkForConclusion();
+        const msg = await arbiter.playGame(white, black, fen, round, tc, path, wdbgPath, bdbgPath);
+        this.tournament.playedGame(msg.data);
 
         // remove the game from the schedule
         this.schedule.splice(this.schedule.indexOf(data), 1);
         this.tournament.writeSchedule(this.schedule);
+
+        if (!this.conclusion)
+            this.checkForConclusion();
 
         // let's play another :D
         // also, weird trick with setTimeout just to avoid dealing with stack overflow.
@@ -116,15 +121,37 @@ export class Scheduler {
         // any, we just cancel all arbiters.
         const p1 = this.tournament.players[0];
         const { h0, h1, alpha, beta } = this.tournament.sprt;
-        const { ll, ld, dd, wd, ww } = this.tournament.getWorstCasePenta(p1.name);
-        const llr = pentaSPRT(ll, ld, dd, wd, ww, h0, h1);
-        const hyp = testLLR(llr, alpha, beta);
+        const worstPenta = this.tournament.getWorstCasePenta(p1.name);
+        const bestPenta = this.tournament.getBestCasePenta(p1.name);
 
+        const worstLLR = this.tournament.getPentaLLR(worstPenta, h0, h1);
+        const bestLLR = this.tournament.getPentaLLR(bestPenta, h0, h1);
+
+        console.log(worstLLR, bestLLR);
         this.tournament.report();
 
-        if (hyp){
-            this.conclusion = hyp;
-            console.log(`Accepted ${hyp}`);
+        if (testLLR(worstLLR, alpha, beta) == "H1"){
+            this.conclusion = "H1";
+            console.log("Accepted H1");
+        }else if (testLLR(bestLLR, alpha, beta) == "H0"){
+            this.conclusion = "H0";
+            console.log("Accepted H0");
+        }
+
+        if (this.conclusion){
+            // find all scheduled doubles and remove them from the schedule
+            const fenDict = {};
+            for (let i = 0; i < this.unpickedSchedule.length; i++){
+                const fen = this.unpickedSchedule[i].fen;
+                if (fenDict[fen]){
+                    // aha! a double!
+                    this.unpickedSchedule.splice(i, 1);
+                    this.unpickedSchedule.splice(fenDict[fen], 1);
+                    i -= 2;
+                }else{
+                    fenDict[fen] = i;
+                }
+            }
         }
     }
 }

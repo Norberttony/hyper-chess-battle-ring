@@ -6,7 +6,8 @@ import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 
 import { buildStructure } from "../utils/file.js";
 import { pentaSPRT } from "../stats/penta-sprt.js";
-import { testLLR, SPRT } from "../stats/sprt.js";
+import { testLLR } from "../stats/sprt.js";
+import { convertGameDataToPGN } from "./game-data.js";
 
 // Directly deals with file management, player add/remove, results management, and logging to the
 // terminal.
@@ -48,8 +49,8 @@ export class Tournament {
             this.#initPlayer(p);
 
         // read in the games from a file
-        const compiledPath = pathModule.join(this.root, "games", "00_compiled_games.pgn");
-        const compiledGames = fs.readFileSync(compiledPath).toString();
+        this.compiledPath = pathModule.join(this.root, "games", "00_compiled_games.pgn");
+        const compiledGames = fs.readFileSync(this.compiledPath).toString();
         for (const pgn of splitPGNs(compiledGames))
             this.recordGame(pgn);
     }
@@ -137,6 +138,13 @@ export class Tournament {
     // Initializes the player
     #initPlayer(engine){
         this.results[engine.name] = {};
+    }
+
+    playedGame(gameData){
+        this.record(gameData.white.name, gameData.black.name, gameData.fen, gameData.result.result);
+
+        const pgn = convertGameDataToPGN(gameData);
+        fs.appendFileSync(this.compiledPath, "\n" + pgn + "\n");
     }
 
     getEntry(name, oppName){
@@ -250,16 +258,13 @@ export class Tournament {
         return r;
     }
 
+    getPentaLLR({ ww, wd, dd, ld, ll }, elo0, elo1){
+        return pentaSPRT(ll, ld, dd, wd, ww, elo0, elo1);
+    }
+
     // gets the worst-case scenario for a pentamonial score
     getWorstCasePenta(name){
-        const r = { ww: 0, wd: 0, dd: 0, ld: 0, ll: 0 };
-        for (const { ww, wd, dd, ld, ll } of Object.values(this.results[name])){
-            r.ww += ww;
-            r.wd += wd;
-            r.dd += dd;
-            r.ld += ld;
-            r.ll += ll;
-        }
+        const r = this.getPenta(name);
 
         // goes through half results...
         for (const { whiteName, blackName, result } of Object.values(this.halfResults)){
@@ -277,6 +282,30 @@ export class Tournament {
                 r.dl++;
             else if (s == 1)
                 r.dd++;
+        }
+        return r;
+    }
+
+    // gets the best-case scenario for a pentamonial score
+    getBestCasePenta(name){
+        const r = this.getPenta(name);
+
+        // goes through half results...
+        for (const { whiteName, blackName, result } of Object.values(this.halfResults)){
+            let s;
+            if (whiteName == name)
+                s = this.getWhiteScore(result);
+            else if (blackName == name)
+                s = 1 - this.getWhiteScore(result);
+            else
+                continue;
+
+            if (s == 0)
+                r.dd++;
+            else if (s == 0.5)
+                r.wd++;
+            else if (s == 1)
+                r.ww++;
         }
         return r;
     }
