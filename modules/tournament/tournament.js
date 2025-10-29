@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 
-import { buildStructure } from "../utils/file.js";
+import { buildStructure, isDirectory } from "../utils/file.js";
 import { pentaSPRT } from "../stats/penta-sprt.js";
 import { testLLR } from "../stats/sprt.js";
 import { convertGameDataToPGN } from "./game-data.js";
@@ -28,12 +28,23 @@ const tournamentStructure = {
     "schedule.json": "[]"
 };
 
+// path of the tournaments folder
+const tRoot = pathModule.join(".", "data", "tournaments");
+const globalPosPath = pathModule.join(".", "data", "positions.json");
+
 export class Tournament {
     constructor(name){
         this.name = name;
-        this.root = pathModule.join(`./data/tournaments/${name}`);
+        this.root = pathModule.join(tRoot, name);
 
+        if (!fs.existsSync(this.root))
+            fs.mkdirSync(this.root);
         buildStructure(tournamentStructure, this.root);
+
+        // initialize positions.json if not there
+        const posPath = pathModule.join(this.root, "positions.json");
+        if (!fs.existsSync(posPath))
+            fs.copyFileSync(globalPosPath, posPath);
 
         this.results = {};
 
@@ -55,6 +66,16 @@ export class Tournament {
             this.recordGame(pgn);
     }
 
+    static getTournamentNames(){
+        const names = [];
+        for (const name of fs.readdirSync(tRoot)){
+            const path = pathModule.join(tRoot, name);
+            if (isDirectory(path))
+                names.push(name);
+        }
+        return names;
+    }
+
     get timeControl(){
         return this.config.timeControl;
     }
@@ -65,6 +86,20 @@ export class Tournament {
 
     get sprt(){
         return this.config.sprt;
+    }
+
+    setTimeControl(time, inc){
+        this.timeControl.time = time;
+        this.timeControl.inc = inc;
+        this.saveConfig();
+    }
+
+    setSPRT(h0, h1, alpha, beta){
+        this.sprt.h0 = h0;
+        this.sprt.h1 = h1;
+        this.sprt.alpha = alpha;
+        this.sprt.beta = beta;
+        this.saveConfig();
     }
 
     getGamePath(round){
@@ -121,6 +156,13 @@ export class Tournament {
         this.#writeJSON("data.json", this.data);
     }
 
+    getPlayerNames(){
+        const names = [];
+        for (const { name } of this.players)
+            names.push(name);
+        return names;
+    }
+
     // expects { name, path }
     // Adds a player to the set of existing players.
     addPlayer(engine){
@@ -132,6 +174,17 @@ export class Tournament {
 
         this.players.push(engine);
         this.#initPlayer(engine);
+        this.saveConfig();
+    }
+
+    removePlayerByName(name){
+        for (let i = 0; i < this.players.length; i++){
+            if (this.players[i].name == name){
+                this.players.splice(i, 1);
+                this.saveConfig();
+                return;
+            }
+        }
     }
 
     // expects { name, path }
@@ -310,9 +363,26 @@ export class Tournament {
         return r;
     }
 
+    logToTerminal(){
+        const [ p1, p2 ] = this.players;
+        console.log("\nSPRT Tournament");
+        if (p1)
+            console.log(`New version: ${p1.name}`);
+        if (p2)
+            console.log(`Old version: ${p2.name}`);
+        if (!p1 && !p2)
+            console.log("No engines added yet");
+        console.log("");
+        this.report();
+        console.log("");
+    }
+
     // logs a report to the terminal
     report(){
         const [ p1, p2 ] = this.players;
+
+        if (!p1 || !p2)
+            return;
 
         const { h0, h1, alpha, beta } = this.sprt;
         const { ll, ld, dd, wd, ww, w, d, l } = this.getEntry(p1.name, p2.name);

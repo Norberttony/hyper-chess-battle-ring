@@ -2,10 +2,12 @@
 import fs from "fs";
 import pathModule from "path";
 
-import { extractEngines } from "./modules/engine.js";
-import { input, inputNumber, options } from "./modules/utils/input.js";
-import { startWebServer, userVsEngine } from "./modules/web/web-server.js";
 import { Piece } from "hyper-chess-board";
+
+import { getEngines } from "./modules/tournament/engine-process.js";
+import { input, inputNumber, options } from "./modules/utils/input.js";
+import { Tournament } from "./modules/tournament/tournament.js";
+import { Scheduler } from "./modules/tournament/scheduler.js";
 
 
 const botsDir = pathModule.join(".", "bots");
@@ -15,10 +17,6 @@ const globals = {};
 
 
 (async () => {
-
-    const { io, server, setActiveTournament } = startWebServer();
-
-    globals.setActiveTournament = setActiveTournament;
 
     while (true){
         console.log("Type in a command:");
@@ -42,25 +40,24 @@ const globals = {};
             
         }else if (cmd[0] == "tournament"){
 
-            const tournaments = Tournament_Files.getTournamentNames();
+            const tournaments = Tournament.getTournamentNames();
             tournaments.unshift("Create a new tournament");
 
             console.log("\nSelect a tournament to view (or create a new one):");
             const idx = await options(tournaments);
 
             if (idx == 0){
-                const files = await createTournament();
-                if (files)
-                    await tournamentDashboard(files);
+                const tourn = await createTournament();
+                if (tourn)
+                    await tournamentDashboard(tourn);
             }else{
-                await tournamentDashboard(new Tournament_Files(tournaments[idx]));
+                await tournamentDashboard(new Tournament(tournaments[idx]));
             }
-            setActiveTournament(undefined);
 
         }else if (cmd[0] == "play"){
             
             // assumes: first active engine plays as black.
-            userVsEngine(io, extractEngines(botsDir)[0], Piece.black);
+            userVsEngine(io, getEngines(botsDir)[0], Piece.black);
 
         }else if (cmd[0] == "q"){
             break;
@@ -70,42 +67,41 @@ const globals = {};
 })();
 
 
-async function tournamentDashboard(files){
-    const handler = new Tournament_Handler(files);
+async function tournamentDashboard(tourn){
+    const scheduler = new Scheduler(tourn);
 
     while (true){
-        if (!handler.playing)
-            files.logToTerminal();
+        if (!scheduler.isPlaying)
+            tourn.logToTerminal();
 
         const cmd = (await input()).split(" ");
 
         // commands for playing or stopping the tournament
         if (cmd[0] == "play"){            
-            if (handler.playing){
+            if (scheduler.isPlaying){
                 console.log("Tournament is already playing");
                 continue;
             }
-            
+
             console.log("\nHow many threads should the tournament handler use?");
             const t = await inputNumber(1, Infinity);
 
-            handler.start(t);
-            globals.setActiveTournament(handler);
+            scheduler.start(t);
         }else if (cmd[0] == "stop"){
-            if (!handler.playing){
+            if (!scheduler.isPlaying){
                 console.log("Tournament is not playing");
                 continue;
             }
 
             console.log("\nPlease keep the program open to allow the final games to finish...");
-            await handler.stop();
+            await scheduler.stop();
         }else if (cmd[0] == "quit"){
             console.log("\nLeft tournament dashboard");
             break;
         }
 
         // commands for modifying the tournament
-        const players = files.config.getPlayers();
+        const players = tourn.getPlayerNames();
         if (cmd[0] == "add"){
 
             const engines = fs.readdirSync(botsDir).filter(v => v.endsWith(".exe"));
@@ -121,8 +117,10 @@ async function tournamentDashboard(files){
             engines.unshift("Exit");
             const idx = await options(engines);
 
-            if (idx != 0)
-                files.config.addPlayer(engines[idx]);
+            if (idx != 0){
+                const name = engines[idx];
+                tourn.addPlayer({ name, path: pathModule.join(".", "bots", `${name}.exe`) });
+            }
 
         }else if (cmd[0] == "remove"){
 
@@ -130,11 +128,11 @@ async function tournamentDashboard(files){
             const idx = await options(engines);
 
             if (idx != 0)
-                files.config.removePlayer(engines[idx]);
+                tourn.removePlayerByName(engines[idx]);
 
         }else if (cmd[0] == "timeControl"){
 
-            const { time, inc } = files.config.getTC();
+            const { time, inc } = tourn.timeControl;
             console.log(`\nThe time control currently is ${time}ms + ${inc}ms`);
 
             console.log("Type in the time (in ms) both players should start with:");
@@ -146,34 +144,30 @@ async function tournamentDashboard(files){
             if (newTime == 0 && newInc == 0)
                 console.error("\nCannot set both time and increment to 0.");
             else
-                files.config.setTC(newTime, newInc);
+                tourn.setTimeControl(newTime, newInc);
 
         }else if (cmd[0] == "mode"){
 
-            const mode = files.config.getMode();
-            console.log(`\nCurrent mode is ${mode}`);
+            const modeConfig = tourn.sprt;
 
-            const modeConfig = files.config.getModeConfig();
-            if (mode == "SPRT"){
-                console.log(`H0: ${modeConfig.h0}`);
-                console.log(`H1: ${modeConfig.h1}`);
-                console.log(`alpha: ${modeConfig.alpha}`);
-                console.log(`beta: ${modeConfig.beta}`);
+            console.log(`H0: ${modeConfig.h0}`);
+            console.log(`H1: ${modeConfig.h1}`);
+            console.log(`alpha: ${modeConfig.alpha}`);
+            console.log(`beta: ${modeConfig.beta}`);
 
-                console.log("\nSet the value of H0:");
-                modeConfig.h0 = await inputNumber(-Infinity, Infinity);
+            console.log("\nSet the value of H0:");
+            const h0 = await inputNumber(-Infinity, Infinity);
 
-                console.log("\nSet the value of H1:");
-                modeConfig.h1 = await inputNumber(-Infinity, Infinity);
+            console.log("\nSet the value of H1:");
+            const h1 = await inputNumber(-Infinity, Infinity);
 
-                console.log("\nSet the value of alpha:");
-                modeConfig.alpha = await inputNumber(0, 1);
+            console.log("\nSet the value of alpha:");
+            const alpha = await inputNumber(0, 1);
 
-                console.log("\nSet the value of beta:");
-                modeConfig.beta = await inputNumber(0, 1);
+            console.log("\nSet the value of beta:");
+            const beta = await inputNumber(0, 1);
 
-                files.saveConfig();
-            }
+            tourn.setSPRT(h0, h1, alpha, beta);
         }
     }
 }
@@ -184,26 +178,26 @@ async function createTournament(){
         console.log("Enter a name for your tournament:");
         name = await input();
 
-        const tournaments = Tournament_Files.getTournamentNames();
+        const tournaments = Tournament.getTournamentNames();
         if (tournaments.indexOf(name) > -1){
             console.log("A tournament of that name already exists, try a different name.");
             name = undefined;
         }
     }
 
-    return new Tournament_Files(name);
+    return new Tournament(name);
 }
 
 function displayBench(){
     console.log("\nBench:");
-    for (const e of extractEngines(benchDir))
+    for (const e of getEngines(benchDir))
         console.log(e.name);
     console.log("");
 }
 
 function displayBots(){
     console.log("\nBots:");
-    for (const e of extractEngines(botsDir))
+    for (const e of getEngines(botsDir))
         console.log(e.name);
     console.log("");
 }
@@ -223,7 +217,7 @@ function addToBots(name){
         fs.renameSync(oldPath, pathModule.join(botsDir, name + ".exe"));
         console.log("Successfully moved to bots!");
     }else{
-        if (getEngineWithName(extractEngines(botsDir), name) > -1)
+        if (getEngineWithName(getEngines(botsDir), name) > -1)
             console.log(`${name} is already added`);
         else
             console.log(`Could not find ${name} in either the bench or bots`);
@@ -236,7 +230,7 @@ function addToBench(name){
         fs.renameSync(oldPath, pathModule.join(benchDir, name + ".exe"));
         console.log("Successfully moved to bots!");
     }else{
-        if (getEngineWithName(extractEngines(benchDir), name) > -1)
+        if (getEngineWithName(getEngines(benchDir), name) > -1)
             console.log(`${name} is already added`);
         else
             console.log(`Could not find ${name} in either the bench or bots`);

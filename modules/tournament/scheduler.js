@@ -2,15 +2,18 @@
 import fs from "node:fs";
 
 import { testLLR } from "../stats/sprt.js";
-import { pentaSPRT } from "../stats/penta-sprt.js";
 import { Arbiter } from "./arbiter.js";
 
-// Directly deals with managing threads, recording results, 
+// Directly deals with managing threads and the game schedule
 
 export class Scheduler {
+    #finalGameListeners;
+
     constructor(tournament){
         this.tournament = tournament;
         this.threadsAmt = 0;
+
+        this.activeThreads = 0;
 
         // create threads
         this.conclusion;
@@ -19,9 +22,20 @@ export class Scheduler {
         this.schedule = tournament.readSchedule();
         this.unpickedSchedule = [ ...this.schedule ];
         this.arbiters = [];
+
+        this.#finalGameListeners = [];
+    }
+
+    get isPlaying(){
+        return this.activeThreads > 0;
     }
 
     start(threadsAmt){
+        // is there already a result?
+        this.checkForConclusion();
+        if (this.conclusion)
+            return;
+
         // ensure all engines are here
         const missing = [];
         for (const { path } of this.tournament.players){
@@ -34,8 +48,15 @@ export class Scheduler {
         while (this.arbiters.length < threadsAmt){
             const arbiter = new Arbiter(this.tournament.name);
             this.arbiters.push(arbiter);
-            this.scheduleGame(arbiter);
+            this.#scheduleLoop(arbiter);
+            this.activeThreads++;
         }
+    }
+
+    async stop(){
+        this.paused = true;
+        console.log(`Allowing final ${this.activeThreads} thread(s) to finish`);
+        return new Promise((res, rej) => this.#finalGameListeners.push(res));
     }
 
     #scheduleNextGame(){
@@ -72,13 +93,27 @@ export class Scheduler {
         return true;
     }
 
-    async scheduleGame(arbiter){
-        if (this.conclusion)
+    async #scheduleLoop(arbiter){
+        if (this.paused){
+            this.activeThreads--;
+            if (this.activeThreads == 0){
+                this.paused = false;
+                for (const g of this.#finalGameListeners)
+                    g();
+            }
             return;
+        }
 
-        const data = this.getNextGame();
-        if (!data)
+        if (this.conclusion){
+            this.activeThreads--;
             return;
+        }
+
+        const data = this.#getNextGame();
+        if (!data){
+            this.activeThreads--;
+            return;
+        }
 
         // all of the variables needed to play a game.
         const { white, black, fen, round } = data;
@@ -99,13 +134,13 @@ export class Scheduler {
 
         // let's play another :D
         // also, weird trick with setTimeout just to avoid dealing with stack overflow.
-        setTimeout(() => this.scheduleGame(arbiter), 100);
+        setTimeout(() => this.#scheduleLoop(arbiter), 1);
     }
 
-    getNextGame(){
+    #getNextGame(){
         if (this.unpickedSchedule.length == 0){
             // if there's a result, no more games.
-            if (this.conclusion || this.paused)
+            if (this.conclusion)
                 return undefined;
 
             // otherwise add a game to the schedule
@@ -116,6 +151,9 @@ export class Scheduler {
     }
 
     checkForConclusion(){
+        // recalculating conclusion...
+        delete this.conclusion;
+
         // runs SPRT...
         // if result, we either wait for the second half of the doubles to finish. If there aren't
         // any, we just cancel all arbiters.
@@ -127,7 +165,6 @@ export class Scheduler {
         const worstLLR = this.tournament.getPentaLLR(worstPenta, h0, h1);
         const bestLLR = this.tournament.getPentaLLR(bestPenta, h0, h1);
 
-        console.log(worstLLR, bestLLR);
         this.tournament.report();
 
         if (testLLR(worstLLR, alpha, beta) == "H1"){
