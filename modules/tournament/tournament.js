@@ -5,8 +5,11 @@ import fs from "node:fs";
 import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 
 import { buildStructure } from "../utils/file.js";
+import { pentaSPRT } from "../stats/penta-sprt.js";
+import { testLLR, SPRT } from "../stats/sprt.js";
 
-// Directly deals with file management, player add/remove, 
+// Directly deals with file management, player add/remove, results management, and logging to the
+// terminal.
 
 const defaultConfig = {
     timeControl: { time: 8000, inc: 80 },
@@ -20,7 +23,7 @@ const tournamentStructure = {
         "00_compiled_games.pgn": ""
     },
     "config.json": JSON.stringify(defaultConfig),
-    "data.json": `{"gameCount": 0, "rounds": 0}`,
+    "data.json": `{"rounds": 0}`,
     "schedule.json": "[]"
 };
 
@@ -40,14 +43,15 @@ export class Tournament {
         this.config = this.readConfig();
         this.data = this.readData();
 
-        // read in the games from a file
-        const compiledGames = fs.readFileSync(pathModule.join(this.root, "games", "00_compiled_games.pgn"));
-        for (const pgn of splitPGNs(compiledGames))
-            this.recordGame(pgn);
-
         // read in the players
         for (const p of this.config.players)
             this.#initPlayer(p);
+
+        // read in the games from a file
+        const compiledPath = pathModule.join(this.root, "games", "00_compiled_games.pgn");
+        const compiledGames = fs.readFileSync(compiledPath).toString();
+        for (const pgn of splitPGNs(compiledGames))
+            this.recordGame(pgn);
     }
 
     get timeControl(){
@@ -56,6 +60,10 @@ export class Tournament {
 
     get players(){
         return this.config.players;
+    }
+
+    get sprt(){
+        return this.config.sprt;
     }
 
     getGamePath(round){
@@ -73,7 +81,7 @@ export class Tournament {
     }
 
     #readJSON(pathFromRoot){
-        return JSON.parse(fs.readFileSync(pathModule.join(this.root, pathFromRoot)));
+        return JSON.parse(fs.readFileSync(pathModule.join(this.root, pathFromRoot)).toString());
     }
 
     #writeJSON(pathFromRoot, data){
@@ -240,5 +248,51 @@ export class Tournament {
             r.ll += ll;
         }
         return r;
+    }
+
+    // gets the worst-case scenario for a pentamonial score
+    getWorstCasePenta(name){
+        const r = { ww: 0, wd: 0, dd: 0, ld: 0, ll: 0 };
+        for (const { ww, wd, dd, ld, ll } of Object.values(this.results[name])){
+            r.ww += ww;
+            r.wd += wd;
+            r.dd += dd;
+            r.ld += ld;
+            r.ll += ll;
+        }
+
+        // goes through half results...
+        for (const { whiteName, blackName, result } of Object.values(this.halfResults)){
+            let s;
+            if (whiteName == name)
+                s = this.getWhiteScore(result);
+            else if (blackName == name)
+                s = 1 - this.getWhiteScore(result);
+            else
+                continue;
+
+            if (s == 0)
+                r.ll++;
+            else if (s == 0.5)
+                r.dl++;
+            else if (s == 1)
+                r.dd++;
+        }
+        return r;
+    }
+
+    // logs a report to the terminal
+    report(){
+        const [ p1, p2 ] = this.players;
+
+        const { h0, h1, alpha, beta } = this.sprt;
+        const { ll, ld, dd, wd, ww, w, d, l } = this.getEntry(p1.name, p2.name);
+        const llr = pentaSPRT(ll, ld, dd, wd, ww, h0, h1);
+        const hyp = testLLR(llr, alpha, beta) || "inconclusive";
+
+        console.log(`${w + d + l} games played`);
+        console.log(`WDL ${w} - ${d} - ${l}`);
+        console.log(`Penta (${ll}, ${ld}, ${dd}, ${wd}, ${ww})`);
+        console.log(`LLR: ${llr.toFixed(5)} (${hyp})`);
     }
 }

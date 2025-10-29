@@ -25,13 +25,13 @@ function log_likelihood_ratio(wins, draws, losses, h_0, h_1){
     return (s1 - s0) * (2 * score - s0 - s1) / v_s / 2;
 }
 
-export function SPRT(wins, draws, losses, h_0, h_1, alpha, beta){
-    const ratio = log_likelihood_ratio(wins, draws, losses, h_0, h_1);
+export function SPRT(wins, draws, losses, h_0, h_1){
+    return log_likelihood_ratio(wins, draws, losses, h_0, h_1);
+}
+
+export function testLLR(ratio, alpha, beta){
     const l_a = Math.log(beta / (1 - alpha));
     const l_b = Math.log((1 - beta) / alpha);
-
-    console.log(ratio);
-
     if (ratio > l_b)
         return "H1";
     else if (ratio < l_a)

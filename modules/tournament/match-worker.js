@@ -61,7 +61,7 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         const goCmd = `go wtime ${Math.round(wtime)} btime ${Math.round(btime)} winc ${winc} binc ${binc}`;
 
         const start = performance.now();
-        const bestMoveCmd = await active.prompt(goCmd, "bestmove", currTime + 100);
+        const bestMoveCmd = await active.prompt(goCmd, "bestmove", currTime + 1000);
         const end = performance.now();
 
         // progress time...

@@ -1,4 +1,8 @@
 
+import fs from "node:fs";
+
+import { testLLR } from "../stats/sprt.js";
+import { pentaSPRT } from "../stats/penta-sprt.js";
 import { Arbiter } from "./arbiter.js";
 
 // Directly deals with managing threads, recording results, 
@@ -18,14 +22,24 @@ export class Scheduler {
     }
 
     start(threadsAmt){
+        // ensure all engines are here
+        const missing = [];
+        for (const { path } of this.tournament.players){
+            if (!fs.existsSync(path))
+                missing.push(path);
+        }
+        if (missing.length > 0)
+            throw new Error(`Detected missing engine(s): ${missing.join(", ")}`);
+        
         while (this.arbiters.length < threadsAmt){
             const arbiter = new Arbiter(this);
             this.arbiters.push(arbiter);
+            this.scheduleGame(arbiter);
         }
     }
 
     #scheduleNextGame(){
-        if (this.positions.length == 0)
+        if (this.positions.length == 0 || this.conclusion)
             return false;
         
         // fetch a random position
@@ -53,6 +67,8 @@ export class Scheduler {
         this.schedule.push(game1, game2);
         this.unpickedSchedule.push(game1, game2);
 
+        this.tournament.writeSchedule(this.schedule);
+
         return true;
     }
 
@@ -70,6 +86,11 @@ export class Scheduler {
 
         const res = await arbiter.playGame(white, black, fen, round, tc, path, wdbgPath, bdbgPath);
         this.tournament.record(white.name, black.name, fen, res);
+        this.checkForConclusion();
+
+        // remove the game from the schedule
+        this.schedule.splice(this.schedule.indexOf(data), 1);
+        this.tournament.writeSchedule(this.schedule);
 
         // let's play another :D
         // also, weird trick with setTimeout just to avoid dealing with stack overflow.
@@ -93,5 +114,17 @@ export class Scheduler {
         // runs SPRT...
         // if result, we either wait for the second half of the doubles to finish. If there aren't
         // any, we just cancel all arbiters.
+        const p1 = this.tournament.players[0];
+        const { h0, h1, alpha, beta } = this.tournament.sprt;
+        const { ll, ld, dd, wd, ww } = this.tournament.getWorstCasePenta(p1.name);
+        const llr = pentaSPRT(ll, ld, dd, wd, ww, h0, h1);
+        const hyp = testLLR(llr, alpha, beta);
+
+        this.tournament.report();
+
+        if (hyp){
+            this.conclusion = hyp;
+            console.log(`Accepted ${hyp}`);
+        }
     }
 }

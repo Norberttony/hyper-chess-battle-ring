@@ -14,13 +14,14 @@ export class Arbiter {
     // white and black are engine objects { name, path }
     // fen is a string
     async playGame(white, black, fen, round, timeControl, path, wdbgPath, bdbgPath){
+        console.log(`Starting game ${round}`);
         return new Promise((res, rej) => {
             // listens for when the game ends
             const listener = (msg) => {
                 for (const g of this.gameListeners)
                     g(msg);
-                console.log(msg);
                 if (msg.type == "result"){
+                    console.log(`Finished game ${round}`);
                     this.worker.removeListener("message", listener);
                     res(msg);
                 }
