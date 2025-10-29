@@ -8,7 +8,7 @@ data/*
 
 node_modules
 
-pgn.txt
+*.pgn
 positions.txt
 
 !.gitkeep

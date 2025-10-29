@@ -142,19 +142,36 @@ function scanFile(path){
 
     // determine FENs that were already in the set
     const positions = JSON.parse(fs.readFileSync("./data/positions.json").toString());
-    const alreadyHasFENs = new Set(positions);
+    const newPositions = [];
+    const positionIDs = new Set();
 
-    // add non-duplicate FENs into position set
-    let newPositions = 0;
-    for (const fen of FENs){
-        if (!alreadyHasFENs.has(fen)){
-            alreadyHasFENs.add(fen);
-            positions.push(fen);
-            newPositions++;
+    let duplicatesRemoved = 0;
+    const b = new Board();
+    for (const fen of positions){
+        b.loadFEN(fen);
+        const posId = b.getPosition();
+        if (!positionIDs.has(posId)){
+            newPositions.push(fen);
+            positionIDs.add(posId);
+        }else{
+            duplicatesRemoved++;
         }
     }
 
-    fs.writeFileSync("./data/positions.json", JSON.stringify(Array.from(alreadyHasFENs)));
+    // add non-duplicate FENs into position set
+    let newPositionsAmt = 0;
+    for (const fen of FENs){
+        b.loadFEN(fen);
+        const posId = b.getPosition();
+        if (!positionIDs.has(posId)){
+            positionIDs.add(posId);
+            newPositions.push(fen);
+            newPositionsAmt++;
+        }
+    }
 
-    console.log(`Found ${newPositions} new positions, there are now ${alreadyHasFENs.size} in total`);
+    fs.writeFileSync("./data/positions.json", JSON.stringify(newPositions));
+
+    console.log(`Found ${newPositionsAmt} new positions and removed ${duplicatesRemoved} duplicates`);
+    console.log(`There are now ${newPositions.length} in total`);
 }
