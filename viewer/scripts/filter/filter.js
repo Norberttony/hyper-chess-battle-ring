@@ -1,8 +1,8 @@
 
 let gameData = [];
 
-module_loader.load("/scripts/filter/filters.mjs");
-module_loader.load("/scripts/filter/pipes.mjs");
+module_loader.load("/scripts/filter/filters.js");
+module_loader.load("/scripts/filter/pipes.js");
 
 // initialize tournamentOptionsSelect with options.
 {

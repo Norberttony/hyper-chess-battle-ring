@@ -1,5 +1,5 @@
 
-import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.mjs";
+import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.js";
 
 
 export class TimeWidget extends BoardWidget {

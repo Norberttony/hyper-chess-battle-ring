@@ -35,3 +35,29 @@ export async function buildStructure(structure, root = "."){
         }
     }
 }
+
+// reads all of the files given and returns a list of content from each of those files.
+// if a read fails, returns undefined for that file.
+export async function readFiles(...paths){
+    const promises = [];
+    for (const p of paths){
+        promises.push(new Promise((res, rej) => {
+            fs.readFile(p, (err, data) => {
+                if (err){
+                    console.error(err);
+                    rej(err);
+                    return;
+                }
+                res(data.toString());
+            })
+        }));
+    }
+
+    const settled = await Promise.allSettled(promises);
+
+    const content = [];
+    for (const { value } of settled)
+        content.push(value);
+
+    return content;
+}

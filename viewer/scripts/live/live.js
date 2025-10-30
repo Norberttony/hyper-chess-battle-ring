@@ -1,12 +1,12 @@
 
 const socket = io();
 
-socket.on("liveUpdate", async (data) => {
+socket.on("game0", async (data) => {
     await module_loader.waitForAll();
-    if (data.cmd == "newgame"){
+    if (data.type == "newgame"){
         gameState.loadFEN(data.fen);
         gameState.setNames(data.white, data.black);
-    }else if (data.cmd == "move"){
+    }else if (data.type == "move"){
         gameState.addMoveToEndLAN(data.lan);
         if (gameState.currentVariation.isMain() && !gameState.currentVariation.next[0]){
             gameState.nextVariation();

@@ -90,9 +90,13 @@ async function loadGame(){
     // request file
     const res = await fetch(path);
     const json = await res.json();
-    const { gamePgn, whiteDebug, blackDebug } = json;
-    gameState.widgets.EngineDebugWidget.setWhiteDebug(whiteDebug);
-    gameState.widgets.EngineDebugWidget.setBlackDebug(blackDebug);
-    gameState.widgets.TimeWidget.loadTimeDataFromDebug(whiteDebug, blackDebug);
-    gameState.loadPGN(gamePgn);
+    const { gamePGN, whiteDebug, blackDebug } = json;
+
+    if (whiteDebug)
+        gameState.widgets.EngineDebugWidget.setWhiteDebug(whiteDebug);
+    if (blackDebug)
+        gameState.widgets.EngineDebugWidget.setBlackDebug(blackDebug);
+    if (whiteDebug && blackDebug)
+        gameState.widgets.TimeWidget.loadTimeDataFromDebug(whiteDebug, blackDebug);
+    gameState.loadPGN(gamePGN);
 }

@@ -16,6 +16,11 @@ export class Arbiter {
     async playGame(white, black, fen, round, timeControl, path, wdbgPath, bdbgPath){
         console.log(`Starting game ${round}`);
         return new Promise((res, rej) => {
+            // trigger new game
+            console.log(this.gameListeners);
+            for (const g of this.gameListeners)
+                g({ type: "newgame", fen, white: white.name, black: black.name });
+
             // listens for when the game ends
             const listener = (msg) => {
                 for (const g of this.gameListeners)

@@ -1,15 +1,13 @@
 
+import pathModule from "node:path";
+import fs from "node:fs";
+import http from "node:http";
+
 import express from "express";
-import http from "http";
 import { Server } from "socket.io";
-import pathModule from "path";
 
-import { Board } from "hyper-chess-board";
-import { fileURLToPath } from "url";
-import { Tournament_Files } from "./tournament-files.mjs";
+import { Tournament } from "../tournament/tournament.js";
 
-
-const __dirname = pathModule.dirname(fileURLToPath(import.meta.url));
 
 export function startWebServer(){
     // create a web server so people can join and watch the games!
@@ -17,45 +15,12 @@ export function startWebServer(){
     const server = http.createServer(app);
 
     const io = new Server(server);
-    const sockets = [];
-    let cmds = [];
-    let activeTourney;
 
-    function matchListener(event){
-        io.emit("liveUpdate", event);
-        cmds.push(event);
-
-        if (event.cmd == "endgame")
-            cmds = [];
-    }
-
-    function setActiveTournament(t){
-        if (!t && activeTourney){
-            activeTourney.matchManager.workers[0].off("message", matchListener);
-            activeTourney = undefined;
-        }
-        if (t){
-            // for now, just broadcast one game
-            t.matchManager.workers[0].on("message", matchListener);
-            activeTourney = t;
-        }
-    }
-
-    io.on("connection", (socket) => {
-        sockets.push(socket);
-
-        // get socket up to date with game
-        for (const c of cmds)
-            socket.emit("liveUpdate", c);
-
-        socket.on("disconnect", () => sockets.splice(sockets.indexOf(socket), 1));
-    });
-
-    app.use(express.static(__dirname + "/../viewer"));
+    app.use(express.static(pathModule.resolve("viewer")));
     app.use(express.json());
     
     // allow the client side to use some of the server modules.
-    const boardModules = pathModule.join(__dirname, "..", "node_modules", "hyper-chess-board");
+    const boardModules = pathModule.resolve("node_modules", "hyper-chess-board");
     app.use("/board-modules", express.static(boardModules));
 
     app.get("/", (req, res) => {
@@ -67,7 +32,7 @@ export function startWebServer(){
     });
 
     app.get("/tournaments", (req, res) => {
-        res.send(JSON.stringify(Tournament_Files.getTournamentNames()));
+        res.send(JSON.stringify(Tournament.getTournamentNames()));
     });
 
     // returns all of the live boards
@@ -77,70 +42,27 @@ export function startWebServer(){
 
     // returns all games of the tournament
     app.get("/:tournament/games", (req, res) => {
-        const files = new Tournament_Files(req.params.tournament);
-        files.files.games.read()
-            .then(data => res.send(data))
-            .catch(err => res.sendStatus(404));
+        const tourn = new Tournament(req.params.tournament);
+
+        fs.readFile(tourn.compiledPath, (err, data) => {
+            if (err){
+                console.error(err);
+                res.sendStatus(404);
+                return;
+            }
+            res.send(data.toString());
+        });
     });
 
     // returns the game along with engine debug info
-    app.get("/:tournament/:id", (req, res) => {
-        const files = new Tournament_Files(req.params.tournament);
-        files.getGame(req.params.id)
-            .then(data => res.send(data))
-            .catch(err => res.sendStatus(404));
+    app.get("/:tournament/:id", async (req, res) => {
+        const tourn = new Tournament(req.params.tournament);
+        const [ gamePGN, whiteDebug, blackDebug ] = await tourn.getGame(req.params.id);
+        res.send({ gamePGN, whiteDebug, blackDebug });
     });
 
     server.listen(8000);
     console.log("Listening to port 8000");
     
-    return { server, io, setActiveTournament };
-}
-
-// user plays against engine given io, engine, and engine's side to play
-export function userVsEngine(io, engine, stp){
-
-    console.log("Setting up IO...");
-
-    io.on("connection", (socket) => {
-        console.log("New socket connected. Setting up engine...");
-        
-        const board = new Board();
-        const moves = [];
-
-        // prepare process for engine and for user
-        const eproc = engine.createProcess(() => 0, () => 0);
-        const dummyProc = {
-            engine: { name: "user" },
-
-            opponentMove: (lan) => {
-                moves.push(lan);
-                socket.emit("move", lan);
-            }
-        };
-
-        // set up engine process
-        eproc.setOpponent(dummyProc);
-        eproc.setup(board, stp);
-
-
-        // === socket io events === //
-
-        socket.on("makemove", (lan) => {
-            moves.push(lan);
-            board.playLANMove(lan);
-            eproc.opponentMove(lan);
-        });
-
-        socket.on("disconnect", () => {
-            console.log("Disconnecting...");
-            eproc.saveGameLog("./data/");
-            eproc.saveProcLog("./data/");
-            eproc.stop();
-        });
-
-        console.log("Set up complete!");
-    });
-
-    console.log("IO set up! Be sure to refresh any connections");
+    return { server, io };
 }

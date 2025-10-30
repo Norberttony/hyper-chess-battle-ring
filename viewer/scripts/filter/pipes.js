@@ -1,6 +1,6 @@
 
-import { Piece } from "/board-modules/index.mjs";
-import { getGamePhase, getConstellation } from "./filters.mjs";
+import { Piece } from "/board-modules/index.js";
+import { getGamePhase, getConstellation } from "./filters.js";
 
 
 export class Pipe {

@@ -8,12 +8,15 @@ import { getEngines } from "./modules/tournament/engine-process.js";
 import { input, inputNumber, options } from "./modules/utils/input.js";
 import { Tournament } from "./modules/tournament/tournament.js";
 import { Scheduler } from "./modules/tournament/scheduler.js";
+import { startWebServer } from "./modules/web/web-server.js";
+import { LiveManager } from "./modules/web/live.js";
 
 
 const botsDir = pathModule.join(".", "bots");
 const benchDir = pathModule.join(".", "bench");
 
-const globals = {};
+const { io, server } = startWebServer();
+const liveManager = new LiveManager(io);
 
 
 (async () => {
@@ -54,11 +57,6 @@ const globals = {};
                 await tournamentDashboard(new Tournament(tournaments[idx]));
             }
 
-        }else if (cmd[0] == "play"){
-            
-            // assumes: first active engine plays as black.
-            userVsEngine(io, getEngines(botsDir)[0], Piece.black);
-
         }else if (cmd[0] == "q"){
             break;
         }
@@ -69,6 +67,7 @@ const globals = {};
 
 async function tournamentDashboard(tourn){
     const scheduler = new Scheduler(tourn);
+    liveManager.setScheduler(scheduler);
 
     while (true){
         if (!scheduler.isPlaying)

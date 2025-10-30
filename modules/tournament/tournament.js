@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 
-import { buildStructure, isDirectory } from "../utils/file.js";
+import { buildStructure, isDirectory, readFiles } from "../utils/file.js";
 import { pentaSPRT } from "../stats/penta-sprt.js";
 import { testLLR } from "../stats/sprt.js";
 import { convertGameDataToPGN } from "./game-data.js";
@@ -106,12 +106,19 @@ export class Tournament {
         return pathModule.join(this.root, "games", `${round}_game.pgn`);
     }
 
+    async getGame(round){
+        const gamePath = this.getGamePath(round);
+        const wdbgPath = this.getDebugPath(round, true);
+        const bdbgPath = this.getDebugPath(round, false);
+        return readFiles(gamePath, wdbgPath, bdbgPath);
+    }
+
     getDebugPath(round, isWhite){
         return pathModule.join(this.root, "debug", `${round}_${isWhite ? "white" : "black"}.txt`);
     }
 
     getNextRound(){
-        const r = this.data.rounds++;
+        const r = ++this.data.rounds;
         this.saveData();
         return r;
     }

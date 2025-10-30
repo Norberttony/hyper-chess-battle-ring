@@ -23,6 +23,8 @@ export class Scheduler {
         this.unpickedSchedule = [ ...this.schedule ];
         this.arbiters = [];
 
+        this.gameListeners = [];
+
         this.#finalGameListeners = [];
     }
 
@@ -47,10 +49,20 @@ export class Scheduler {
         
         while (this.arbiters.length < threadsAmt){
             const arbiter = new Arbiter(this.tournament.name);
+            const id = this.activeThreads++;
+            arbiter.addGameListener((msg) => {
+                msg.threadId = id;
+                for (const g of this.gameListeners)
+                    g(msg);
+            });
+
             this.arbiters.push(arbiter);
             this.#scheduleLoop(arbiter);
-            this.activeThreads++;
         }
+    }
+
+    addGameListener(listener){
+        this.gameListeners.push(listener);
     }
 
     async stop(){
