@@ -2,8 +2,6 @@
 import fs from "fs";
 import pathModule from "path";
 
-import { Piece } from "hyper-chess-board";
-
 import { getEngines } from "./modules/tournament/engine-process.js";
 import { input, inputNumber, options } from "./modules/utils/input.js";
 import { Tournament } from "./modules/tournament/tournament.js";
@@ -20,29 +18,19 @@ const liveManager = new LiveManager(io);
 
 
 (async () => {
-
     while (true){
         console.log("Type in a command:");
         const cmd = (await input()).split(" ");
 
         if (cmd[0] == "bench"){
-
             displayBench();
-
         }else if (cmd[0] == "list"){
-
             displayBots();
-
         }else if (cmd[0] == "add"){
-            
             addToBots(cmd[1]);
-
         }else if (cmd[0] == "remove"){
-
             addToBench(cmd[1]);
-            
         }else if (cmd[0] == "tournament"){
-
             const tournaments = Tournament.getTournamentNames();
             tournaments.unshift("Create a new tournament");
 
@@ -56,12 +44,10 @@ const liveManager = new LiveManager(io);
             }else{
                 await tournamentDashboard(new Tournament(tournaments[idx]));
             }
-
         }else if (cmd[0] == "q"){
             break;
         }
     }
-
 })();
 
 

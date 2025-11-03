@@ -3,18 +3,24 @@ import readline from "node:readline";
 
 // Handles retrieving input from the user.
 
+const inputBuffer = [];
 
 const rli = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
+rli.on("line", (data) => {
+    inputBuffer.push(data);
+});
+
 // Reads in a single line of input from the user.
 export async function input(){
     return new Promise((res, rej) => {
-        rli.question("", (v) => {
-            res(v);
-        });
+        if (inputBuffer.length > 0)
+            res(inputBuffer.shift());
+        else
+            rli.question("", res);
     });
 }
 
