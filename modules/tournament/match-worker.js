@@ -90,6 +90,22 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
             const currFEN = board.getFEN();
             const winner = board.turn == Piece.white ? Piece.black : Piece.white;
             board.setResult(winner == Piece.black ? "0-1" : "1-0", "illegal move", winner);
+
+            // save the game to an error log
+            const data = new GameData(
+                startDate,
+                round,
+                fen,
+                moveObjects,
+                white,
+                black,
+                board.result,
+                winner,
+                timeControl
+            );
+
+            const pgn = convertGameDataToPGN(data);
+            fs.appendFileSync("err.txt", `Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}:\n${pgn}\n\n`);
             throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}`);
         }
         board.makeMove(move);

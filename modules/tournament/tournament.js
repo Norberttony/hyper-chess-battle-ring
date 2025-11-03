@@ -322,54 +322,6 @@ export class Tournament {
         return pentaSPRT(ll, ld, dd, wd, ww, elo0, elo1);
     }
 
-    // gets the worst-case scenario for a pentamonial score
-    getWorstCasePenta(name){
-        const r = this.getPenta(name);
-
-        // goes through half results...
-        for (const { whiteName, blackName, result } of Object.values(this.halfResults)){
-            let s;
-            if (whiteName == name)
-                s = this.getWhiteScore(result);
-            else if (blackName == name)
-                s = 1 - this.getWhiteScore(result);
-            else
-                continue;
-
-            if (s == 0)
-                r.ll++;
-            else if (s == 0.5)
-                r.dl++;
-            else if (s == 1)
-                r.dd++;
-        }
-        return r;
-    }
-
-    // gets the best-case scenario for a pentamonial score
-    getBestCasePenta(name){
-        const r = this.getPenta(name);
-
-        // goes through half results...
-        for (const { whiteName, blackName, result } of Object.values(this.halfResults)){
-            let s;
-            if (whiteName == name)
-                s = this.getWhiteScore(result);
-            else if (blackName == name)
-                s = 1 - this.getWhiteScore(result);
-            else
-                continue;
-
-            if (s == 0)
-                r.dd++;
-            else if (s == 0.5)
-                r.wd++;
-            else if (s == 1)
-                r.ww++;
-        }
-        return r;
-    }
-
     logToTerminal(){
         const [ p1, p2 ] = this.players;
         console.log("\nSPRT Tournament");

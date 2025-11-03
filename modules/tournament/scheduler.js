@@ -121,25 +121,31 @@ export class Scheduler {
             return;
         }
 
-        const data = this.#getNextGame();
-        if (!data){
+        const scheduled = this.#getNextGame();
+        if (!scheduled){
             this.activeThreads--;
             return;
         }
 
         // all of the variables needed to play a game.
-        const { white, black, fen, round } = data;
+        const { white, black, fen, round } = scheduled;
         const tc = this.tournament.timeControl;
         const path = this.tournament.getGamePath(round);
         const wdbgPath = this.tournament.getDebugPath(round, true);
         const bdbgPath = this.tournament.getDebugPath(round, false);
 
-        const msg = await arbiter.playGame(white, black, fen, round, tc, path, wdbgPath, bdbgPath);
-        this.tournament.playedGame(msg.data);
+        try {
+            const msg = await arbiter.playGame(scheduled, white, black, fen, round, tc, path, wdbgPath, bdbgPath);
+            this.tournament.playedGame(msg.data);
 
-        // remove the game from the schedule
-        this.schedule.splice(this.schedule.indexOf(data), 1);
-        this.tournament.writeSchedule(this.schedule);
+            // remove the game from the schedule
+            this.schedule.splice(this.schedule.indexOf(scheduled), 1);
+            this.tournament.writeSchedule(this.schedule);
+        }
+        catch(err){
+            if (err != "Game was stopped")
+                throw new Error(err);
+        }
 
         if (!this.conclusion)
             this.checkForConclusion();
@@ -166,40 +172,27 @@ export class Scheduler {
         // recalculating conclusion...
         delete this.conclusion;
 
-        // runs SPRT...
-        // if result, we either wait for the second half of the doubles to finish. If there aren't
-        // any, we just cancel all arbiters.
+        // runs SPRT
         const p1 = this.tournament.players[0];
         const { h0, h1, alpha, beta } = this.tournament.sprt;
-        const worstPenta = this.tournament.getWorstCasePenta(p1.name);
-        const bestPenta = this.tournament.getBestCasePenta(p1.name);
-
-        const worstLLR = this.tournament.getPentaLLR(worstPenta, h0, h1);
-        const bestLLR = this.tournament.getPentaLLR(bestPenta, h0, h1);
+        const llr = this.tournament.getPentaLLR(this.tournament.getPenta(p1.name), h0, h1);
+        const hyp = testLLR(llr, alpha, beta);
 
         this.tournament.report();
 
-        if (testLLR(worstLLR, alpha, beta) == "H1"){
+        if (hyp == "H1"){
             this.conclusion = "H1";
             console.log("Accepted H1");
-        }else if (testLLR(bestLLR, alpha, beta) == "H0"){
+        }else if (hyp == "H0"){
             this.conclusion = "H0";
             console.log("Accepted H0");
         }
 
         if (this.conclusion){
-            // find all scheduled doubles and remove them from the schedule
-            const fenDict = {};
-            for (let i = 0; i < this.unpickedSchedule.length; i++){
-                const fen = this.unpickedSchedule[i].fen;
-                if (fenDict[fen]){
-                    // aha! a double!
-                    this.unpickedSchedule.splice(i, 1);
-                    this.unpickedSchedule.splice(fenDict[fen], 1);
-                    i -= 2;
-                }else{
-                    fenDict[fen] = i;
-                }
+            // cancel all games
+            for (const a of this.arbiters){
+                if (a.game)
+                    a.stopGame();
             }
         }
     }

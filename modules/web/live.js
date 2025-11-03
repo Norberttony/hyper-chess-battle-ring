@@ -23,7 +23,6 @@ export class LiveManager {
     }
 
     #receiveMessage(msg){
-        console.log(msg);
         const id = msg.threadId;
         if (!this.messages[id])
             this.messages[id] = [];

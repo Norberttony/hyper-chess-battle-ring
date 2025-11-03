@@ -1,5 +1,5 @@
 
-import readline from "readline";
+import readline from "node:readline";
 
 // Handles retrieving input from the user.
 
