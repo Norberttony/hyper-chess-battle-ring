@@ -28,14 +28,18 @@ export class EngineDebugWidget extends BoardWidget {
 
                 // find where engine started analyzing
                 let analysisIdx = dbg.indexOf("position fen");
+                const analysisLine = dbg.substring(analysisIdx, dbg.indexOf("\n", analysisIdx));
                 let steps = 0;
-                while (steps != variation.level){
-                    analysisIdx = dbg.indexOf("> position moves", analysisIdx + 1);
-                    steps++;
+                while (steps < variation.level - 1){
+                    analysisIdx = dbg.indexOf(analysisLine, analysisIdx + 1);
+                    steps += 2;
                 }
 
                 const start = dbg.indexOf(" > go", analysisIdx) - 1;
-                const end = dbg.indexOf("> position moves", analysisIdx + 1);
+                let end = dbg.indexOf(analysisLine, analysisIdx + 1);
+
+                if (end == -1)
+                    end = dbg.length;
 
                 this.debugElem.value = dbg.substring(start, end);
 
