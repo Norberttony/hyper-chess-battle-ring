@@ -35,8 +35,8 @@ export class EngineProcess {
     // internal function that separates out stdout into complete lines.
     #getLines(stdoutData){
         // stdout data might have multiple lines, and the last line might be cut off.
-        const lines = (this.broken + stdoutData).split("\r\n");
-        if (!stdoutData.endsWith("\r\n") || lines[lines.length - 1] == "")
+        const lines = (this.broken + stdoutData).split("\n").map(v => v.trim());
+        if (!stdoutData.endsWith("\n") || lines[lines.length - 1] == "")
             this.broken = lines.pop();
 
         for (const l of lines){
