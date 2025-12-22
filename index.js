@@ -88,35 +88,26 @@ async function tournamentDashboard(tourn){
         // commands for modifying the tournament
         const players = tourn.getPlayerNames();
         if (cmd[0] == "add"){
-
-            const engines = fs.readdirSync(botsDir).filter(v => v.endsWith(".exe"));
-
-            for (let i = 0; i < engines.length; i++)
-                engines[i] = engines[i].substring(0, engines[i].length - 4);
+            const engines = getEngines(botsDir);
 
             if (engines.length == 0){
                 console.log("No engines found.");
                 continue;
             }
 
-            engines.unshift("Exit");
-            const idx = await options(engines);
+            const opts = engines.map(v => v.name);
+            opts.unshift("Exit");
+            const idx = await options(opts);
 
-            if (idx != 0){
-                const name = engines[idx];
-                tourn.addPlayer({ name, path: pathModule.join(".", "bots", `${name}.exe`) });
-            }
-
+            if (idx != 0)
+                tourn.addPlayer(engines[idx - 1]);
         }else if (cmd[0] == "remove"){
-
             const engines = [ "Exit", ...players ];
             const idx = await options(engines);
 
             if (idx != 0)
                 tourn.removePlayerByName(engines[idx]);
-
         }else if (cmd[0] == "timeControl"){
-
             const { time, inc } = tourn.timeControl;
             console.log(`\nThe time control currently is ${time}ms + ${inc}ms`);
 
@@ -130,9 +121,7 @@ async function tournamentDashboard(tourn){
                 console.error("\nCannot set both time and increment to 0.");
             else
                 tourn.setTimeControl(newTime, newInc);
-
         }else if (cmd[0] == "mode"){
-
             const modeConfig = tourn.sprt;
 
             console.log(`H0: ${modeConfig.h0}`);

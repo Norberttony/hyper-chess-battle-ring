@@ -102,10 +102,11 @@ export class EngineProcess {
 export function getEngines(dir){
     const engines = [];
     fs.readdirSync(dir).forEach(fileName => {
+        console.log(fileName);
         // shoddy fix for linux
         if (fileName.endsWith(".exe") || fileName.indexOf(".") == -1){
             engines.push({
-                name: fileName.substring(0, fileName.length - 4),
+                name: pathModule.basename(fileName),
                 path: pathModule.join(dir, fileName)
             });
         }
