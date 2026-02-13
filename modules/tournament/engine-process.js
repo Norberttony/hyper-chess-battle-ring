@@ -7,6 +7,7 @@ import { spawn } from "node:child_process";
 // input into the executable and returning output from the engine .exe file.
 export class EngineProcess {
     constructor(path, onReadLine = () => 0){
+        this.path = path;
         this.proc = spawn(path);
 
         this.onReadLine = onReadLine;
