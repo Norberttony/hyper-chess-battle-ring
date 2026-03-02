@@ -106,7 +106,8 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
 
             const pgn = convertGameDataToPGN(data);
             fs.appendFileSync("err.txt", `Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}:\n${pgn}\n\n`);
-            throw new Error(`Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}`);
+            console.error(`Could not find move of LAN ${lan} for FEN ${currFEN}, fault is in ${active.path}`);
+            break;
         }
         board.makeMove(move);
 
