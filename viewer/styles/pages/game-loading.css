@@ -67,7 +67,7 @@
 }
 
 #game-list .board-graphics {
-    --zoom: 40;
+    --zoom: 30;
     width: inherit;
     grid-template-columns: 1fr;
 }
@@ -75,6 +75,10 @@
 #game-list {
     display: flex;
     flex-wrap: wrap;
+}
+
+#game-list .board-graphics * {
+    font-size: 10px;
 }
 
 /* GAME LOADING */
