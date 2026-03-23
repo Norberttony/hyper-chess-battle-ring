@@ -1,10 +1,10 @@
 
-#main-board {
+.board-graphics {
     padding-top: 1vw;
 }
 
 @media (min-width: 1110px){
-    #main-board {
+    .board-graphics {
         grid-template-areas:
             'left   top_bar      .'
             'left   board       right-black'
@@ -23,7 +23,7 @@
 }
 
 @media (max-width: 1110px){
-    #main-board {
+    .board-graphics {
         --zoom: 100;
         grid-template-areas:
             ' . right-black . '
@@ -45,25 +45,36 @@
 }
 
 @media (min-aspect-ratio: 1/1){
-    #main-board {
+    .board-graphics {
         --zoom: 85;
         --game-width: calc(var(--zoom) * 1vh);
         --game-height: calc(var(--zoom) * 1vh);
     }
-    #main-board .board-graphics__files, #main-board .board-graphics__ranks {
+    .board-graphics .board-graphics__files, .board-graphics .board-graphics__ranks {
         font-size: 2vh;
     }
 }
 
 @media (max-aspect-ratio: 1/1){
-    #main-board {
+    .board-graphics {
         margin: 0px;
         --game-width: calc(100vw);
         --game-height: calc(100vw);
     }
-    #main-board .board-graphics__files, #main-board .board-graphics__ranks {
+    .board-graphics .board-graphics__files, .board-graphics .board-graphics__ranks {
         font-size: 2vw;
     }
+}
+
+#game-list .board-graphics {
+    --zoom: 40;
+    width: inherit;
+    grid-template-columns: 1fr;
+}
+
+#game-list {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 /* GAME LOADING */

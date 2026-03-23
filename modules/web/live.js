@@ -11,7 +11,7 @@ export class LiveManager {
                 const msgs = this.messages[i];
                 if (msgs){
                     for (const msg of msgs)
-                        socket.emit(`game${i}`, msg);
+                        socket.emit(`game`, i, msg);
                 }
             }
         });
@@ -27,7 +27,7 @@ export class LiveManager {
         if (!this.messages[id])
             this.messages[id] = [];
 
-        this.io.emit(`game${id}`, msg);
+        this.io.emit(`game`, id, msg);
 
         this.messages[id].push(msg);
 

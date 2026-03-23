@@ -1,16 +1,31 @@
 
 const socket = io();
 
-socket.on("game0", async (data) => {
+const gameStates = {};
+
+socket.on("game", async (id, data) => {
     await module_loader.waitForAll();
+
+    let state = gameStates[id];
+    if (!state){
+        state = new BoardGraphics();
+        gameStates[id] = state;
+
+        // add to list
+        document.getElementById("game-list").appendChild(state.skeleton);
+
+        // add widgets
+        new PlayersWidget(state);
+    }
+
     if (data.type == "newgame"){
-        gameState.loadFEN(data.fen);
-        gameState.setNames(data.white, data.black);
+        state.loadFEN(data.fen);
+        state.setNames(data.white, data.black);
     }else if (data.type == "move"){
-        gameState.addMoveToEndLAN(data.lan);
-        if (gameState.currentVariation.isMain() && !gameState.currentVariation.next[0]){
-            gameState.nextVariation();
-            gameState.applyChanges(false);
+        state.addMoveToEndLAN(data.lan);
+        if (state.currentVariation.isMain() && !state.currentVariation.next[0]){
+            state.nextVariation();
+            state.applyChanges(false);
         }
     }
 });
