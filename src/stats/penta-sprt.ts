@@ -2,7 +2,15 @@
 // Code courtesy of
 // https://github.com/raklaptudirm/arbiter/tree/master/pkg/eve/stats
 
-export function pentaSPRT(lls, lds, dds, wds, wws, elo0, elo1){
+export function pentaSPRT(
+    lls: number,
+    lds: number,
+    dds: number,
+    wds: number,
+    wws: number,
+    elo0: number,
+    elo1: number
+): number {
     // total number of game pairs
     const N = lls + lds + dds + wds + wws + 2.5;
 
@@ -36,7 +44,14 @@ export function pentaSPRT(lls, lds, dds, wds, wws, elo0, elo1){
 	return 0.5 * N * Math.log(r0 / r1);
 }
 
-function getVariance(ww, wd, dd, ld, ll, mu){
+function getVariance(
+    ww: number,
+    wd: number,
+    dd: number,
+    ld: number,
+    ll: number,
+    mu: number
+): number {
     return Math.sqrt(
         ww * (1.00 - mu) ** 2 +
         wd * (0.75 - mu) ** 2 +
@@ -46,6 +61,6 @@ function getVariance(ww, wd, dd, ld, ll, mu){
     );
 }
 
-function nEloToScore(nelo, r){
+function nEloToScore(nelo: number, r: number): number {
 	return nelo * Math.SQRT2 * r / (800 / Math.LN10) + 0.5;
 }

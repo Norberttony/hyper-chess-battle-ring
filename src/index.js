@@ -1,7 +1,5 @@
-
 import fs from "fs";
 import pathModule from "path";
-
 import { getEngines } from "./modules/tournament/engine-process.js";
 import { input, inputNumber, options } from "./modules/utils/input.js";
 import { Tournament } from "./modules/tournament/tournament.js";
@@ -9,13 +7,11 @@ import { Scheduler } from "./modules/tournament/scheduler.js";
 import { startWebServer } from "./modules/web/web-server.js";
 import { LiveManager } from "./modules/web/live.js";
 
-
 const botsDir = pathModule.join(".", "bots");
 const benchDir = pathModule.join(".", "bench");
 
 const { io, server } = startWebServer();
 const liveManager = new LiveManager(io);
-
 
 (async () => {
     while (true){

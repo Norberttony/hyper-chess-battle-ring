@@ -2,11 +2,19 @@
 // Courtesy of
 // https://www.chessprogramming.org/Match_Statistics#SPRT
 
-function log_likelihood(x){
+export type LlrResult = "H0" | "H1" | undefined;
+
+function log_likelihood(x: number): number {
     return 1 / (1 + 10 ** (-x / 400));
 }
 
-function log_likelihood_ratio(wins, draws, losses, h_0, h_1){
+function log_likelihood_ratio(
+    wins: number,
+    draws: number,
+    losses: number,
+    h_0: number,
+    h_1: number
+): number {
     if (wins == 0 || draws == 0 || losses == 0)
         return 0;
 
@@ -25,11 +33,17 @@ function log_likelihood_ratio(wins, draws, losses, h_0, h_1){
     return (s1 - s0) * (2 * score - s0 - s1) / v_s / 2;
 }
 
-export function SPRT(wins, draws, losses, h_0, h_1){
+export function SPRT(
+    wins: number,
+    draws: number,
+    losses: number,
+    h_0: number,
+    h_1: number
+): number {
     return log_likelihood_ratio(wins, draws, losses, h_0, h_1);
 }
 
-export function testLLR(ratio, alpha, beta){
+export function testLLR(ratio: number, alpha: number, beta: number): LlrResult {
     const l_a = Math.log(beta / (1 - alpha));
     const l_b = Math.log((1 - beta) / alpha);
     if (ratio > l_b)

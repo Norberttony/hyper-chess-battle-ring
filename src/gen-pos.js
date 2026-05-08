@@ -1,10 +1,8 @@
-
 import fs from "node:fs";
 import path from "node:path";
 
 import { Piece, Board, StartingFEN } from "hyper-chess-board";
 import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
-
 
 {
     const fileNames = fs.readdirSync(".");

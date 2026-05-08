@@ -1,4 +1,3 @@
-
 import { Worker } from "node:worker_threads";
 
 // Wrapper class that handles communicating to the match thread

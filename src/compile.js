@@ -1,9 +1,8 @@
-
-// A script that helps in generating random bench suites for the engine.
-
 import fs from "node:fs";
 import { splitPGNs, extractHeaders, extractMoves } from "hyper-chess-board/pgn";
 import { Board } from "hyper-chess-board";
+
+// A script that helps in generating random bench suites for the engine.
 
 {
     const gamesPath = "./data/tournaments/2.3.0-2 magic-cache/games";
