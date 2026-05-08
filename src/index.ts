@@ -1,17 +1,17 @@
 import fs from "fs";
 import pathModule from "path";
-import { getEngines } from "./modules/tournament/engine-process.js";
-import { input, inputNumber, options } from "./modules/utils/input.js";
-import { Tournament } from "./modules/tournament/tournament.js";
-import { Scheduler } from "./modules/tournament/scheduler.js";
-import { startWebServer } from "./modules/web/web-server.js";
-import { LiveManager } from "./modules/web/live.js";
+import { getEngines } from "./tournament/engine-process.js";
+import { input, inputNumber, options } from "./utils/input.js";
+import { Bot, Tournament } from "./tournament/tournament.js";
+import { Scheduler } from "./tournament/scheduler.js";
+import { startWebServer } from "./web/web-server.js";
+import { LiveManager } from "./web/live.js";
 
-const botsDir = pathModule.join(".", "bots");
-const benchDir = pathModule.join(".", "bench");
+const botsDir: string = pathModule.join(".", "bots");
+const benchDir: string = pathModule.join(".", "bench");
 
 const { io, server } = startWebServer();
-const liveManager = new LiveManager(io);
+const liveManager: LiveManager = new LiveManager(io);
 
 (async () => {
     while (true){
@@ -47,7 +47,7 @@ const liveManager = new LiveManager(io);
 })();
 
 
-async function tournamentDashboard(tourn){
+async function tournamentDashboard(tourn: Tournament): Promise<void> {
     const scheduler = new Scheduler(tourn);
     liveManager.setScheduler(scheduler);
 
@@ -172,7 +172,7 @@ function displayBots(){
     console.log("");
 }
 
-function getEngineWithName(arr, name){
+function getEngineWithName(arr: Bot[], name: string): number {
     for (let i = 0; i < arr.length; i++){
         if (arr[i].name == name){
             return i;
@@ -181,7 +181,7 @@ function getEngineWithName(arr, name){
     return -1;
 }
 
-function addToBots(name){
+function addToBots(name: string): void {
     const oldPath = pathModule.join(benchDir, name + ".exe");
     if (fs.existsSync(oldPath)){
         fs.renameSync(oldPath, pathModule.join(botsDir, name + ".exe"));
@@ -194,7 +194,7 @@ function addToBots(name){
     }
 }
 
-function addToBench(name){
+function addToBench(name: string): void {
     const oldPath = pathModule.join(botsDir, name + ".exe");
     if (fs.existsSync(oldPath)){
         fs.renameSync(oldPath, pathModule.join(benchDir, name + ".exe"));
