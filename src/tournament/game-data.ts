@@ -1,7 +1,8 @@
 import { convertToPGN } from "hyper-chess-board/dist/pgn";
 import { Board, Move, StartingFEN, GameResult } from "hyper-chess-board";
-import { Bot, TimeControl } from "./tournament";
+import { Bot, ResultSymbol, TimeControl } from "./tournament";
 import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn";
+import { getResultSymbol } from "../stats/result";
 
 // This class operates as a struct, and can freely be passed around as JSON strings or between
 // workers/threads (since it has no methods that could get lost). Contains data regarding a
@@ -36,14 +37,15 @@ export function convertGameDataToPGN(gameData: GameData, event?: string){
     const { time, inc } = gameData.timeControl;
 
     const { white, black, result, moves, date, round } = gameData;
+    const symbol: ResultSymbol = getResultSymbol(result);
 
-    const headers: PGNHeaders = {
+    const headers: any = {
         "Date": date,
         "Round": round,
         "Site": "Hyper Chess Battle Ring",
         "White": white.name,
         "Black": black.name,
-        "Result": result.result,
+        "Result": symbol,
         "Termination": result.termination,
         "TimeControl": `${time / 60000}+${inc / 1000}`
     };
@@ -59,5 +61,5 @@ export function convertGameDataToPGN(gameData: GameData, event?: string){
     const b = new Board();
     b.loadFEN(gameData.fen);
 
-    return convertToPGN(headers, moves, b, result.result);
+    return convertToPGN(headers, moves, b, symbol);
 }

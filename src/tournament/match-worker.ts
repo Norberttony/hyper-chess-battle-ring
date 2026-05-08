@@ -1,11 +1,12 @@
 import fs, { PathLike } from "node:fs";
 import { parentPort, workerData } from "node:worker_threads";
-import { Board } from "hyper-chess-board";
+import { Board, GameResult, LAN } from "hyper-chess-board";
 import { getPGNDateNow } from "hyper-chess-board/dist/pgn";
 import { EngineProcess } from "./engine-process.js";
 import { GameData, convertGameDataToPGN } from "./game-data.js";
 import { Bot, ReadyGame } from "./tournament.js";
 import { Side } from "hyper-chess-board";
+import { getResultSymbol } from "../stats/result.js";
 
 if (parentPort === null)
     throw new Error("Match worker: parent port is null");
@@ -55,6 +56,8 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
     let isFirstMove = true;
     const moveObjects = [];
 
+    let result: GameResult | undefined;
+
     while (!board.isGameOver()){
         const currTime = board.getTurn() == Side.White ? wtime : btime;
         const active = board.getTurn() == Side.White ? w : b;
@@ -74,10 +77,10 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
             btime -= end - start;
 
         if (wtime <= 0){
-            board.setResult("0-1", "time out", Side.Black);
+            result = { termination: "time out", winner: Side.Black };
             break;
         }else if (btime <= 0){
-            board.setResult("1-0", "time out", Side.White);
+            result = { termination: "time out", winner: Side.White };
             break;
         }
 
@@ -87,12 +90,12 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
             btime += binc;
 
         // get the move and play it on the board
-        const lan = bestMoveCmd.split(" ")[1];
+        const lan: LAN = bestMoveCmd.split(" ")[1] as LAN;
         const move = board.getMoveOfLAN(lan);
         if (!move){
             const currFEN = board.getFEN();
             const winner = board.getTurn() == Side.White ? Side.Black : Side.White;
-            board.setResult(winner == Side.Black ? "0-1" : "1-0", "illegal move", winner);
+            result = { termination: "illegal move", winner };
 
             // save the game to an error log
             const data = new GameData(
@@ -102,7 +105,7 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
                 moveObjects,
                 white,
                 black,
-                board.result,
+                result,
                 winner,
                 timeControl
             );
@@ -123,12 +126,16 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         parentPort?.postMessage({ type: "move", lan, wtime, btime });
     }
 
+    if (result == undefined)
+        result = board.isGameOver();
+
     let winner: Bot | number = -2;
-    if (board.result.result == "1-0")
+    const symbol = getResultSymbol(result!);
+    if (symbol == "1-0")
         winner = white;
-    else if (board.result.result == "0-1")
+    else if (symbol == "0-1")
         winner = black;
-    else if (board.result.result == "1/2-1/2")
+    else if (symbol == "1/2-1/2")
         winner = 0;
 
     const data = new GameData(
@@ -138,7 +145,7 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         moveObjects,
         white,
         black,
-        board.result,
+        result!,
         winner,
         timeControl
     );

@@ -7,6 +7,7 @@ import { testLLR } from "../stats/sprt.js";
 import { convertGameDataToPGN, GameData } from "./game-data.js";
 import { EngineProcess } from "./engine-process.js";
 import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn/pgn-data.js";
+import { getResultSymbol } from "../stats/result.js";
 
 // Directly deals with file management, player add/remove, results management, and logging to the
 // terminal.
@@ -269,7 +270,7 @@ export class Tournament {
     }
 
     public playedGame(gameData: GameData): void {
-        this.record(gameData.white.name, gameData.black.name, gameData.fen, gameData.result.result);
+        this.record(gameData.white.name, gameData.black.name, gameData.fen, getResultSymbol(gameData.result));
 
         const pgn = convertGameDataToPGN(gameData);
         fs.appendFileSync(this.compiledPath, "\n" + pgn + "\n");
