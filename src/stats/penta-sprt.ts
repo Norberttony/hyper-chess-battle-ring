@@ -2,38 +2,43 @@
 // Code courtesy of
 // https://github.com/raklaptudirm/arbiter/tree/master/pkg/eve/stats
 
+// represents the frequency of each possible two-game result.
+export interface Pentamonial {
+    ll: number,
+    ld: number,
+    dd: number,
+    wd: number,
+    ww: number
+}
+
 export function pentaSPRT(
-    lls: number,
-    lds: number,
-    dds: number,
-    wds: number,
-    wws: number,
+    { ll, ld, dd, wd, ww }: Pentamonial,
     elo0: number,
     elo1: number
 ): number {
     // total number of game pairs
-    const N = lls + lds + dds + wds + wws + 2.5;
+    const N = ll + ld + dd + wd + ww + 2.5;
 
     // probabilities for each possibility
-    const ll = (lls + 0.5) / N;
-    const ld = (lds + 0.5) / N;
-    const dd = (dds + 0.5) / N;
-    const wd = (wds + 0.5) / N;
-    const ww = (wws + 0.5) / N;
+    const llp = (ll + 0.5) / N;
+    const ldp = (ld + 0.5) / N;
+    const ddp = (dd + 0.5) / N;
+    const wdp = (wd + 0.5) / N;
+    const wwp = (ww + 0.5) / N;
 
     // empirical mean
-    const mu = ww + 0.75 * wd + 0.5 * dd + 0.25 * ld;
+    const mu = wwp + 0.75 * wdp + 0.5 * ddp + 0.25 * ldp;
 
     // standard deviation
-    const r = Math.sqrt(getVariance(ww, wd, dd, ld, ll, mu));
+    const r = Math.sqrt(getVariance(wwp, wdp, ddp, ldp, llp, mu));
 
     // convert elo bounds to score
     const mu0 = nEloToScore(elo0, r);
     const mu1 = nEloToScore(elo1, r);
 
     // deviation to the score bounds
-    const r0 = getVariance(ww, wd, dd, ld, ll, mu0);
-    const r1 = getVariance(ww, wd, dd, ld, ll, mu1);
+    const r0 = getVariance(wwp, wdp, ddp, ldp, llp, mu0);
+    const r1 = getVariance(wwp, wdp, ddp, ldp, llp, mu1);
 
     if (r0 == 0 || r1 == 0)
         return 0;

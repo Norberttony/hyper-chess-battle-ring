@@ -1,23 +1,27 @@
-
-import { convertToPGN } from "hyper-chess-board/pgn";
-import { Board, StartingFEN } from "hyper-chess-board";
-
+import { convertToPGN } from "hyper-chess-board/dist/pgn";
+import { Board, Move, StartingFEN, GameResult } from "hyper-chess-board";
+import { Bot, TimeControl } from "./tournament";
+import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn";
 
 // This class operates as a struct, and can freely be passed around as JSON strings or between
 // workers/threads (since it has no methods that could get lost). Contains data regarding a
 // complete game.
 export class GameData {
-    constructor(date, round, fen, moveObjects, white, black, result, winner, timeControl){
-        this.date = date;
-        this.round = round;
-        this.fen = fen;
+    public moves: Move[];
+    public loser: Bot | number = 0;
+
+    constructor(
+        public date: string,
+        public round: string,
+        public fen: string,
+        moveObjects: Move[],
+        public white: Bot,
+        public black: Bot,
+        public result: GameResult,
+        public winner: Bot | number,
+        public timeControl: TimeControl
+    ){
         this.moves = moveObjects;
-        this.white = white;
-        this.black = black;
-        this.result = result;
-        this.winner = winner;
-        this.loser = 0;
-        this.timeControl = timeControl;
 
         if (this.winner == this.white)
             this.loser = this.black;
@@ -28,15 +32,14 @@ export class GameData {
 
 
 // takes in a given GameData object, and the id and event, and returns a string in PGN format.
-export function convertGameDataToPGN(gameData, event){
+export function convertGameDataToPGN(gameData: GameData, event?: string){
     const { time, inc } = gameData.timeControl;
 
     const { white, black, result, moves, date, round } = gameData;
 
-    const headers = {
+    const headers: PGNHeaders = {
         "Date": date,
         "Round": round,
-        "Event": event,
         "Site": "Hyper Chess Battle Ring",
         "White": white.name,
         "Black": black.name,
@@ -44,6 +47,9 @@ export function convertGameDataToPGN(gameData, event){
         "Termination": result.termination,
         "TimeControl": `${time / 60000}+${inc / 1000}`
     };
+
+    if (event)
+        headers["Event"] = event;
 
     if (gameData.fen != StartingFEN){
         headers.FEN = gameData.fen;

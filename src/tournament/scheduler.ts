@@ -1,38 +1,36 @@
-
 import fs from "node:fs";
-
 import { testLLR } from "../stats/sprt.js";
-import { Arbiter } from "./arbiter.js";
+import { Arbiter, ArbiterMessage } from "./arbiter.js";
+import { ScheduledGame, Tournament } from "./tournament.js";
 
 // Directly deals with managing threads and the game schedule
 
 export class Scheduler {
-    #finalGameListeners;
+    private finalGameListeners: ((...v: any[]) => any)[] = [];
+    private gameListeners: ((msg: ArbiterMessage) => any)[] = [];
 
-    constructor(tournament){
-        this.tournament = tournament;
-        this.threadsAmt = 0;
+    private threadsAmt: number = 0;
+    private activeThreads: number = 0;
 
-        this.activeThreads = 0;
+    private conclusion: string | undefined;
+    private paused: boolean = false;
 
-        // create threads
-        this.conclusion;
-        this.paused = false;
+    private positions: string[];
+    private schedule: ScheduledGame[];
+    private unpickedSchedule: ScheduledGame[];
+    private arbiters: Arbiter[] = [];
+
+    constructor(private tournament: Tournament){
         this.positions = tournament.readPositions();
         this.schedule = tournament.readSchedule();
         this.unpickedSchedule = [ ...this.schedule ];
-        this.arbiters = [];
-
-        this.gameListeners = [];
-
-        this.#finalGameListeners = [];
     }
 
-    get isPlaying(){
+    public get isPlaying(): boolean {
         return this.activeThreads > 0;
     }
 
-    start(threadsAmt){
+    public start(threadsAmt: number): void {
         // is there already a result?
         this.checkForConclusion();
         if (this.conclusion)
@@ -48,30 +46,30 @@ export class Scheduler {
             throw new Error(`Detected missing engine(s): ${missing.join(", ")}`);
         
         while (this.arbiters.length < threadsAmt){
-            const arbiter = new Arbiter(this.tournament.name);
+            const arbiter = new Arbiter(this.tournament.getName());
             const id = this.activeThreads++;
-            arbiter.addGameListener((msg) => {
+            arbiter.addGameListener((msg: ArbiterMessage) => {
                 msg.threadId = id;
                 for (const g of this.gameListeners)
                     g(msg);
             });
 
             this.arbiters.push(arbiter);
-            this.#scheduleLoop(arbiter);
+            this.scheduleLoop(arbiter);
         }
     }
 
-    addGameListener(listener){
+    public addGameListener(listener: (msg: ArbiterMessage) => any){
         this.gameListeners.push(listener);
     }
 
-    async stop(){
+    public async stop(): Promise<any> {
         this.paused = true;
         console.log(`Allowing final ${this.activeThreads} thread(s) to finish`);
-        return new Promise((res, rej) => this.#finalGameListeners.push(res));
+        return new Promise<any>((res, rej) => this.finalGameListeners.push(res));
     }
 
-    #scheduleNextGame(){
+    private scheduleNextGame(): boolean {
         if (this.positions.length == 0 || this.conclusion)
             return false;
         
@@ -105,12 +103,12 @@ export class Scheduler {
         return true;
     }
 
-    async #scheduleLoop(arbiter){
+    private async scheduleLoop(arbiter: Arbiter): Promise<void> {
         if (this.paused){
             this.activeThreads--;
             if (this.activeThreads == 0){
                 this.paused = false;
-                for (const g of this.#finalGameListeners)
+                for (const g of this.finalGameListeners)
                     g();
             }
             return;
@@ -121,7 +119,7 @@ export class Scheduler {
             return;
         }
 
-        const scheduled = this.#getNextGame();
+        const scheduled = this.getNextGame();
         if (!scheduled){
             this.activeThreads--;
             return;
@@ -152,17 +150,17 @@ export class Scheduler {
 
         // let's play another :D
         // also, weird trick with setTimeout just to avoid dealing with stack overflow.
-        setTimeout(() => this.#scheduleLoop(arbiter), 1);
+        setTimeout(() => this.scheduleLoop(arbiter), 1);
     }
 
-    #getNextGame(){
+    public getNextGame(): ScheduledGame | undefined {
         if (this.unpickedSchedule.length == 0){
             // if there's a result, no more games.
             if (this.conclusion)
-                return undefined;
+                return;
 
             // otherwise add a game to the schedule
-            if (!this.#scheduleNextGame())
+            if (!this.scheduleNextGame())
                 return;
         }
         return this.unpickedSchedule.splice(0, 1)[0];
@@ -191,7 +189,7 @@ export class Scheduler {
         if (this.conclusion){
             // cancel all games
             for (const a of this.arbiters){
-                if (a.game)
+                if (a.getGame())
                     a.stopGame();
             }
         }

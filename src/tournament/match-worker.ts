@@ -1,14 +1,17 @@
-
-import fs from "node:fs";
+import fs, { PathLike } from "node:fs";
 import { parentPort, workerData } from "node:worker_threads";
-
-import { Board, Piece } from "hyper-chess-board";
-import { getPGNDateNow } from "hyper-chess-board/pgn";
+import { Board } from "hyper-chess-board";
+import { getPGNDateNow } from "hyper-chess-board/dist/pgn";
 import { EngineProcess } from "./engine-process.js";
 import { GameData, convertGameDataToPGN } from "./game-data.js";
+import { Bot, ReadyGame } from "./tournament.js";
+import { Side } from "hyper-chess-board";
 
-parentPort.on("message", ({ white, black, fen, round, timeControl, path, wdbgPath, bdbgPath }) => {
-    const setup = {
+if (parentPort === null)
+    throw new Error("Match worker: parent port is null");
+
+parentPort.on("message", ({ white, black, fen, round, timeControl, path, wdbgPath, bdbgPath }: ReadyGame) => {
+    const setup: Required<ReadyGame> = {
         w: new EngineProcess(white.path),
         b: new EngineProcess(black.path),
         white, black, fen, round, timeControl, path, wdbgPath, bdbgPath
@@ -16,11 +19,11 @@ parentPort.on("message", ({ white, black, fen, round, timeControl, path, wdbgPat
 
     playGame(setup)
         .then(data => {
-            parentPort.postMessage({ type: "result", data });
+            parentPort?.postMessage({ type: "result", data });
         })
         .catch(err => {
             console.error(err);
-            parentPort.postMessage({ type: "error", err });
+            parentPort?.postMessage({ type: "error", err });
         })
         .finally(() => {
             setup.w.stop();
@@ -28,7 +31,7 @@ parentPort.on("message", ({ white, black, fen, round, timeControl, path, wdbgPat
         });
 });
 
-async function playGame({ w, white, b, black, fen, round, timeControl, path, wdbgPath, bdbgPath }){
+async function playGame({ w, white, b, black, fen, round, timeControl, path, wdbgPath, bdbgPath }: Required<ReadyGame>){
     const startDate = getPGNDateNow();
 
     // set up the board
@@ -53,8 +56,8 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
     const moveObjects = [];
 
     while (!board.isGameOver()){
-        const currTime = board.turn == Piece.white ? wtime : btime;
-        const active = board.turn == Piece.white ? w : b;
+        const currTime = board.getTurn() == Side.White ? wtime : btime;
+        const active = board.getTurn() == Side.White ? w : b;
 
         active.write(posCmd);
 
@@ -65,20 +68,20 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         const end = performance.now();
 
         // progress time...
-        if (board.turn == Piece.white)
+        if (board.getTurn() == Side.White)
             wtime -= end - start;
         else
             btime -= end - start;
 
         if (wtime <= 0){
-            board.setResult("0-1", "time out", Piece.black);
+            board.setResult("0-1", "time out", Side.Black);
             break;
         }else if (btime <= 0){
-            board.setResult("1-0", "time out", Piece.white);
+            board.setResult("1-0", "time out", Side.White);
             break;
         }
 
-        if (board.turn == Piece.white)
+        if (board.getTurn() == Side.White)
             wtime += winc;
         else
             btime += binc;
@@ -88,8 +91,8 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         const move = board.getMoveOfLAN(lan);
         if (!move){
             const currFEN = board.getFEN();
-            const winner = board.turn == Piece.white ? Piece.black : Piece.white;
-            board.setResult(winner == Piece.black ? "0-1" : "1-0", "illegal move", winner);
+            const winner = board.getTurn() == Side.White ? Side.Black : Side.White;
+            board.setResult(winner == Side.Black ? "0-1" : "1-0", "illegal move", winner);
 
             // save the game to an error log
             const data = new GameData(
@@ -117,10 +120,10 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
         }
         posCmd += `${lan} `;
         moveObjects.push(move);
-        parentPort.postMessage({ type: "move", lan, wtime, btime });
+        parentPort?.postMessage({ type: "move", lan, wtime, btime });
     }
 
-    let winner = -2;
+    let winner: Bot | number = -2;
     if (board.result.result == "1-0")
         winner = white;
     else if (board.result.result == "0-1")
@@ -154,7 +157,7 @@ async function playGame({ w, white, b, black, fen, round, timeControl, path, wdb
     return data;
 }
 
-function saveFile(path, data, round){
+function saveFile(path: PathLike, data: string | NodeJS.ArrayBufferView, round: string){
     fs.writeFile(path, data, (err) => {
         if (err){
             console.error(`ERROR when writing file "${path}" for game ${round}:`, err);

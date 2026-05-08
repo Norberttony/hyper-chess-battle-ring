@@ -1,51 +1,56 @@
-
 import fs from "node:fs";
 import pathModule from "node:path";
-import { spawn } from "node:child_process";
+import { ChildProcess, spawn } from "node:child_process";
+import { Bot } from "./tournament";
 
 // Creates an engine process (wrapper class around a live executable) that is capable of feeding
 // input into the executable and returning output from the engine .exe file.
 export class EngineProcess {
-    constructor(path, onReadLine = () => 0){
-        this.path = path;
-        this.proc = spawn(path);
+    private proc: ChildProcess | undefined;
 
-        this.onReadLine = onReadLine;
+    // log is all of the input/output to/from the engine so far
+    // input is indexed by a " > " before the line.
+    public log: string = "";
+
+    // broken keeps track of "broken" lines (see #getLines)
+    public broken: string = "";
+
+    // for prompt
+    private promptPrefix: string | undefined;
+    private onPromptSuccess: ((data: string) => any) | undefined;
+    private promptTimeout: NodeJS.Timeout | number;
+
+    constructor(public path: string, private onReadLine: (data: string) => any = () => 0){
+        this.proc = spawn(path);
 
         // for prompt
         this.promptPrefix;
         this.onPromptSuccess;
         this.promptTimeout;
 
-        // log is all of the input/output to/from the engine so far
-        // input is indexed by a " > " before the line.
-        this.log = "";
-
-        // broken keeps track of "broken" lines (see #getLines)
-        this.broken = "";
-
-        this.proc.stdout.on("data", (data) => {
-            this.#getLines(data.toString());
+        this.proc.stdout?.on("data", (data) => {
+            this.getLines(data.toString());
         });
 
-        this.proc.on("error", (err) => {
-            throw new Error(err);
+        this.proc.on("error", (err: Error) => {
+            throw err;
         });
     }
 
     // internal function that separates out stdout into complete lines.
-    #getLines(stdoutData){
+    private getLines(stdoutData: string): void {
         // stdout data might have multiple lines, and the last line might be cut off.
         const lines = (this.broken + stdoutData).split("\n");
         if (!stdoutData.endsWith("\n") || lines[lines.length - 1] == "")
-            this.broken = lines.pop();
+            this.broken = lines.pop()!;
 
         for (const l of lines){
             const line = l.trim();
             this.log += `${line}\n`;
             this.onReadLine(line);
             if (this.promptPrefix && line.startsWith(this.promptPrefix)){
-                this.onPromptSuccess(line);
+                if (this.onPromptSuccess)
+                    this.onPromptSuccess(line);
                 clearTimeout(this.promptTimeout);
                 delete this.promptPrefix;
             }
@@ -57,7 +62,7 @@ export class EngineProcess {
     //
     // sends "cmd" to the engine and immediately waits for a response that begins with the given
     // prefix
-    prompt(cmd, prefix, timeoutMs = 5000){
+    public prompt(cmd: string, prefix: string, timeoutMs: number = 5000): Promise<string> {
         if (this.promptPrefix)
             throw new Error("EngineProcess: cannot prompt; currently responding to an earlier prompt");
         return new Promise((res, rej) => {
@@ -76,7 +81,7 @@ export class EngineProcess {
     }
 
     // kills the process. Must be run when done interacting with the EngineProcess instance.
-    stop(){
+    public stop(): void {
         if (this.proc){
             this.proc.kill();
             delete this.proc;
@@ -88,11 +93,11 @@ export class EngineProcess {
     // returns nothing, can error.
     // feeds the command cmd as the engine's input
     // errors if the process is not currently running
-    write(cmd){
+    public write(cmd: string): void {
         if (this.proc){
             const msg = `${cmd}\n`;
             this.log += ` > ${msg}`;
-            this.proc.stdin.write(msg);
+            this.proc?.stdin?.write(msg);
         }else{
             throw new Error("EngineProcess: cannot .write(cmd) when the engine process is not running");
         }
@@ -101,8 +106,8 @@ export class EngineProcess {
 
 // given a dir (path to a folder), returns all of the immediate children files that are .exe
 // returns a list of objects: { name, path }
-export function getEngines(dir){
-    const engines = [];
+export function getEngines(dir: string): Bot[] {
+    const engines: Bot[] = [];
     fs.readdirSync(dir).forEach(fileName => {
         console.log(fileName);
         // shoddy fix for linux

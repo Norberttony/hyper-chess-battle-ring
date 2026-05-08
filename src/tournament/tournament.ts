@@ -1,24 +1,83 @@
-
 import pathModule from "node:path";
-import fs from "node:fs";
-
-import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
-
+import fs, { PathLike } from "node:fs";
+import { extractHeaders, splitPGNs } from "hyper-chess-board/dist/pgn";
 import { buildStructure, isDirectory, readFiles } from "../utils/file.js";
-import { pentaSPRT } from "../stats/penta-sprt.js";
+import { Pentamonial, pentaSPRT } from "../stats/penta-sprt.js";
 import { testLLR } from "../stats/sprt.js";
-import { convertGameDataToPGN } from "./game-data.js";
+import { convertGameDataToPGN, GameData } from "./game-data.js";
+import { EngineProcess } from "./engine-process.js";
+import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn/pgn-data.js";
 
 // Directly deals with file management, player add/remove, results management, and logging to the
 // terminal.
 
-const defaultConfig = {
+export type ResultSymbol = "1-0" | "1/2-1/2" | "0-1" | "*";
+
+export type BotVsBotResult =  Pentamonial & { w: number, d: number, l: number };
+
+export interface HalfResult {
+    whiteName: string,
+    blackName: string,
+    result: ResultSymbol
+}
+
+export interface Bot {
+    name: string,
+    path: string
+}
+
+export interface ScheduledGame {
+    white: Bot,
+    black: Bot,
+    fen: string,
+    round: string
+}
+
+export interface TimeControl {
+    time: number,
+    inc: number
+}
+
+export interface ReadyGame {
+    white: Bot,
+    black: Bot,
+    w?: EngineProcess,
+    b?: EngineProcess,
+    fen: string,
+    round: string,
+    timeControl: TimeControl,
+    path: PathLike,
+    wdbgPath: PathLike,
+    bdbgPath: PathLike
+}
+
+export interface SprtConfig {
+    h0: number,
+    h1: number,
+    alpha: number,
+    beta: number
+}
+
+export interface TournamentConfig {
+    timeControl: {
+        time: number,
+        inc: number
+    },
+    players: Bot[],
+    sprt: SprtConfig
+}
+
+export interface TournamentData {
+    rounds: number
+}
+
+const defaultConfig: TournamentConfig = {
     timeControl: { time: 8000, inc: 80 },
     players: [],
     sprt: { h0: 0, h1: 10, alpha: 0.05, beta: 0.05 }
 };
 
-const tournamentStructure = {
+const tournamentDefaultFileStructure = {
     debug: {},
     games: {
         "00_compiled_games.pgn": ""
@@ -33,23 +92,28 @@ const tRoot = pathModule.join(".", "data", "tournaments");
 const globalPosPath = pathModule.join(".", "data", "positions.json");
 
 export class Tournament {
-    constructor(name){
-        this.name = name;
-        this.root = pathModule.join(tRoot, name);
+    private root: string;
+    private compiledPath: PathLike;
+
+    private positions: string[];
+    private config: TournamentConfig;
+    private data: TournamentData;
+
+    private results: Record<string, Record<string, BotVsBotResult>> = {};
+    // specifically for keeping track of pentamonial
+    private halfResults: Record<string, HalfResult> = {};
+
+    constructor(private name: string){
+        this.root = pathModule.join(tRoot, this.name);
 
         if (!fs.existsSync(this.root))
             fs.mkdirSync(this.root);
-        buildStructure(tournamentStructure, this.root);
+        buildStructure(tournamentDefaultFileStructure, this.root);
 
         // initialize positions.json if not there
         const posPath = pathModule.join(this.root, "positions.json");
         if (!fs.existsSync(posPath))
             fs.copyFileSync(globalPosPath, posPath);
-
-        this.results = {};
-
-        // specifically for keeping track of pentamonial
-        this.halfResults = {};
 
         this.positions = this.readPositions();
         this.config = this.readConfig();
@@ -57,7 +121,7 @@ export class Tournament {
 
         // read in the players
         for (const p of this.config.players)
-            this.#initPlayer(p);
+            this.initPlayer(p);
 
         // read in the games from a file
         this.compiledPath = pathModule.join(this.root, "games", "00_compiled_games.pgn");
@@ -66,7 +130,7 @@ export class Tournament {
             this.recordGame(pgn);
     }
 
-    static getTournamentNames(){
+    public static getTournamentNames(): string[] {
         const names = [];
         for (const name of fs.readdirSync(tRoot)){
             const path = pathModule.join(tRoot, name);
@@ -76,25 +140,25 @@ export class Tournament {
         return names;
     }
 
-    get timeControl(){
+    public get timeControl(){
         return this.config.timeControl;
     }
 
-    get players(){
+    public get players(){
         return this.config.players;
     }
 
-    get sprt(){
+    public get sprt(){
         return this.config.sprt;
     }
 
-    setTimeControl(time, inc){
+    public setTimeControl(time: number, inc: number): void {
         this.timeControl.time = time;
         this.timeControl.inc = inc;
         this.saveConfig();
     }
 
-    setSPRT(h0, h1, alpha, beta){
+    public setSPRT(h0: number, h1: number, alpha: number, beta: number): void {
         this.sprt.h0 = h0;
         this.sprt.h1 = h1;
         this.sprt.alpha = alpha;
@@ -102,77 +166,81 @@ export class Tournament {
         this.saveConfig();
     }
 
-    getGamePath(round){
+    public getName(): string {
+        return this.name;
+    }
+
+    public getGamePath(round: string): PathLike {
         return pathModule.join(this.root, "games", `${round}_game.pgn`);
     }
 
-    async getGame(round){
+    public async getGame(round: string): Promise<string[]> {
         const gamePath = this.getGamePath(round);
         const wdbgPath = this.getDebugPath(round, true);
         const bdbgPath = this.getDebugPath(round, false);
         return readFiles(gamePath, wdbgPath, bdbgPath);
     }
 
-    getDebugPath(round, isWhite){
+    public getDebugPath(round: string, isWhite: boolean): PathLike {
         return pathModule.join(this.root, "debug", `${round}_${isWhite ? "white" : "black"}.txt`);
     }
 
-    getNextRound(){
+    // to-do: this should probably be called "round uid" or just "game uid"
+    public getNextRound(): number {
         const r = ++this.data.rounds;
         this.saveData();
         return r;
     }
 
-    #readJSON(pathFromRoot){
+    private readJSON(pathFromRoot: string): any {
         return JSON.parse(fs.readFileSync(pathModule.join(this.root, pathFromRoot)).toString());
     }
 
-    #writeJSON(pathFromRoot, data){
+    public writeJSON(pathFromRoot: string, data: any): void {
         fs.writeFileSync(pathModule.join(this.root, pathFromRoot), JSON.stringify(data));
     }
 
-    readSchedule(){
-        return this.#readJSON("schedule.json");
+    public readSchedule(): ScheduledGame[] {
+        return this.readJSON("schedule.json");
     }
 
-    readPositions(){
-        return this.#readJSON("positions.json");
+    public readPositions(): string[] {
+        return this.readJSON("positions.json");
     }
 
-    readData(){
-        return this.#readJSON("data.json");
+    public readData(): TournamentData {
+        return this.readJSON("data.json");
     }
 
-    readConfig(){
-        return this.#readJSON("config.json");
+    public readConfig(): TournamentConfig {
+        return this.readJSON("config.json");
     }
 
-    writeSchedule(schedule){
-        this.#writeJSON("schedule.json", schedule);
+    public writeSchedule(schedule: ScheduledGame[]): void {
+        this.writeJSON("schedule.json", schedule);
     }
 
-    writePositions(positions){
-        this.#writeJSON("positions.json", positions);
+    public writePositions(positions: string[]): void {
+        this.writeJSON("positions.json", positions);
     }
 
-    saveConfig(){
-        this.#writeJSON("config.json", this.config);
+    public saveConfig(): void {
+        this.writeJSON("config.json", this.config);
     }
 
-    saveData(){
-        this.#writeJSON("data.json", this.data);
+    public saveData(): void {
+        this.writeJSON("data.json", this.data);
     }
 
-    getPlayerNames(){
+    public getPlayerNames(): string[] {
         const names = [];
         for (const { name } of this.players)
             names.push(name);
         return names;
     }
 
-    // expects { name, path }
     // Adds a player to the set of existing players.
-    addPlayer(engine){
+    public addPlayer(engine: Bot): void {
         // check if this player has already been added
         for (const { path } of this.players){
             if (path == engine.path)
@@ -180,11 +248,11 @@ export class Tournament {
         }
 
         this.players.push(engine);
-        this.#initPlayer(engine);
+        this.initPlayer(engine);
         this.saveConfig();
     }
 
-    removePlayerByName(name){
+    public removePlayerByName(name: string): void {
         for (let i = 0; i < this.players.length; i++){
             if (this.players[i].name == name){
                 this.players.splice(i, 1);
@@ -196,19 +264,19 @@ export class Tournament {
 
     // expects { name, path }
     // Initializes the player
-    #initPlayer(engine){
+    private initPlayer(engine: Bot): void {
         this.results[engine.name] = {};
     }
 
-    playedGame(gameData){
+    public playedGame(gameData: GameData): void {
         this.record(gameData.white.name, gameData.black.name, gameData.fen, gameData.result.result);
 
         const pgn = convertGameDataToPGN(gameData);
         fs.appendFileSync(this.compiledPath, "\n" + pgn + "\n");
     }
 
-    getEntry(name, oppName){
-        let entry = this.results[name][oppName];
+    public getEntry(name: string, oppName: string): BotVsBotResult {
+        let entry: BotVsBotResult = this.results[name][oppName];
         if (!entry){
             entry = { w: 0, d: 0, l: 0, ww: 0, wd: 0, dd: 0, ld: 0, ll: 0 };
             this.results[name][oppName] = entry;
@@ -216,7 +284,7 @@ export class Tournament {
         return entry;
     }
 
-    getWhiteScore(result){
+    public getWhiteScore(result: ResultSymbol): number {
         if (result == "1-0")
             return 1;
         else if (result == "1/2-1/2")
@@ -225,14 +293,14 @@ export class Tournament {
             return 0;
     }
 
-    recordGame(pgn){
-        const headers = extractHeaders(pgn);
-        this.record(headers.White, headers.Black, headers.FEN, headers.Result);
+    public recordGame(pgn: string): void {
+        const headers: PGNHeaders = extractHeaders(pgn);
+        this.record(headers.White!, headers.Black!, headers.FEN!, headers.Result! as ResultSymbol);
     }
 
-    record(whiteName, blackName, fen, result){
-        const entry = this.getEntry(whiteName, blackName);
-        const oppEntry = this.getEntry(blackName, whiteName);
+    private record(whiteName: string, blackName: string, fen: string, result: ResultSymbol){
+        const entry: BotVsBotResult = this.getEntry(whiteName, blackName);
+        const oppEntry: BotVsBotResult = this.getEntry(blackName, whiteName);
 
         const whitePoints = this.getWhiteScore(result);
 
@@ -278,15 +346,15 @@ export class Tournament {
         }
     }
 
-    getScoreAgainst(name, oppName){
-        const { w, d } = getEntry(name, oppName);
+    public getScoreAgainst(name: string, oppName: string): number {
+        const { w, d } = this.getEntry(name, oppName);
         return w + 0.5 * d;
     }
 
     // given the player name,
     // returns an object containing the score achieved by the player, and the maxScore the player
     // could have achieved: { score, maxScore }
-    getScore(name){
+    public getScore(name: string): { score: number, maxScore: number } {
         let score = 0;
         let maxScore = 0;
         for (const { w, d, l } of Object.values(this.results[name])){
@@ -296,7 +364,7 @@ export class Tournament {
         return { score, maxScore };
     }
 
-    getWDL(name){
+    public getWDL(name: string): { w: number, d: number, l: number } {
         const r = { w: 0, d: 0, l: 0 };
         for (const { w, d, l } of Object.values(this.results[name])){
             r.w += w;
@@ -306,8 +374,8 @@ export class Tournament {
         return r;
     }
 
-    getPenta(name){
-        const r = { ww: 0, wd: 0, dd: 0, ld: 0, ll: 0 };
+    public getPenta(name: string): Pentamonial {
+        const r: Pentamonial = { ww: 0, wd: 0, dd: 0, ld: 0, ll: 0 };
         for (const { ww, wd, dd, ld, ll } of Object.values(this.results[name])){
             r.ww += ww;
             r.wd += wd;
@@ -318,11 +386,11 @@ export class Tournament {
         return r;
     }
 
-    getPentaLLR({ ww, wd, dd, ld, ll }, elo0, elo1){
-        return pentaSPRT(ll, ld, dd, wd, ww, elo0, elo1);
+    public getPentaLLR({ ww, wd, dd, ld, ll }: Pentamonial, elo0: number, elo1: number): number {
+        return pentaSPRT({ ll, ld, dd, wd, ww }, elo0, elo1);
     }
 
-    logToTerminal(){
+    public logToTerminal(): void {
         const [ p1, p2 ] = this.players;
         console.log("\nSPRT Tournament");
         if (p1)
@@ -337,7 +405,7 @@ export class Tournament {
     }
 
     // logs a report to the terminal
-    report(){
+    public report(): void {
         const [ p1, p2 ] = this.players;
 
         if (!p1 || !p2)
@@ -345,7 +413,7 @@ export class Tournament {
 
         const { h0, h1, alpha, beta } = this.sprt;
         const { ll, ld, dd, wd, ww, w, d, l } = this.getEntry(p1.name, p2.name);
-        const llr = pentaSPRT(ll, ld, dd, wd, ww, h0, h1);
+        const llr = pentaSPRT({ ll, ld, dd, wd, ww }, h0, h1);
         const hyp = testLLR(llr, alpha, beta) || "inconclusive";
 
         console.log(`${w + d + l} games played`);

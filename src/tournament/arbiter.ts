@@ -1,22 +1,59 @@
 import { Worker } from "node:worker_threads";
+import { Bot, ReadyGame, ScheduledGame, TimeControl } from "./tournament";
+import { PathLike } from "node:fs";
+import { GameData } from "./game-data";
+
+interface NewGameMsg {
+    type: "newgame",
+    threadId?: number,
+    fen: string,
+    white: string,
+    black: string
+}
+
+interface MoveMsg {
+    type: "move",
+    threadId?: number,
+    lan: string,
+    wtime: number,
+    btime: number
+}
+
+interface ResultMsg {
+    type: "result",
+    threadId?: number,
+    data: GameData
+}
+
+export type ArbiterMessage = NewGameMsg | MoveMsg | ResultMsg;
 
 // Wrapper class that handles communicating to the match thread
 
 export class Arbiter {
-    constructor(event){
-        this.event = event;
+    private worker: Worker;
+    private game: ScheduledGame | undefined = undefined;
+    private killGame: () => void = () => 0;
+
+    // calls any functions about general game info
+    private gameListeners: ((msg: ArbiterMessage) => any)[] = [];
+
+    constructor(private event: string){
         this.worker = new Worker("./modules/tournament/match-worker.js", { workerData: { event } });
-
-        this.game = undefined;
-        this.killGame = () => 0;
-
-        // calls any functions about general game info
-        this.gameListeners = [];
     }
 
     // white and black are engine objects { name, path }
     // fen is a string
-    async playGame(scheduled, white, black, fen, round, timeControl, path, wdbgPath, bdbgPath){
+    async playGame(
+        scheduled: ScheduledGame,
+        white: Bot,
+        black: Bot,
+        fen: string,
+        round: string,
+        timeControl: TimeControl,
+        path: PathLike,
+        wdbgPath: PathLike,
+        bdbgPath: PathLike
+    ): Promise<ResultMsg> {
         if (this.game)
             throw new Error("Arbiter tried to play two games at once");
         console.log(`Starting game ${round}`);
@@ -29,7 +66,7 @@ export class Arbiter {
             this.killGame = () => rej("Game was stopped");
 
             // listens for when the game ends
-            const listener = (msg) => {
+            const listener = (msg: ArbiterMessage) => {
                 for (const g of this.gameListeners)
                     g(msg);
                 if (msg.type == "result"){
@@ -42,17 +79,17 @@ export class Arbiter {
             this.worker.addListener("message", listener);
 
             // starts the game on the worker thread
-            this.worker.postMessage(
-                { white, black, fen, round, timeControl, path, wdbgPath, bdbgPath });
+            const game: ReadyGame = { white, black, fen, round, timeControl, path, wdbgPath, bdbgPath };
+            this.worker.postMessage(game);
         });
     }
 
-    addGameListener(f){
+    public addGameListener(f: (msg: ArbiterMessage) => any){
         this.gameListeners.push(f);
     }
 
     // stops the current game being played
-    async stopGame(){
+    public async stopGame(){
         if (!this.game)
             return;
 
@@ -68,7 +105,11 @@ export class Arbiter {
     }
 
     // kills the thread used by the arbiter
-    async terminate(){
+    public async terminate(){
         await this.worker.terminate();
+    }
+
+    public getGame(): ScheduledGame | undefined {
+        return this.game;
     }
 }
