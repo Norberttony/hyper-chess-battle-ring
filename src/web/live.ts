@@ -1,7 +1,11 @@
+import { Server } from "socket.io";
+import { Scheduler } from "../tournament/scheduler";
+import { ArbiterMessage } from "../tournament/arbiter";
 
 export class LiveManager {
-    constructor(io){
-        this.io = io;
+    private messages: ArbiterMessage[][];
+
+    constructor(private io: Server){
         this.messages = [];
 
         io.on("connection", (socket) => {
@@ -17,13 +21,16 @@ export class LiveManager {
         });
     }
 
-    setScheduler(scheduler){
+    public setScheduler(scheduler: Scheduler): void {
         this.messages = [];
-        scheduler.addGameListener((msg) => this.#receiveMessage(msg));
+        scheduler.addGameListener((msg: ArbiterMessage) => this.receiveMessage(msg));
     }
 
-    #receiveMessage(msg){
+    private receiveMessage(msg: ArbiterMessage){
         const id = msg.threadId;
+        if (!id)
+            throw new Error("Expected threadId on received ArbiterMessage");
+
         if (!this.messages[id])
             this.messages[id] = [];
 

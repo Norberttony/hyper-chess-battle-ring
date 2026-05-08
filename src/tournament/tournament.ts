@@ -276,6 +276,10 @@ export class Tournament {
         fs.appendFileSync(this.compiledPath, "\n" + pgn + "\n");
     }
 
+    public getCompiledPath(): PathLike {
+        return this.compiledPath;
+    }
+
     public getEntry(name: string, oppName: string): BotVsBotResult {
         let entry: BotVsBotResult = this.results[name][oppName];
         if (!entry){

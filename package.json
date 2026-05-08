@@ -5,5 +5,8 @@
     "hyper-chess-board": "^0.2.4",
     "socket.io": "^4.8.1"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "^5.0.6"
+  }
 }

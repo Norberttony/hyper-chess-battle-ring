@@ -1,15 +1,11 @@
-
 import pathModule from "node:path";
 import fs from "node:fs";
 import http from "node:http";
-
 import express from "express";
 import { Server } from "socket.io";
-
 import { Tournament } from "../tournament/tournament.js";
 
-
-export function startWebServer(){
+export function startWebServer(): { server: http.Server, io: Server } {
     // create a web server so people can join and watch the games!
     const app = express();
     const server = http.createServer(app);
@@ -44,7 +40,7 @@ export function startWebServer(){
     app.get("/:tournament/games", (req, res) => {
         const tourn = new Tournament(req.params.tournament);
 
-        fs.readFile(tourn.compiledPath, (err, data) => {
+        fs.readFile(tourn.getCompiledPath(), (err, data) => {
             if (err){
                 console.error(err);
                 res.sendStatus(404);
