@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import pathModule from "node:path";
 import { ChildProcess, spawn } from "node:child_process";
-import { Bot } from "./tournament";
+import { Bot } from "./tournament.js";
 
 // Creates an engine process (wrapper class around a live executable) that is capable of feeding
 // input into the executable and returning output from the engine .exe file.
@@ -18,15 +18,10 @@ export class EngineProcess {
     // for prompt
     private promptPrefix: string | undefined;
     private onPromptSuccess: ((data: string) => any) | undefined;
-    private promptTimeout: NodeJS.Timeout | number;
+    private promptTimeout: NodeJS.Timeout | number = -1;
 
     constructor(public path: string, private onReadLine: (data: string) => any = () => 0){
         this.proc = spawn(path);
-
-        // for prompt
-        this.promptPrefix;
-        this.onPromptSuccess;
-        this.promptTimeout;
 
         this.proc.stdout?.on("data", (data) => {
             this.getLines(data.toString());

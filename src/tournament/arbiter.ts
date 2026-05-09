@@ -1,7 +1,7 @@
 import { Worker } from "node:worker_threads";
-import { Bot, ReadyGame, ScheduledGame, TimeControl } from "./tournament";
+import { Bot, ReadyGame, ScheduledGame, TimeControl } from "./tournament.js";
 import { PathLike } from "node:fs";
-import { GameData } from "./game-data";
+import { GameData } from "./game-data.js";
 
 interface NewGameMsg {
     type: "newgame",
@@ -38,7 +38,7 @@ export class Arbiter {
     private gameListeners: ((msg: ArbiterMessage) => any)[] = [];
 
     constructor(private event: string){
-        this.worker = new Worker("./modules/tournament/match-worker.js", { workerData: { event } });
+        this.worker = new Worker("./dist/tournament/match-worker.js", { workerData: { event } });
     }
 
     // white and black are engine objects { name, path }
@@ -97,7 +97,7 @@ export class Arbiter {
         // a new worker is created before terminating because otherwise there's effectively a
         // dangling pointer (ie. a reference to a terminated worker).
         const w = this.worker;
-        this.worker = new Worker("./modules/tournament/match-worker.js", {
+        this.worker = new Worker("./dist/tournament/match-worker.js", {
             workerData: { event: this.event }
         });
         this.killGame();

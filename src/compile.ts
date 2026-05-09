@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { splitPGNs, extractHeaders, extractMoves } from "hyper-chess-board/dist/pgn";
+import { splitPGNs, extractHeaders, extractMoves } from "hyper-chess-board/pgn";
 import { Board, SAN, StartingFEN } from "hyper-chess-board";
 
 // A script that helps in generating random bench suites for the engine.

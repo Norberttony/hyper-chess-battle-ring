@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { Scheduler } from "../tournament/scheduler";
-import { ArbiterMessage } from "../tournament/arbiter";
+import { Scheduler } from "../tournament/scheduler.js";
+import { ArbiterMessage } from "../tournament/arbiter.js";
 
 export class LiveManager {
     private messages: ArbiterMessage[][];
@@ -28,7 +28,7 @@ export class LiveManager {
 
     private receiveMessage(msg: ArbiterMessage){
         const id = msg.threadId;
-        if (!id)
+        if (id === undefined)
             throw new Error("Expected threadId on received ArbiterMessage");
 
         if (!this.messages[id])

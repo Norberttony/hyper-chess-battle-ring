@@ -1,5 +1,5 @@
 import { GameResult, Side } from "hyper-chess-board";
-import { ResultSymbol } from "../tournament/tournament";
+import { ResultSymbol } from "../tournament/tournament.js";
 
 export function getResultSymbol(result: GameResult): ResultSymbol {
     if (result.winner == Side.White)

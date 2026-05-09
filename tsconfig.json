@@ -1,6 +1,9 @@
 {
     "compilerOptions": {
         "outDir": "dist",
+        "rootDir": "src",
+        "moduleResolution": "nodenext",
+        "module": "nodenext",
         "allowJs": true,
         "strictNullChecks": true,
         "alwaysStrict": true,

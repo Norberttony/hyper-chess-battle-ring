@@ -142,7 +142,7 @@ async function tournamentDashboard(tourn: Tournament): Promise<void> {
     }
 }
 
-async function createTournament(){
+async function createTournament(): Promise<Tournament> {
     let name;
     while (!name){
         console.log("Enter a name for your tournament:");
@@ -158,14 +158,14 @@ async function createTournament(){
     return new Tournament(name);
 }
 
-function displayBench(){
+function displayBench(): void {
     console.log("\nBench:");
     for (const e of getEngines(benchDir))
         console.log(e.name);
     console.log("");
 }
 
-function displayBots(){
+function displayBots(): void {
     console.log("\nBots:");
     for (const e of getEngines(botsDir))
         console.log(e.name);

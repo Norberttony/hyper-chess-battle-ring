@@ -140,9 +140,9 @@ export class Scheduler {
             this.schedule.splice(this.schedule.indexOf(scheduled), 1);
             this.tournament.writeSchedule(this.schedule);
         }
-        catch(err){
+        catch(err: unknown){
             if (err != "Game was stopped")
-                throw new Error(err);
+                throw err;
         }
 
         if (!this.conclusion)

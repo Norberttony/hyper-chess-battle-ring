@@ -1,7 +1,7 @@
 import fs, { PathLike } from "node:fs";
 import { parentPort, workerData } from "node:worker_threads";
 import { Board, GameResult, LAN } from "hyper-chess-board";
-import { getPGNDateNow } from "hyper-chess-board/dist/pgn";
+import { getPGNDateNow } from "hyper-chess-board/pgn";
 import { EngineProcess } from "./engine-process.js";
 import { GameData, convertGameDataToPGN } from "./game-data.js";
 import { Bot, ReadyGame } from "./tournament.js";

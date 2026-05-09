@@ -1,8 +1,7 @@
-import { convertToPGN } from "hyper-chess-board/dist/pgn";
+import { convertToPGN } from "hyper-chess-board/pgn";
 import { Board, Move, StartingFEN, GameResult } from "hyper-chess-board";
-import { Bot, ResultSymbol, TimeControl } from "./tournament";
-import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn";
-import { getResultSymbol } from "../stats/result";
+import { Bot, ResultSymbol, TimeControl } from "./tournament.js";
+import { getResultSymbol } from "../stats/result.js";
 
 // This class operates as a struct, and can freely be passed around as JSON strings or between
 // workers/threads (since it has no methods that could get lost). Contains data regarding a

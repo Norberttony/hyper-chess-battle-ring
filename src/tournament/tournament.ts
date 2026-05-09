@@ -1,12 +1,11 @@
 import pathModule from "node:path";
 import fs, { PathLike } from "node:fs";
-import { extractHeaders, splitPGNs } from "hyper-chess-board/dist/pgn";
+import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 import { buildStructure, isDirectory, readFiles } from "../utils/file.js";
 import { Pentamonial, pentaSPRT } from "../stats/penta-sprt.js";
 import { testLLR } from "../stats/sprt.js";
 import { convertGameDataToPGN, GameData } from "./game-data.js";
 import { EngineProcess } from "./engine-process.js";
-import { PGNHeaders } from "hyper-chess-board/dist/graphics/pgn/pgn-data.js";
 import { getResultSymbol } from "../stats/result.js";
 
 // Directly deals with file management, player add/remove, results management, and logging to the
@@ -299,7 +298,7 @@ export class Tournament {
     }
 
     public recordGame(pgn: string): void {
-        const headers: PGNHeaders = extractHeaders(pgn);
+        const headers = extractHeaders(pgn);
         this.record(headers.White!, headers.Black!, headers.FEN!, headers.Result! as ResultSymbol);
     }
 
