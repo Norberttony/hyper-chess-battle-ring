@@ -1,5 +1,5 @@
 
-import { Piece } from "/board-modules/index.js";
+import { PieceType } from "/board-modules/dist/index.js";
 import { getGamePhase, getConstellation } from "./filters.js";
 
 
@@ -130,7 +130,7 @@ export class Heatmap_Pipe extends Pipe {
             for (let s = 0; s < 64; s++){
                 const v = board.squares[s];
                 if (v > 0)
-                    this.ctx.heatmap[s][Piece.ofColor(v, Piece.white) ? 0 : 1][Piece.getType(v)]++;
+                    this.ctx.heatmap[s][isPieceOfSide(v, Side.White) ? 0 : 1][getPieceType(v)]++;
             }
         }
     }

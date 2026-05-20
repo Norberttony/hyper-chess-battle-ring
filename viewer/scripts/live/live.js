@@ -22,6 +22,7 @@ socket.on("game", async (id, data) => {
         state.skeleton.addEventListener("click", () => {
             selectedId = id;
             // copy over all moves from state to gameState
+            console.log(state.pgnData);
             gameState.loadPGN(state.pgnData.toString());
         });
     }
@@ -61,9 +62,9 @@ module_loader.waitForAll()
         new AnnotatorWidget(gameState);
         new AnimationWidget(gameState);
         new AudioWidget(gameState);
-        new EngineWidget(gameState, WIDGET_LOCATIONS.RIGHT);
-        new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT);
-        new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM);
+        new EngineWidget(gameState, "Right");
+        new PGNWidget(gameState, "Right");
+        new ExtrasWidget(gameState, "Bottom");
         const players = new PlayersWidget(gameState);
 
         players.setNames("-", "-");

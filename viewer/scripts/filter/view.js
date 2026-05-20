@@ -38,8 +38,8 @@ const FILTERS_VIEW = {
     await module_loader.waitForAll();
     // populate the constellations filter
     const container = document.getElementsByClassName("filters__constellation")[0];
-    for (let i = Piece.king; i <= Piece.immobilizer; i++){
-        const pChar = PieceTypeToFEN[i];
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
+        const pChar = getFENCharFromPieceType(i);
         container.innerHTML += `<div class = "filters__const filters__const--type-${pChar}">
             <input type = "number" placeholder = "-">
             <button class = "filters__const-white board-graphics__piece board-graphics__piece--type-${pChar}"></button>
@@ -49,8 +49,8 @@ const FILTERS_VIEW = {
         </div>`;
     }
 
-    for (let i = Piece.king; i <= Piece.immobilizer; i++){
-        const filt = container.getElementsByClassName("filters__const")[i - Piece.king];
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
+        const filt = container.getElementsByClassName("filters__const")[i - PieceType.King];
         const inputs = filt.getElementsByTagName("input");
         const buttons = filt.getElementsByClassName("board-graphics__piece");
         const equalsButton = filt.getElementsByClassName("filters__const-equals")[0];
@@ -146,7 +146,7 @@ function updateCurrPage(page){
         // display result on each board
         const resDiv = document.createElement("div");
         resDiv.classList.add("board-graphics__result");
-        resDiv.innerText = gameData.result.result;
+        resDiv.innerText = getResultTag(gameData.result.winner);
         bg.boardDiv.appendChild(resDiv);
 
         // clicking on the board brings up the game
@@ -170,8 +170,9 @@ function applyFilters(){
     let hasConstellation = false;
 
     // fetching the user's chosen constellation takes a little more work...
-    for (let i = Piece.king; i <= Piece.immobilizer; i++){
-        const pChar = PieceASCII[i].toLowerCase();
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
+        const pChar = getFENCharFromPieceType(getPieceType(i));
+        console.log(pChar);
         const elem = document.getElementsByClassName(`filters__const--type-${pChar}`)[0];
 
         const w = elem.getAttribute("value-white");
@@ -210,7 +211,7 @@ function applyFilters(){
             if (term && v.result.termination != term)
                 return false;
 
-            if (res && v.result.result != res)
+            if (res && v.result.winner != getResultTag(res))
                 return false;
 
             if (hasConstellation){
@@ -222,15 +223,15 @@ function applyFilters(){
 
                 v.moveTo = ply;
 
-                if (v.result.result == "1/2-1/2")
+                if (v.result.winner == Side.None)
                     draws++;
                 else if (filtersModule.areConstellationSidesEqual(c[0], constellation[0])){
-                    if (v.result.result == "1-0")
+                    if (v.result.winner == Side.White)
                         wWins++;
                     else
                         bWins++;
                 }else{
-                    if (v.result.result == "0-1")
+                    if (v.result.winner == Side.Black)
                         wWins++;
                     else
                         bWins++;

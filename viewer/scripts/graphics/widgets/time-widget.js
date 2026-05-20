@@ -1,5 +1,5 @@
 
-import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.js";
+import { BoardWidget } from "/board-modules/dist/graphics/widgets/board-widget.js";
 
 
 export class TimeWidget extends BoardWidget {
@@ -9,12 +9,12 @@ export class TimeWidget extends BoardWidget {
         this.blackElem = prepareTimeElem("black");
         this.bTimeLeftElem = this.blackElem.getElementsByClassName("black-time-left")[0];
         this.bTimeSpentElem = this.blackElem.getElementsByClassName("black-time-spent")[0];
-        boardgfx.getWidgetElem(WIDGET_LOCATIONS.RIGHT_BLACK).appendChild(this.blackElem);
+        boardgfx.getWidgetContainer("Right_Black").appendChild(this.blackElem);
 
         this.whiteElem = prepareTimeElem("white");
         this.wTimeLeftElem = this.whiteElem.getElementsByClassName("white-time-left")[0];
         this.wTimeSpentElem = this.whiteElem.getElementsByClassName("white-time-spent")[0];
-        boardgfx.getWidgetElem(WIDGET_LOCATIONS.RIGHT_WHITE).appendChild(this.whiteElem);
+        boardgfx.getWidgetContainer("Right_White").appendChild(this.whiteElem);
 
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
             const { variation } = event.detail;
@@ -42,7 +42,7 @@ export class TimeWidget extends BoardWidget {
             if (variation.level - 1 >= 0){
                 const prev = this.timeData[variation.level - 1];
                 // determine amount of time spent on the move
-                if (this.boardgfx.state.turn == Piece.black)
+                if (this.boardgfx.turn == Side.Black)
                     this.wTimeSpentElem.innerText = timeToStr(prev.wtime - wtime + prev.winc);
                 else
                     this.bTimeSpentElem.innerText = timeToStr(prev.btime - btime + prev.binc);

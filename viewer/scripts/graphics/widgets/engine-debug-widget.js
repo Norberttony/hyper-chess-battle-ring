@@ -1,5 +1,5 @@
 
-import { BoardWidget } from "/board-modules/graphics/widgets/board-widget.js";
+import { BoardWidget } from "/board-modules/dist/graphics/widgets/board-widget.js";
 
 
 export class EngineDebugWidget extends BoardWidget {
@@ -14,7 +14,7 @@ export class EngineDebugWidget extends BoardWidget {
                 <textarea class = "engine-debug__txt"></textarea>
             </div>
         `;
-        boardgfx.getWidgetElem(location).appendChild(container);
+        boardgfx.getWidgetContainer(location).appendChild(container);
 
         this.debugElem = container.getElementsByClassName("engine-debug__txt")[0];
 
@@ -24,7 +24,7 @@ export class EngineDebugWidget extends BoardWidget {
             // ensure user is not testing out different moves
             if (variation.isMain()){
                 // find the analysis the engine made on this position
-                const dbg = boardgfx.state.turn == Piece.white ? this.whiteDebug : this.blackDebug;
+                const dbg = boardgfx.turn == Side.White ? this.whiteDebug : this.blackDebug;
 
                 // find where engine started analyzing
                 let analysisIdx = dbg.indexOf("position fen");

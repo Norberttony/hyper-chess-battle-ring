@@ -10,10 +10,10 @@ module_loader.waitForAll()
         new AnnotatorWidget(gameState);
         new AnimationWidget(gameState);
         new AudioWidget(gameState);
-        new EngineDebugWidget(gameState, WIDGET_LOCATIONS.LEFT);
-        new EngineWidget(gameState, WIDGET_LOCATIONS.RIGHT);
-        new PGNWidget(gameState, WIDGET_LOCATIONS.RIGHT);
-        new ExtrasWidget(gameState, WIDGET_LOCATIONS.BOTTOM);
+        new EngineDebugWidget(gameState, "Left");
+        new EngineWidget(gameState, "Right");
+        new PGNWidget(gameState, "Right");
+        new ExtrasWidget(gameState, "Bottom");
         new TimeWidget(gameState);
         const players = new PlayersWidget(gameState);
 

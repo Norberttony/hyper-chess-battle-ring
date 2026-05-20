@@ -63,9 +63,9 @@ async function prepareTournamentGames(tournamentName){
         if (!board.isGameOver() && headers.Result){
             let winner = 0;
             if (headers.Result == "1-0")
-                winner = Piece.white;
+                winner = Side.White;
             else if (headers.Result == "0-1")
-                winner = Piece.black;
+                winner = Side.Black;
             board.setResult(headers.Result, headers.Termination, winner);
         }
 

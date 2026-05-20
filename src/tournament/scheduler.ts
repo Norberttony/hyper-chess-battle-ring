@@ -59,7 +59,7 @@ export class Scheduler {
         }
     }
 
-    public addGameListener(listener: (msg: ArbiterMessage) => any){
+    public addGameListener(listener: (msg: ArbiterMessage) => any): void {
         this.gameListeners.push(listener);
     }
 
@@ -166,7 +166,7 @@ export class Scheduler {
         return this.unpickedSchedule.splice(0, 1)[0];
     }
 
-    checkForConclusion(){
+    public checkForConclusion(): void {
         // recalculating conclusion...
         delete this.conclusion;
 

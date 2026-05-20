@@ -1,6 +1,5 @@
 
-import { Piece } from "/board-modules/index.js";
-
+import { PieceType } from "/board-modules/dist/index.js";
 
 // searches the game for constellations that match whitePieces and blackPieces.
 // if an entry in whitePieces or blackPieces is undefined, that entry is checked for equality.
@@ -11,7 +10,7 @@ export function isBalance(game, whitePieces, blackPieces){
 
     for (const constellation of game.constellations.constellations){
         let isValid = true;
-        for (let i = Piece.king; i <= Piece.immobilizer; i++){
+        for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
             if (!whitePieces[i] || !blackPieces[i]){
                 if (constellation[0][i] != constellation[1][i]){
                     isValid = false;
@@ -33,7 +32,7 @@ export function isBalance(game, whitePieces, blackPieces){
 
 // expects s1 and s2 to each be only one side of the constellation
 export function areConstellationSidesEqual(s1, s2){
-    for (let i = Piece.king; i <= Piece.immobilizer; i++){
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
         if (s1[i] == undefined || s2[i] == undefined || s1[i] == "=" || s2[i] == "=")
             continue;
         if (s1[i] != s2[i])
@@ -51,7 +50,7 @@ export function findConstellation(game, constellation){
     for (const c of game.constellations.constellations){
         let isValid = true;
 
-        for (let i = Piece.king; i <= Piece.immobilizer; i++){
+        for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
             // check if both sides have an equal number of pieces
             if (c2[0][i] == "=" || c2[1][i] == "="){
                 if (c[0][i] != c[1][i]){
@@ -73,7 +72,7 @@ export function findConstellation(game, constellation){
         if (!isValid){
             isValid = true;
 
-            for (let i = Piece.king; i <= Piece.immobilizer; i++){
+            for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
                 // check if both sides have an equal number of pieces
                 if (c2[0][i] == "=" || c2[1][i] == "="){
                     if (c[0][i] != c[1][i]){
@@ -102,11 +101,12 @@ export function findConstellation(game, constellation){
 export function countByResult(games){
     const resultsCount = [ 0, 0, 0 ];
     for (const g of games){
-        if (g.result == "1-0")
+        const r = getResultTag(g.result);
+        if (r == "1-0")
             resultsCount[0]++;
-        else if (g.result == "1/2-1/2")
+        else if (r == "1/2-1/2")
             resultsCount[1]++;
-        else if (g.result == "0-1")
+        else if (r == "0-1")
             resultsCount[2]++;
     }
     return resultsCount;
@@ -129,17 +129,17 @@ export function getSum(games, path){
 export function getGamePhase(constellation){
     // max value is 65
     const pieceWeights = {
-        [Piece.straddler]: 0.75,
-        [Piece.king]: 0,
-        [Piece.retractor]: 1.5,
-        [Piece.springer]: 3,
-        [Piece.chameleon]: 4,
-        [Piece.coordinator]: 5,
-        [Piece.immobilizer]: 6
+        [PieceType.Straddler]: 0.75,
+        [PieceType.King]: 0,
+        [PieceType.Retractor]: 1.5,
+        [PieceType.Springer]: 3,
+        [PieceType.Chameleon]: 4,
+        [PieceType.Coordinator]: 5,
+        [PieceType.Immobilizer]: 6
     };
 
     let value = 0;
-    for (let i = Piece.king; i <= Piece.immobilizer; i++)
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++)
         value += pieceWeights[i] * (constellation[0][i] + constellation[1][i]);
 
     if (value >= 53){
@@ -158,8 +158,8 @@ export function getConstellation(board){
     let pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
     for (const p of board.squares){
         if (p){
-            const col = Piece.getColor(p) == Piece.white ? 0 : 1;
-            const typ = Piece.getType(p);
+            const col = getPieceSide(p) == Side.White ? 0 : 1;
+            const typ = getPieceType(p);
             pieceCounts[col][typ]++;
         }
     }

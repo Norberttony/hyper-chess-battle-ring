@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { Piece, Board, StartingFEN } from "hyper-chess-board";
+import { PieceType, Board, StartingFEN } from "hyper-chess-board";
 import { extractHeaders, splitPGNs } from "hyper-chess-board/pgn";
 
 {
@@ -32,8 +32,8 @@ function isPositionQuietAndEqual(board){
         if (board.isImmobilized(s, val))
             return false;
 
-        const type = Piece.getType(val);
-        const perspective = Piece.getColor(val) == Piece.white ? 1 : -1;
+        const type = getPieceType(val);
+        const perspective = getPieceSide(val) == Side.White ? 1 : -1;
 
         hasPiece[type] = true;
 
@@ -52,7 +52,7 @@ function isPositionQuietAndEqual(board){
         return false;
 
     // ensure there is at least 1 of each piece type
-    for (let i = Piece.king; i <= Piece.immobilizer; i++){
+    for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
         if (!hasPiece[i])
             return false;
     }
